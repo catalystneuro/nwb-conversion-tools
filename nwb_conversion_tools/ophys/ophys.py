@@ -1,6 +1,6 @@
 import numpy as np
 
-from pynwb.ophys import OpticalChannel, ImageSegmentation
+from pynwb.ophys import OpticalChannel, ImageSegmentation, TwoPhotonSeries
 from pynwb.device import Device
 
 from nwb_conversion_tools.converter import NWBConverter
@@ -16,7 +16,8 @@ class OphysNWBConverter(NWBConverter):
         self.nwbfile.add_device(device)
 
         self.imaging_plane = self.add_imaging_plane()
-        self.ophys_mod = self.nwbfile.create_processing_module('ophys', 'contains optical physiology processed data')
+        self.two_photon_series = self.create_two_photon_series()
+        self.ophys_mod = self.nwbfile.create_processing_module('Ophys', 'contains optical physiology processed data')
 
     def create_optical_channel(self, metadata=None):
 
@@ -53,6 +54,24 @@ class OphysNWBConverter(NWBConverter):
 
         return self.nwbfile.create_imaging_plane(**input_kwargs)
 
+    def create_two_photon_series(self, metadata=None, imaging_plane=None):
+        if imaging_plane is None:
+            if self.nwbfile.imaging_planes:
+                imaging_plane = self.nwbfile.imaging_planes[self.metadata['Ophys']['ImagingPlane']['name']]
+            else:
+                imaging_plane = self.add_imaging_plane()
+
+        input_kwargs = dict(
+            name='TwoPhotonSeries',
+            description='no description',
+            imaging_plane=imaging_plane
+        )
+
+        if metadata is None and 'Ophys' in self.metadata and 'TwoPhotonSeries' in self.metadata['Ophys']:
+            input_kwargs.update(self.metadata['Ophys']['TwoPhotonSeries'])
+
+        return self.nwbfile.add_acquisition(TwoPhotonSeries(**input_kwargs))
+
 
 class ProcessedOphysNWBConverter(OphysNWBConverter):
 
@@ -67,7 +86,8 @@ class ProcessedOphysNWBConverter(OphysNWBConverter):
         input_kwargs = dict(
             name='PlaneSegmentation',
             description='output from segmenting my favorite imaging plane',
-            imaging_plane=self.imaging_plane
+            imaging_plane=self.imaging_plane,
+            image_series=self.two_photon_series
         )
 
         if metadata:
