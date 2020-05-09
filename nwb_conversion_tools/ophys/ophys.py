@@ -1,6 +1,6 @@
 import numpy as np
 
-from pynwb.ophys import OpticalChannel, ImageSegmentation, TwoPhotonSeries
+from pynwb.ophys import OpticalChannel, ImageSegmentation, ImagingPlane
 from pynwb.device import Device
 
 from nwb_conversion_tools.converter import NWBConverter
@@ -12,11 +12,10 @@ class OphysNWBConverter(NWBConverter):
 
         super(OphysNWBConverter, self).__init__(metadata, nwbfile=nwbfile, source_paths=source_paths)
 
-        device = Device('microscope')
-        self.nwbfile.add_device(device)
-
-        self.imaging_plane = self.add_imaging_plane()
-        self.two_photon_series = self.create_two_photon_series()
+        # device = Device('microscope')
+        # self.nwbfile.add_device(device)
+        # self.imaging_plane = self.add_imaging_plane()
+        # self.two_photon_series = self.create_two_photon_series()
         self.ophys_mod = self.nwbfile.create_processing_module('Ophys', 'contains optical physiology processed data')
 
     def create_optical_channel(self, metadata=None):
@@ -30,7 +29,8 @@ class OphysNWBConverter(NWBConverter):
         if metadata is None and 'Ophys' in self.metadata and 'OpticalChannel' in self.metadata['Ophys']:
             metadata = self.metadata['Ophys']['OpticalChannel']
 
-        input_kwargs.update(metadata)
+        if metadata:
+            input_kwargs.update(metadata)
 
         return OpticalChannel(**input_kwargs)
 
@@ -38,13 +38,15 @@ class OphysNWBConverter(NWBConverter):
 
         if optical_channel is None:
             optical_channel = self.create_optical_channel()
-
+        else:
+            optical_channel = optical_channel
         input_kwargs = dict(
             name='ImagingPlane',
             optical_channel=optical_channel,
             description='no description',
-            device=self.devices[0],
+            device=self.devices[list(self.devices.keys())[0]],
             excitation_lambda=np.nan,
+            imaging_rate=1.0,
             indicator='unknown',
             location='unknown'
         )
