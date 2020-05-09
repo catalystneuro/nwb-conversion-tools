@@ -8,7 +8,7 @@ from datetime import datetime
 
 class Sima2NWB(ProcessedOphysNWBConverter):
 
-    def __init__(self, nwbfile, metadata, source_path):
+    def __init__(self, source_path, nwbfile, metadata):
         #TODO: add channel names from sima instead of default. Or should that be input from gui only? In all other extractors, its none anyway
         if isinstance(source_path,str):
             self.source_paths={'sima_folder': dict(type='folder', path=source_path)}
@@ -16,8 +16,9 @@ class Sima2NWB(ProcessedOphysNWBConverter):
             self.source_paths=source_path
         if isinstance(metadata,str):
             with open(metadata,'r') as f:
-                metadata = yaml.load(f, Loader=yaml.FullLoader)
-        self.sima_obj = SimaSegmentationExtractor(self.source_paths['sima_folder']['path'])
+                metadata = yaml.safe_load(f)
+        source_path_folder = list(self.source_paths.keys())[0]
+        self.sima_obj = SimaSegmentationExtractor(self.source_paths[source_path_folder]['path'])
         super().__init__(metadata,nwbfile,source_path)
         self.auto_create_dict = dict(imaging_plane=False,
                                      two_photon_series=True,
@@ -37,7 +38,8 @@ class Sima2NWB(ProcessedOphysNWBConverter):
             format='external',
             rate=self.sima_obj.get_sampling_frequency(),
             starting_time=0.0,
-            imaging_plane=imaging_plane
+            imaging_plane=imaging_plane,
+            starting_frame=[0]
         )
 
         if metadata is None and 'Ophys' in self.metadata and 'TwoPhotonSeries' in self.metadata['Ophys']:
@@ -79,18 +81,19 @@ class Sima2NWB(ProcessedOphysNWBConverter):
             metadata_iter = metadata
         else:
             metadata_iter = self.metadata['Ophys']['DFOverF']['roi_response_series']
+            metadata_iter[0].update(
+                {'rois':self.create_roi_table_region(list(range(self.sima_obj.image_masks.shape[-1])))})
         fl = Fluorescence()
         self.ophys_mod.add_data_interface(fl)
         for i in metadata_iter:
             input_kwargs.update(**i)
             input_kwargs.update(
-                # data=DataChunkIterator(data=iter_datasetvieww(self.sima_obj.roi_response))
-                data = self.sima_obj.roi_response
+                data=DataChunkIterator(data=iter_datasetvieww(self.sima_obj.roi_response))
             )
             fl.create_roi_response_series(**input_kwargs)
 
-    def create_roi_table_region(self, rois):
-        return self.plane_segmentation.create_roi_table_region('NeuronROIs', region=rois)
+    def create_roi_table_region(self, rois, region_name= 'NeuronROIs'):
+        return self.plane_segmentation.create_roi_table_region(region_name, region=rois)
 
     def run_conversion(self):
         """
