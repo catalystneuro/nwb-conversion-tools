@@ -138,7 +138,7 @@
     },
     "Ophys": {
       "type": "object",
-      "required": ["Devices"],
+      "required": ["Device"],
       "properties": {
         "Devices": {"$ref": "#/definitions/Devices"},
         "DFOverF": {
@@ -221,9 +221,10 @@
           "items": {
             "title": "TwoPhotonSeries",
             "type": "object",
-            "$ref":  "#/definitions/TimeSeries",
             "required": ["name", "description"],
             "properties": {
+              "name": {"type": "string", "default": "TwoPhotonSeries"},
+              "description": {"type": "string"},
               "imaging_plane": {"type": "string"},
               "format": {
                 "type": "string",
@@ -340,11 +341,7 @@
       "type": "object",
       "allOf": [{"$ref": "#/definitions/TimeSeries"}],
       "properties": {
-        "rois": {
-          "type": "array",
-          "description": "Integer value of ROIs that belong to this region",
-          "items": {"type": "integer"}
-        }
+        "rois": {"type": "string", "description": "Name of a PlaneSegmentation"}
       }
     }
   }
