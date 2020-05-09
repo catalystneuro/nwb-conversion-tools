@@ -50,27 +50,12 @@ class OphysNWBConverter(NWBConverter):
         )
 
         if metadata is None and 'Ophys' in self.metadata and 'ImagingPlane' in self.metadata['Ophys']:
-            input_kwargs.update(self.metadata['Ophys']['ImagingPlane'])
+            metadata = self.metadata['Ophys']['ImagingPlane']
+        if metadata:
+            input_kwargs.update(metadata)
+        self.nwbfile.add_imaging_plane(ImagingPlane(**input_kwargs))
 
-        return self.nwbfile.create_imaging_plane(**input_kwargs)
-
-    def create_two_photon_series(self, metadata=None, imaging_plane=None):
-        if imaging_plane is None:
-            if self.nwbfile.imaging_planes:
-                imaging_plane = self.nwbfile.imaging_planes[self.metadata['Ophys']['ImagingPlane']['name']]
-            else:
-                imaging_plane = self.add_imaging_plane()
-
-        input_kwargs = dict(
-            name='TwoPhotonSeries',
-            description='no description',
-            imaging_plane=imaging_plane
-        )
-
-        if metadata is None and 'Ophys' in self.metadata and 'TwoPhotonSeries' in self.metadata['Ophys']:
-            input_kwargs.update(self.metadata['Ophys']['TwoPhotonSeries'])
-
-        return self.nwbfile.add_acquisition(TwoPhotonSeries(**input_kwargs))
+        return self.nwbfile.get_imaging_plane(name=input_kwargs['name'])
 
 
 class ProcessedOphysNWBConverter(OphysNWBConverter):
