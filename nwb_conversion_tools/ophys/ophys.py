@@ -66,19 +66,20 @@ class ProcessedOphysNWBConverter(OphysNWBConverter):
         self.image_segmentation = ImageSegmentation()
         self.ophys_mod.add_data_interface(self.image_segmentation)
 
-    def create_plane_segmentation(self, metadata):
+    def create_plane_segmentation(self, metadata=None):
 
         input_kwargs = dict(
             name='PlaneSegmentation',
             description='output from segmenting my favorite imaging plane',
-            imaging_plane=self.imaging_plane,
-            image_series=self.two_photon_series
+            imaging_plane=self.imaging_plane
         )
 
         if metadata:
             input_kwargs.update(metadata)
-        elif 'Ophys' in self.metadata and 'PlaneSegmentation' in self.metadata['Ophys']:
-            input_kwargs.update(self.metadata['Ophys']['PlaneSegmentation'])
+        elif 'Ophys' in self.metadata and 'PlaneSegmentation' in self.metadata['Ophys']['ImageSegmentation']:
+            metadata = self.metadata['Ophys']['ImageSegmentation']['PlaneSegmentation']
+        if metadata:
+            input_kwargs.update(metadata)
 
         self.plane_segmentation = self.image_segmentation.create_plane_segmentation(**input_kwargs)
 
