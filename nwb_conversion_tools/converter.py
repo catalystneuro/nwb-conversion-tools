@@ -37,8 +37,8 @@ class NWBConverter:
         # add devices
         self.devices = dict()
         for domain in ('Icephys', 'Ecephys', 'Ophys'):
-            if domain in metadata and 'Device' in metadata[domain]:
-                self.devices.update(self.create_devices(metadata[domain]['Device']))
+            if domain in metadata and 'Devices' in metadata[domain]:
+                self.devices.update(self.create_devices(metadata[domain]['Devices']))
 
         if 'Ecephys' in metadata:
             if 'ElectrodeGroup' in metadata['Ecephys']:
