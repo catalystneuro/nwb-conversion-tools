@@ -141,7 +141,7 @@
       "required": ["Device"],
       "properties": {
         "Devices": {"$ref": "#/definitions/Devices"},
-        "DFOverF": {
+        "DfOverF": {
           "type": "object",
           "required": ["name"],
           "properties": {

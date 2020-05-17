@@ -446,459 +446,82 @@ class GroupMotionCorrection(QGroupBox):
         self.combo_corrected_images_stacks.addItem(metadata['corrected_images_stacks'])
 
 
-class GroupPlaneSegmentation(QGroupBox):
+class GroupPlaneSegmentation(BasicFormFixed):
     def __init__(self, parent, metadata=None):
         """Groupbox for pynwb.ophys.PlaneSegmentation fields filling form."""
-        super().__init__()
-        self.setTitle('PlaneSegmentation')
-        self.parent = parent
-        self.group_type = 'PlaneSegmentation'
-        if metadata is None:
-            metadata = dict()
+        super().__init__(parent=parent, pynwb_class=pynwb.ophys.PlaneSegmentation, metadata=metadata)
 
-        self.lbl_name = QLabel('name<span style="color:'+required_asterisk_color+';">*</span>:')
-        if 'name' in metadata:
-            self.form_name = QLineEdit(metadata['name'])
-        else:
-            self.form_name = QLineEdit('PlaneSegmentation')
-        self.form_name.setToolTip("The name of this PlaneSegmentation.")
-
-        self.lbl_description = QLabel('description<span style="color:'+required_asterisk_color+';">*</span>:')
-        if 'description' in metadata:
-            self.form_description = QLineEdit(metadata['description'])
-        else:
-            self.form_description = QLineEdit('ADDME')
-        self.form_description.setToolTip(
-            "Description of image plane, recording wavelength, depth, etc.")
-
-        self.lbl_imaging_plane = QLabel('imaging_plane<span style="color:'+required_asterisk_color+';">*</span>:')
-        self.combo_imaging_plane = CustomComboBox()
-        self.combo_imaging_plane.setToolTip("The ImagingPlane this ROI applies to.")
-
-        self.lbl_reference_images = QLabel('reference_images:')
-        self.chk_reference_images = QCheckBox("Get from source file")
-        if 'reference_images' in metadata:
-            self.chk_reference_images.setChecked(metadata['reference_images'])
-        else:
-            self.chk_reference_images.setChecked(False)
-        self.chk_reference_images.setToolTip(
-            "One or more image stacks that the masks apply to (can be oneelement stack).\n"
-            "Check box if this data will be retrieved from source file.\n"
-            "Uncheck box to ignore it.")
-
-        self.grid = QGridLayout()
-        self.grid.setColumnStretch(2, 1)
-        self.grid.addWidget(self.lbl_name, 0, 0, 1, 2)
-        self.grid.addWidget(self.form_name, 0, 2, 1, 4)
-        self.grid.addWidget(self.lbl_description, 1, 0, 1, 2)
-        self.grid.addWidget(self.form_description, 1, 2, 1, 4)
-        self.grid.addWidget(self.lbl_imaging_plane, 2, 0, 1, 2)
-        self.grid.addWidget(self.combo_imaging_plane, 2, 2, 1, 4)
-        self.grid.addWidget(self.lbl_reference_images, 4, 0, 1, 2)
-        self.grid.addWidget(self.chk_reference_images, 4, 2, 1, 2)
-        self.setLayout(self.grid)
-
-    def refresh_objects_references(self, metadata=None):
-        """Refreshes references with existing objects in parent group."""
-        self.combo_imaging_plane.clear()
-        for grp in self.parent.parent.groups_list:
-            # Adds all existing ImagingPlanes to combobox
-            if isinstance(grp, GroupImagingPlane):
-                self.combo_imaging_plane.addItem(grp.form_name.text())
-        # If metadata is referring to this specific object, update combobox item
-        if metadata['name'] == self.form_name.text():
-            self.combo_imaging_plane.setCurrentText(metadata['imaging_plane'])
-
-    def read_fields(self):
-        """Reads fields and returns them structured in a dictionary."""
-        data = {}
-        data['name'] = self.form_name.text()
-        data['description'] = self.form_description.text()
-        data['imaging_plane'] = self.combo_imaging_plane.currentText()
-        if self.chk_reference_images.isChecked():
-            data['reference_images'] = True
-        return data
-
-    def write_fields(self, metadata={}):
-        """Reads structured dictionary and write in form fields."""
-        self.form_name.setText(metadata['name'])
-        if 'description' in metadata:
-            self.form_description.setText(metadata['description'])
-        self.combo_imaging_plane.clear()
-        self.combo_imaging_plane.addItem(metadata['imaging_plane'])
+    def fields_info_update(self):
+        """Updates fields info with specific fields from the inheriting class."""
+        specific_fields = [
+            {'name': 'imaging_planes',
+             'type': 'link',
+             'class': 'ImagingPlane',
+             'required': True,
+             'doc': 'the ImagingPlane this ROI applies to'},
+        ]
+        self.fields_info.extend(specific_fields)
 
 
-#class GroupImageSegmentation(QGroupBox):
-class GroupImageSegmentation(CollapsibleBox):
-    def __init__(self, parent):
+class GroupImageSegmentation(BasicFormCollapsible):
+    def __init__(self, parent, metadata=None):
         """Groupbox for pynwb.ophys.ImageSegmentation fields filling form."""
-        super().__init__(title='ImageSegmentation', parent=parent)
-        #self.setTitle('ImageSegmentation')
-        self.parent = parent
-        self.group_type = 'ImageSegmentation'
-        self.groups_list = []
+        super().__init__(parent=parent, pynwb_class=pynwb.ophys.ImageSegmentation, metadata=metadata)
 
-        self.lbl_name = QLabel('name<span style="color:'+required_asterisk_color+';">*</span>:')
-        self.form_name = QLineEdit('ImageSegmentation')
-        self.form_name.setToolTip("The name of this ImageSegmentation.")
-
-        self.lbl_plane_segmentations = QLabel('plane_segmentations:')
-        self.plane_segmentations_layout = QVBoxLayout()
-        self.plane_segmentations = QGroupBox()
-        self.plane_segmentations.setLayout(self.plane_segmentations_layout)
-
-        self.grid = QGridLayout()
-        self.grid.setColumnStretch(2, 1)
-        self.grid.addWidget(self.lbl_name, 0, 0, 1, 2)
-        self.grid.addWidget(self.form_name, 0, 2, 1, 4)
-        self.grid.addWidget(self.lbl_plane_segmentations, 1, 0, 1, 2)
-        self.grid.addWidget(self.plane_segmentations, 1, 2, 1, 4)
-        #self.setLayout(self.grid)
-
-    def refresh_objects_references(self, metadata=None):
-        """Refreshes references with existing objects in parent group."""
-        if metadata is None:
-            metadata = {}
-        for child in self.groups_list:
-            # Get metadata corresponding to this specific child
-            if 'plane_segmentations' in metadata:
-                submeta = [sub for sub in metadata['plane_segmentations']
-                           if sub['name'] == child.form_name.text()][0]
-            else:
-                submeta = metadata
-            child.refresh_objects_references(metadata=submeta)
-
-    def read_fields(self):
-        """Reads fields and returns them structured in a dictionary."""
-        data = {}
-        data['name'] = self.form_name.text()
-        data['plane_segmentations'] = []
-        nItems = self.plane_segmentations_layout.count()
-        for i in range(nItems):
-            item = self.plane_segmentations_layout.itemAt(i).widget()
-            data['plane_segmentations'].append(item.read_fields())
-        return data
-
-    def write_fields(self, metadata={}):
-        """Reads structured dictionary and write in form fields."""
-        self.form_name.setText(metadata['name'])
-        nItems = self.plane_segmentations_layout.count()
-        for ind, sps in enumerate(metadata['plane_segmentations']):
-            if ind >= nItems:
-                item = GroupPlaneSegmentation(self, metadata=sps)
-                self.groups_list.append(item)
-                self.plane_segmentations_layout.addWidget(item)
-        self.setContentLayout(self.grid)
+    def fields_info_update(self):
+        """Updates fields info with specific fields from the inheriting class."""
+        specific_fields = [
+            {'name': 'plane_segmentations',
+             'type': 'group',
+             'class': 'PlaneSegmentation',
+             'required': True,
+             'doc': 'PlaneSegmentation to store in this interface'},
+        ]
+        self.fields_info.extend(specific_fields)
 
 
-class GroupRoiResponseSeries(QGroupBox):
+class GroupRoiResponseSeries(BasicFormFixed):
     def __init__(self, parent, metadata=None):
         """Groupbox for pynwb.ophys.RoiResponseSeries fields filling form."""
-        super().__init__()
-        self.setTitle('RoiResponseSeries')
-        self.parent = parent
-        self.group_type = 'RoiResponseSeries'
-        if metadata is None:
-            metadata = dict()
+        super().__init__(parent=parent, pynwb_class=pynwb.ophys.RoiResponseSeries, metadata=metadata)
 
-        self.lbl_name = QLabel('name<span style="color:'+required_asterisk_color+';">*</span>:')
-        if 'name' in metadata:
-            self.form_name = QLineEdit(metadata['name'])
-        else:
-            self.form_name = QLineEdit('RoiResponseSeries')
-        self.form_name.setToolTip("The name of this RoiResponseSeries dataset.")
-
-        self.lbl_unit = QLabel('unit<span style="color:'+required_asterisk_color+';">*</span>:')
-        if 'unit' in metadata:
-            self.form_unit = QLineEdit(metadata['unit'])
-        else:
-            self.form_unit = QLineEdit('NA')
-        self.form_unit.setToolTip("The base unit of measurement (should be SI unit)")
-
-        self.lbl_rois = QLabel('rois<span style="color:'+required_asterisk_color+';">*</span>:')
-        self.chk_rois = QCheckBox("Get from source file")
-        if 'rois' in metadata:
-            self.chk_rois.setChecked(metadata['rois'])
-        else:
-            self.chk_rois.setChecked(True)
-        self.chk_rois.setToolTip(
-            "A table region corresponding to the ROIs that were used to generate this data.\n"
-            "Check box if this data will be retrieved from source file.\n"
-            "Uncheck box to ignore it.")
-
-        self.lbl_resolution = QLabel('resolution:')
-        if 'resolution' in metadata:
-            self.form_resolution = QLineEdit(metadata['resolution'])
-        else:
-            self.form_resolution = QLineEdit('')
-        self.form_resolution.setPlaceholderText("1.0")
-        self.form_resolution.setToolTip(
-            "The smallest meaningful difference (in specified unit) between values in data")
-
-        self.lbl_conversion = QLabel('conversion:')
-        if 'conversion' in metadata:
-            self.form_conversion = QLineEdit(metadata['conversion'])
-        else:
-            self.form_conversion = QLineEdit('')
-        self.form_conversion.setPlaceholderText("1.0")
-        self.form_conversion.setToolTip("Scalar to multiply each element by to convert to volts")
-
-        self.lbl_timestamps = QLabel("timestamps:")
-        self.chk_timestamps = QCheckBox("Get from source file")
-        if 'timestamps' in metadata:
-            self.chk_timestamps.setChecked(metadata['timestamps'])
-        else:
-            self.chk_timestamps.setChecked(False)
-        self.chk_timestamps.setToolTip(
-            "Timestamps for samples stored in data.\n"
-            "Check box if this data will be retrieved from source file."
-            "\nUncheck box to ignore it.")
-
-        self.lbl_starting_time = QLabel("starting_time:")
-        self.chk_starting_time = QCheckBox("Get from source file")
-        if 'starting_time' in metadata:
-            self.chk_starting_time.setChecked(metadata['starting_time'])
-        else:
-            self.chk_starting_time.setChecked(False)
-        self.chk_starting_time.setToolTip(
-            "The timestamp of the first sample.\n"
-            "Check box if this data will be retrieved from source file."
-            "\nUncheck box to ignore it.")
-
-        self.lbl_rate = QLabel("rate:")
-        self.chk_rate = QCheckBox("Get from source file")
-        if 'rate' in metadata:
-            self.chk_rate.setChecked(metadata['rate'])
-        else:
-            self.chk_rate.setChecked(False)
-        self.chk_rate.setToolTip(
-            "Sampling rate in Hz.\n"
-            "Check box if this data will be retrieved from source file."
-            "\nUncheck box to ignore it.")
-
-        self.lbl_comments = QLabel("comments:")
-        if 'comments' in metadata:
-            self.form_comments = QLineEdit(metadata['comments'])
-        else:
-            self.form_comments = QLineEdit("")
-        self.form_comments.setPlaceholderText("comments")
-        self.form_comments.setToolTip("Human-readable comments about this TimeSeries dataset")
-
-        self.lbl_description = QLabel("description:")
-        if 'description' in metadata:
-            self.form_description = QLineEdit(metadata['description'])
-        else:
-            self.form_description = QLineEdit("")
-        self.form_description.setPlaceholderText("description")
-        self.form_description.setToolTip("Description of this TimeSeries dataset")
-
-        self.lbl_control = QLabel("control:")
-        self.chk_control = QCheckBox("Get from source file")
-        if 'control' in metadata:
-            self.chk_control.setChecked(metadata['control'])
-        else:
-            self.chk_control.setChecked(False)
-        self.chk_control.setToolTip(
-            "Numerical labels that apply to each element in data.\n"
-            "Check box if this data will be retrieved from source file."
-            "\nUncheck box to ignore it.")
-
-        self.lbl_control_description = QLabel("control_description:")
-        self.chk_control_description = QCheckBox("Get from source file")
-        if 'control_description' in metadata:
-            self.chk_control_description.setChecked(metadata['control_description'])
-        else:
-            self.chk_control_description.setChecked(False)
-        self.chk_control_description.setToolTip(
-            "Description of each control value.\n"
-            "Check box if this data will be retrieved from source file."
-            "\nUncheck box to ignore it.")
-
-        self.grid = QGridLayout()
-        self.grid.setColumnStretch(2, 1)
-        self.grid.addWidget(self.lbl_name, 0, 0, 1, 2)
-        self.grid.addWidget(self.form_name, 0, 2, 1, 4)
-        self.grid.addWidget(self.lbl_unit, 2, 0, 1, 2)
-        self.grid.addWidget(self.form_unit, 2, 2, 1, 4)
-        self.grid.addWidget(self.lbl_rois, 3, 0, 1, 2)
-        self.grid.addWidget(self.chk_rois, 3, 2, 1, 2)
-        self.grid.addWidget(self.lbl_resolution, 4, 0, 1, 2)
-        self.grid.addWidget(self.form_resolution, 4, 2, 1, 4)
-        self.grid.addWidget(self.lbl_conversion, 5, 0, 1, 2)
-        self.grid.addWidget(self.form_conversion, 5, 2, 1, 4)
-        self.grid.addWidget(self.lbl_timestamps, 6, 0, 1, 2)
-        self.grid.addWidget(self.chk_timestamps, 6, 2, 1, 2)
-        self.grid.addWidget(self.lbl_starting_time, 7, 0, 1, 2)
-        self.grid.addWidget(self.chk_starting_time, 7, 2, 1, 2)
-        self.grid.addWidget(self.lbl_rate, 8, 0, 1, 2)
-        self.grid.addWidget(self.chk_rate, 8, 2, 1, 2)
-        self.grid.addWidget(self.lbl_comments, 9, 0, 1, 2)
-        self.grid.addWidget(self.form_comments, 9, 2, 1, 4)
-        self.grid.addWidget(self.lbl_description, 10, 0, 1, 2)
-        self.grid.addWidget(self.form_description, 10, 2, 1, 4)
-        self.grid.addWidget(self.lbl_control, 11, 0, 1, 2)
-        self.grid.addWidget(self.chk_control, 11, 2, 1, 2)
-        self.grid.addWidget(self.lbl_control_description, 12, 0, 1, 2)
-        self.grid.addWidget(self.chk_control_description, 12, 2, 1, 2)
-        self.setLayout(self.grid)
-
-    def refresh_objects_references(self, metadata=None):
-        """Refreshes references with existing objects in parent group."""
+    def fields_info_update(self):
+        """Updates fields info with specific fields from the inheriting class."""
         pass
 
-    def read_fields(self):
-        """Reads fields and returns them structured in a dictionary."""
-        data = {}
-        data['name'] = self.form_name.text()
-        data['unit'] = self.form_unit.text()
-        if self.chk_rois.isChecked():
-            data['rois'] = True
-        try:
-            data['resolution'] = float(self.form_resolution.text())
-        except ValueError as error:
-            print(error)
-        try:
-            data['conversion'] = float(self.form_conversion.text())
-        except ValueError as error:
-            print(error)
-        if self.chk_timestamps.isChecked():
-            data['timestamps'] = True
-        if self.chk_starting_time.isChecked():
-            data['starting_time'] = True
-        if self.chk_rate.isChecked():
-            data['rate'] = True
-        data['comments'] = self.form_comments.text()
-        data['description'] = self.form_description.text()
-        if self.chk_control.isChecked():
-            data['control'] = True
-        if self.chk_control_description.isChecked():
-            data['control_description'] = True
-        return data
 
-    def write_fields(self, data={}):
-        """Reads structured dictionary and write in form fields."""
-        self.form_name.setText(metadata['name'])
-        if 'unit' in metadata:
-            self.form_unit.setText(metadata['unit'])
-        if 'resolution' in metadata:
-            self.form_resolution.setText(str(metadata['resolution']))
-        if 'conversion' in metadata:
-            self.form_conversion.setText(str(metadata['conversion']))
-        if 'timestamps' in metadata:
-            self.chk_timestamps.setChecked(True)
-        if 'starting_time' in metadata:
-            self.chk_starting_time.setChecked(True)
-        if 'rate' in metadata:
-            self.chk_rate.setChecked(True)
-        if 'comments' in metadata:
-            self.form_comments.setText(metadata['comments'])
-        if 'description' in metadata:
-            self.form_description.setText(metadata['description'])
-
-
-#class GroupDfOverF(QGroupBox):
-class GroupDfOverF(CollapsibleBox):
-    def __init__(self, parent):
+class GroupDfOverF(BasicFormCollapsible):
+    def __init__(self, parent, metadata=None):
         """Groupbox for pynwb.ophys.DfOverF fields filling form."""
-        super().__init__(title='DfOverF', parent=parent)
-        #self.setTitle('DfOverF')
-        self.parent = parent
-        self.group_type = 'DfOverF'
-        self.groups_list = []
+        super().__init__(parent=parent, pynwb_class=pynwb.ophys.DfOverF, metadata=metadata)
 
-        self.lbl_name = QLabel('name<span style="color:'+required_asterisk_color+';">*</span>:')
-        self.form_name = QLineEdit('DfOverF')
-        self.form_name.setToolTip("The name of this DfOverF.")
-
-        self.lbl_roi_response_series = QLabel('roi_response_series:')
-        self.roi_response_series_layout = QVBoxLayout()
-        self.roi_response_series = QGroupBox()
-        self.roi_response_series.setLayout(self.roi_response_series_layout)
-
-        self.grid = QGridLayout()
-        self.grid.setColumnStretch(2, 1)
-        self.grid.addWidget(self.lbl_name, 0, 0, 1, 2)
-        self.grid.addWidget(self.form_name, 0, 2, 1, 4)
-        self.grid.addWidget(self.lbl_roi_response_series, 1, 0, 1, 2)
-        self.grid.addWidget(self.roi_response_series, 1, 2, 1, 4)
-        self.setLayout(self.grid)
-
-    def refresh_objects_references(self, metadata=None):
-        """Refreshes references with existing objects in parent group."""
-        pass
-
-    def read_fields(self):
-        """Reads fields and returns them structured in a dictionary."""
-        data = {}
-        data['name'] = self.form_name.text()
-        data['roi_response_series'] = []
-        nItems = self.roi_response_series_layout.count()
-        for i in range(nItems):
-            item = self.roi_response_series_layout.itemAt(i).widget()
-            data['roi_response_series'].append(item.read_fields())
-        return data
-
-    def write_fields(self, metadata={}):
-        """Reads structured dictionary and write in form fields."""
-        self.form_name.setText(metadata['name'])
-        nItems = self.roi_response_series_layout.count()
-        for ind, rrs in enumerate(metadata['roi_response_series']):
-            if ind >= nItems:
-                item = GroupRoiResponseSeries(self, metadata=rrs)
-                self.groups_list.append(item)
-                self.roi_response_series_layout.addWidget(item)
-        self.setContentLayout(self.grid)
+    def fields_info_update(self):
+        """Updates fields info with specific fields from the inheriting class."""
+        specific_fields = [
+            {'name': 'roi_response_series',
+             'type': 'group',
+             'class': 'RoiResponseSeries',
+             'required': True,
+             'doc': 'RoiResponseSeries to store in this interface'},
+        ]
+        self.fields_info.extend(specific_fields)
 
 
-class GroupFluorescence(QGroupBox):
-    def __init__(self, parent):
+class GroupFluorescence(BasicFormCollapsible):
+    def __init__(self, parent, metadata=None):
         """Groupbox for pynwb.ophys.Fluorescence fields filling form."""
-        super().__init__()
-        self.setTitle('Fluorescence')
-        self.parent = parent
-        self.group_type = 'Fluorescence'
+        super().__init__(parent=parent, pynwb_class=pynwb.ophys.Fluorescence, metadata=metadata)
 
-        self.lbl_name = QLabel('name<span style="color:'+required_asterisk_color+';">*</span>:')
-        self.form_name = QLineEdit('Fluorescence')
-        self.form_name.setToolTip("The name of this Fluorescence.")
-        nInstances = 0
-        for grp in self.parent.groups_list:
-            if isinstance(grp,  GroupFluorescence):
-                nInstances += 1
-        if nInstances > 0:
-            self.form_name.setText('Fluorescence'+str(nInstances))
-
-        self.lbl_roi_response_series = QLabel('roi_response_series:')
-        self.combo_roi_response_series = CustomComboBox()
-        self.combo_roi_response_series.setToolTip("RoiResponseSeries to store in this interface")
-
-        self.grid = QGridLayout()
-        self.grid.setColumnStretch(2, 1)
-        self.grid.addWidget(self.lbl_name, 0, 0, 1, 2)
-        self.grid.addWidget(self.form_name, 0, 2, 1, 4)
-        self.grid.addWidget(self.lbl_roi_response_series, 1, 0, 1, 2)
-        self.grid.addWidget(self.combo_roi_response_series, 1, 2, 1, 4)
-        self.setLayout(self.grid)
-
-    def refresh_objects_references(self, metadata=None):
-        """Refreshes references with existing objects in parent group."""
-        self.combo_roi_response_series.clear()
-        for grp in self.parent.groups_list:
-            if isinstance(grp, GroupRoiResponseSeries):
-                self.combo_roi_response_series.addItem(grp.form_name.text())
-
-    def read_fields(self):
-        """Reads fields and returns them structured in a dictionary."""
-        data = {}
-        data['name'] = self.form_name.text()
-        data['roi_response_series'] = str(self.combo_roi_response_series.currentText())
-        return data
-
-    def write_fields(self, metadata={}):
-        """Reads structured dictionary and write in form fields."""
-        self.form_name.setText(metadata['name'])
-        self.combo_roi_response_series.clear()
-        self.combo_roi_response_series.addItem(metadata['roi_response_series'])
+    def fields_info_update(self):
+        """Updates fields info with specific fields from the inheriting class."""
+        specific_fields = [
+            {'name': 'roi_response_series',
+             'type': 'group',
+             'class': 'RoiResponseSeries',
+             'required': True,
+             'doc': 'RoiResponseSeries to store in this interface'},
+        ]
+        self.fields_info.extend(specific_fields)
 
 
 #class GroupGrayscaleVolume(QGroupBox):
