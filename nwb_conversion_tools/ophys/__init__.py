@@ -1,1 +1,1 @@
-from .ophys import OphysNWBConverter, ProcessedOphysNWBConverter
+from .ophys import OphysNWBConverter, ProcessedOphysNWBConverter, SegmentationExtractor2NWBConverter
