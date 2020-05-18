@@ -50,9 +50,11 @@ class BasicFormCollapsible(CollapsibleBox):
             # Required fields get a red star in their label
             if 'default' not in field:
                 required = True
+                default = ''
             # Optional fields
             else:
                 required = False
+                default = field['default']
 
             # Skip data types, continue looping
             if 'shape' in field:
@@ -67,7 +69,8 @@ class BasicFormCollapsible(CollapsibleBox):
                     'type': 'str',
                     'class': None,
                     'required': required,
-                    'doc': field['doc']
+                    'doc': field['doc'],
+                    'default': default
                 })
             # Float types
             elif field['type'] in ('float', float):
@@ -76,7 +79,8 @@ class BasicFormCollapsible(CollapsibleBox):
                     'type': 'float',
                     'class': None,
                     'required': required,
-                    'doc': field['doc']
+                    'doc': field['doc'],
+                    'default': default
                 })
 
     def fields_info_update(self):
@@ -101,9 +105,11 @@ class BasicFormCollapsible(CollapsibleBox):
             # String types
             if field['type'] == 'str':
                 form = QLineEdit('')
+                form.setText(field['default'])
             # Float types
             elif field['type'] == 'float':
                 form = QLineEdit('')
+                form.setText(str(field['default']))
                 form.setValidator(validator_float)
             # Link types
             elif field['type'] == 'link':
@@ -228,9 +234,11 @@ class BasicFormFixed(QGroupBox):
             # Required fields get a red star in their label
             if 'default' not in field:
                 required = True
+                default = ''
             # Optional fields
             else:
                 required = False
+                default = field['default']
 
             # Skip data types, continue looping
             if 'shape' in field:
@@ -245,7 +253,8 @@ class BasicFormFixed(QGroupBox):
                     'type': 'str',
                     'class': None,
                     'required': required,
-                    'doc': field['doc']
+                    'doc': field['doc'],
+                    'default': default
                 })
             # Float types
             elif field['type'] in ('float', float):
@@ -254,7 +263,8 @@ class BasicFormFixed(QGroupBox):
                     'type': 'float',
                     'class': None,
                     'required': required,
-                    'doc': field['doc']
+                    'doc': field['doc'],
+                    'default': default
                 })
 
     def fields_info_update(self):
@@ -279,9 +289,11 @@ class BasicFormFixed(QGroupBox):
             # String types
             if field['type'] == 'str':
                 form = QLineEdit('')
+                form.setText(field['default'])
             # Float types
             elif field['type'] == 'float':
                 form = QLineEdit('')
+                form.setText(str(field['default']))
                 form.setValidator(validator_float)
             # Link types
             elif field['type'] == 'link':
