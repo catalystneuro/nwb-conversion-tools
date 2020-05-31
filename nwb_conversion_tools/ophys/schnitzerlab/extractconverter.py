@@ -18,15 +18,13 @@ class Extract2NWB(SegmentationExtractor2NWBConverter):
 
 
 def conversion_function(source_paths=None, f_nwb=None, metadata=None):
-    # print(source_paths)
-    # print(type(f_nwb))
-    # print(len(f_nwb))
-    # print(type(metadata))
-    print(type(metadata['Ophys']['DfOverF']['roi_response_series'][0]['rate']))
-    with open(
-            r'C:\Users\Saksham\Google Drive (sxs1790@case.edu)\NWB\nwb-conversion-tools\tests\Ophys\datasets\nct_gui_in.yaml',
-            'w') as f:
-        yaml.dump(metadata, f)
     if isinstance(f_nwb, str):
         f_nwb = None
-    print(list(source_paths.values())[0]['path'], f_nwb, sep='\n\n')
+    nwbloc =  r'C:\Users\Saksham\Google Drive (sxs1790@case.edu)\NWB\nwb-conversion-tools\tests\Ophys\datasets\test_nwb_extract_gui.nwb'
+    fileloc = list(source_paths.values())[0]['path']
+    obj = Extract2NWB(fileloc, None, metadata)
+
+    obj.run_conversion()
+
+    obj.save(nwbloc)
+    return obj.nwbfile
