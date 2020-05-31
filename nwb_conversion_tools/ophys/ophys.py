@@ -163,8 +163,8 @@ class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
 
     def add_rois(self):
         for i, roiid in enumerate(self.segext_obj.roi_idx):
-            img_roi = self.segext_obj.raw_images[:, :, i]
-            self.plane_segmentation.add_roi(image_mask=img_roi)
+            self.plane_segmentation.add_roi(image_mask=self.segext_obj.get_image_masks(ROI_ids=[roiid]),
+                                            pixel_mask=self.segext_obj.get_pixel_masks(ROI_ids=[roiid])[:,0:-1])
 
     def add_fluorescence_traces(self, metadata=None):
         """
