@@ -167,29 +167,60 @@ class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
             self.plane_segmentation.add_roi(image_mask=img_roi)
 
     def add_fluorescence_traces(self, metadata=None):
+        """
+        Create fluorescence traces for the nwbfile
+        Parameters
+        ----------
+        metadata: list
+            list of dictionaries with keys/words same as roi_response_series input arguments.
+        Returns
+        -------
+        None
+        """
         input_kwargs = dict(
             name='RoiResponseSeries',
             description='no description',
-            rois=self.create_roi_table_region(list(range(self.segext_obj.image_masks.shape[-1]))),
+            rois=self.create_roi_table_region(list(range(self.segext_obj.no_rois))),
             starting_time=0.0,
             rate=self.segext_obj.get_sampling_frequency(),
             unit='lumens'
         )
         if metadata:
             metadata_iter = metadata
+            container_func = Fluorescence
         elif metadata is None and 'Ophys' in self.metadata and 'DfOverF' in self.metadata['Ophys']\
                 and 'roi_response_series' in self.metadata['Ophys']['DfOverF']:
             metadata_iter = self.metadata['Ophys']['DfOverF']['roi_response_series']
-            metadata_iter[0].update(#TODO: take roi list as argument, and the corresponding data. Then update metadata_iter as a list
-                {'rois':self.create_roi_table_region(list(range(self.segext_obj.image_masks.shape[-1])))})
+            container_func = DfOverF
+        elif metadata is None and 'Ophys' in self.metadata and 'Fluorescence' in self.metadata['Ophys'] \
+             and 'roi_response_series' in self.metadata['Ophys']['Fluorescence']:
+            metadata_iter = self.metadata['Ophys']['Fluorescence']['roi_response_series']
+            container_func = Fluorescence
         else:
             metadata_iter = list(input_kwargs)
-        fl = DfOverF()#TODO: add seperate method for fluorescence and dfoverf
+            container_func = Fluorescence
+
+        for i in metadata_iter:
+            i.update(
+                {'rois': self.create_roi_table_region(list(range(self.segext_obj.no_rois)))})
+        #Create the main fluorescence container
+        fl = container_func()
         self.ophys_mod.add_data_interface(fl)
+        roi_resp = dict()
+        if isinstance(self.segext_obj.roi_response,dict):
+            roi_resp = self.segext_obj.roi_response
+        elif isinstance(self.segext_obj.roi_response,list):
+            for j,i in enumerate(metadata_iter):
+                if isinstance(self.segext_obj.roi_response,list):
+                    roi_resp.update({i['name']:self.segext_obj.roi_response[j]})
+        else:# if only one roi_resp_data set is provided, assume its corresponding to the first one
+            roi_resp.update({metadata_iter[0]['name']: self.segext_obj.roi_response})
+            metadata_iter = [metadata_iter[0]]
+        #Iteratively populate fluo container with various roi_resp_series
         for i in metadata_iter:
             input_kwargs.update(**i)
             input_kwargs.update(
-                data=DataChunkIterator(data=iter_datasetvieww(self.segext_obj.roi_response))
+                data=DataChunkIterator(data=iter_datasetvieww(roi_resp[i['name']]))
             )
             fl.create_roi_response_series(**input_kwargs)
 
