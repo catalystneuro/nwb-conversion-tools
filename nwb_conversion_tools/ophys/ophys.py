@@ -178,8 +178,6 @@ class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
         None
         """
         input_kwargs = dict(
-            name='RoiResponseSeries',
-            description='no description',
             rois=self.create_roi_table_region(list(range(self.segext_obj.no_rois))),
             starting_time=0.0,
             rate=self.segext_obj.get_sampling_frequency(),
@@ -189,15 +187,17 @@ class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
             metadata_iter = metadata
             container_func = Fluorescence
         elif metadata is None and 'Ophys' in self.metadata and 'DfOverF' in self.metadata['Ophys']\
-                and 'roi_response_series' in self.metadata['Ophys']['DfOverF']:
+                and 'roi_response_series' in self.metadata['Ophys']['DfOverF'] \
+                and len(self.metadata['Ophys']['DfOverF']['roi_response_series'])>0:
             metadata_iter = self.metadata['Ophys']['DfOverF']['roi_response_series']
             container_func = DfOverF
         elif metadata is None and 'Ophys' in self.metadata and 'Fluorescence' in self.metadata['Ophys'] \
-             and 'roi_response_series' in self.metadata['Ophys']['Fluorescence']:
+                and 'roi_response_series' in self.metadata['Ophys']['Fluorescence'] \
+                and len(self.metadata['Ophys']['Fluorescence']['roi_response_series'])>0:
             metadata_iter = self.metadata['Ophys']['Fluorescence']['roi_response_series']
             container_func = Fluorescence
         else:
-            metadata_iter = list(input_kwargs)
+            metadata_iter = [input_kwargs]
             container_func = Fluorescence
 
         for i in metadata_iter:
@@ -218,11 +218,11 @@ class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
             metadata_iter = [metadata_iter[0]]
         #Iteratively populate fluo container with various roi_resp_series
         for i in metadata_iter:
-            input_kwargs.update(**i)
-            input_kwargs.update(
+            i.update(**input_kwargs)
+            i.update(
                 data=DataChunkIterator(data=iter_datasetvieww(roi_resp[i['name']]))
             )
-            fl.create_roi_response_series(**input_kwargs)
+            fl.create_roi_response_series(**i)
 
     def create_roi_table_region(self, rois, region_name= 'NeuronROIs'):
         return self.plane_segmentation.create_roi_table_region(region_name, region=rois)
