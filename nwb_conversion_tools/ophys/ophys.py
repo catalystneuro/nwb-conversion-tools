@@ -106,9 +106,12 @@ class ProcessedOphysNWBConverter(OphysNWBConverter):
     def __init__(self, metadata, nwbfile=None, source_paths=None, imaging_plane_set=True):
         self.imaging_plane_set = imaging_plane_set
         super(ProcessedOphysNWBConverter, self).__init__(metadata, nwbfile=nwbfile, source_paths=source_paths)
-
         self.image_segmentation = self.create_image_segmentation()
-        self.ophys_mod.add_data_interface(self.image_segmentation)
+        if self.image_segmentation.name not in [i.name for i in self.ophys_mod.children]:
+            self.ophys_mod.add_data_interface(self.image_segmentation)
+        else:
+            self.image_segmentation = self.ophys_mod[self.image_segmentation.name]
+        self.ps_list = []
 
     def create_image_segmentation(self):
         if 'ImageSegmentation' in self.metadata.get('Ophys','not_found'):
@@ -117,28 +120,49 @@ class ProcessedOphysNWBConverter(OphysNWBConverter):
             return ImageSegmentation()
 
     def create_plane_segmentation(self, metadata=None):
-        # TODO: implement multiple PlaneSegmentations
+        """
+        Create multiple plane segmentations.
+        Parameters
+        ----------
+        metadata: list
+            List of dicts with plane segmentation arguments
+        Returns
+        -------
+
+        """
         input_kwargs = dict(
             name='PlaneSegmentation',
             description='output from segmenting my favorite imaging plane',
-            imaging_plane=self.imaging_plane
+            imaging_plane=self.imaging_planes[0]# pick a default one if none specified.
         )
-
         if metadata:
-            input_kwargs.update(metadata)
+            if not isinstance(metadata,list):
+                metadata = [metadata]
+            for i in metadata:# multiple plane segmentations
+                if i.get('imaging_planes'):
+                   if i['imaging_planes'] in [i.name for i in self.imaging_planes]:
+                        current_img_plane = self.nwbfile.get_imaging_plane(name=i['imaging_plane'])
+                   else:
+                       current_img_plane = self.add_imaging_plane(dict(name=i['imaging_plane']))
+                else:
+                    current_img_plane = self.add_imaging_plane(dict(name=i['name']))
+                input_kwargs.update(i)
+                if input_kwargs['name'] not in self.image_segmentation.keys():
+                    self.ps_list.append(self.image_segmentation.create_plane_segmentation(**input_kwargs))
+
         elif 'Ophys' in self.metadata and 'plane_segmentations' in self.metadata['Ophys']['ImageSegmentation']:
-            metadata = self.metadata['Ophys']['ImageSegmentation']['plane_segmentations'][0]
-            if metadata.get('imaging_planes'):
-                metadata['imaging_plane'] = self.nwbfile.get_imaging_plane(name=metadata['imaging_planes'])
-                metadata.pop('imaging_planes')  # TODO this will change when loopis implemented
-            else:
-                metadata['imaging_plane'] = self.nwbfile.get_imaging_plane(
-                    name=list(self.nwbfile.imaging_planes.keys())[0])
-        if metadata:
-            input_kwargs.update(metadata)
+            for i in self.metadata['Ophys']['ImageSegmentation']['plane_segmentations']:
+                metadata = i
+                if metadata.get('imaging_planes'):
+                    metadata['imaging_plane'] = self.nwbfile.get_imaging_plane(name=metadata['imaging_planes'])
+                    metadata.pop('imaging_planes')  # TODO this will change when loopis implemented
+                else:
+                    metadata['imaging_plane'] = self.nwbfile.get_imaging_plane(
+                        name=list(self.nwbfile.imaging_planes.keys())[0])
 
-        self.plane_segmentation = self.image_segmentation.create_plane_segmentation(**input_kwargs)
-        
+                input_kwargs.update(metadata)
+                if input_kwargs['name'] not in self.image_segmentation.name:
+                    self.ps_list.append(self.image_segmentation.create_plane_segmentation(**input_kwargs))
 
 class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
     
