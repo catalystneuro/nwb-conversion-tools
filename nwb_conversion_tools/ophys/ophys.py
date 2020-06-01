@@ -181,10 +181,7 @@ class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
         if isinstance(metadata,str):
             with open(metadata,'r') as f:
                 metadata = yaml.safe_load(f)
-        super().__init__(metadata,nwbfile,source_path)
-        self.auto_create_dict = dict(imaging_plane=False,
-                                     two_photon_series=True,
-                                     plane_segmentation=True)
+        super().__init__(metadata,nwbfile,source_path, imaging_plane_set=False)
         
     def create_two_photon_series(self, metadata=None, imaging_plane=None):
         if imaging_plane is None:
@@ -196,7 +193,7 @@ class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
         input_kwargs = dict(
             name='TwoPhotonSeries',
             description='no description',
-            imaging_plane = self.nwbfile.imaging_planes[list(self.nwbfile.imaging_planes.keys())[0]],
+            imaging_plane = imaging_plane,
             external_file=[self.segext_obj.get_movie_location()],
             format='external',
             rate=self.segext_obj.get_sampling_frequency(),
@@ -207,13 +204,16 @@ class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
         if metadata is None and 'Ophys' in self.metadata and 'TwoPhotonSeries' in self.metadata['Ophys']:
             metadata = self.metadata['Ophys']['TwoPhotonSeries']
             if len(metadata['imaging_planes'])>0:
-                metadata['imaging_planes'] = self.nwbfile.get_imaging_plane(name=metadata['imaging_planes'])
+                metadata['imaging_planes'] = self.nwbfile.get_imaging_plane(name=metadata['imaging_planes'][0])
             else:
-                metadata['imaging_planes'] = self.nwbfile.imaging_planes[list(self.nwbfile.imaging_planes.keys())[0]]
-        if metadata:
+                metadata['imaging_planes'] = imaging_plane
+        if metadata is not None:
             input_kwargs.update(metadata)
-
-        return self.nwbfile.add_acquisition(TwoPhotonSeries(**input_kwargs))
+        if input_kwargs['name'] not in self.nwbfile.acquisition.keys():
+            ret = self.nwbfile.add_acquisition(TwoPhotonSeries(**input_kwargs))
+        else:
+            ret = self.nwbfile.acquisition[input_kwargs['name']]
+        return ret
 
     def create_imaging_plane(self, optical_channel_list=None):
         """
@@ -225,12 +225,13 @@ class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
         channel_names = self.segext_obj.get_channel_names()
         for i in channel_names:
             optical_channel_list.append(self.create_optical_channel(dict(name=i)))
-        self.imaging_plane = self.add_imaging_plane(optical_channel=optical_channel_list)
+        self.add_imaging_plane(metadata=dict(optical_channel=optical_channel_list))
 
     def add_rois(self):
+        ps = self.ps_list[0]
         for i, roiid in enumerate(self.segext_obj.roi_idx):
-            self.plane_segmentation.add_roi(image_mask=self.segext_obj.get_image_masks(ROI_ids=[roiid]),
-                                            pixel_mask=self.segext_obj.get_pixel_masks(ROI_ids=[roiid])[:,0:-1])
+            ps.add_roi(image_mask=self.segext_obj.get_image_masks(ROI_ids=[roiid]),
+                       pixel_mask=self.segext_obj.get_pixel_masks(ROI_ids=[roiid])[:,0:-1])
 
     def add_fluorescence_traces(self, metadata=None):
         """
@@ -291,7 +292,7 @@ class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
             fl.create_roi_response_series(**i)
 
     def create_roi_table_region(self, rois, region_name= 'NeuronROIs'):
-        return self.plane_segmentation.create_roi_table_region(region_name, region=rois)
+        return self.ps_list[0].create_roi_table_region(region_name, region=rois)
 
     def run_conversion(self):
         """
@@ -301,6 +302,6 @@ class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
         self.create_plane_segmentation()
         self.add_rois()
         self.add_fluorescence_traces()
-        self.create_two_photon_series(imaging_plane=self.nwbfile.get_imaging_plane(name=self.imaging_plane.name))
+        self.create_two_photon_series(imaging_plane=list(self.nwbfile.imaging_planes.values())[0])
 
 
