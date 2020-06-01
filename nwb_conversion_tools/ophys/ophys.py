@@ -1,10 +1,10 @@
 import numpy as np
 import yaml
 from pynwb.ophys import OpticalChannel, ImageSegmentation, ImagingPlane, TwoPhotonSeries, Fluorescence, DfOverF
-from pynwb.device import Device
 from segmentationextractors.nwbextractor.nwbsegmentationextractor import iter_datasetvieww
 from nwb_conversion_tools.converter import NWBConverter
 from hdmf.data_utils import DataChunkIterator
+
 
 class OphysNWBConverter(NWBConverter):
 
@@ -15,8 +15,15 @@ class OphysNWBConverter(NWBConverter):
         # device = Device('microscope')
         # self.nwbfile.add_device(device)
         # self.imaging_plane = self.add_imaging_plane()
+        self.imaging_planes = None
+        if self.imaging_plane_set:
+            self.add_imaging_plane()
         # self.two_photon_series = self.create_two_photon_series()
-        self.ophys_mod = self.nwbfile.create_processing_module('Ophys', 'contains optical physiology processed data')
+        ophys_mods = [j for i,j in self.nwbfile.processing.items() if i in ['ophys','Ophys']]
+        if len(ophys_mods)>0:
+            self.ophys_mod = ophys_mods[0]
+        else:
+            self.ophys_mod = self.nwbfile.create_processing_module('Ophys', 'contains optical physiology processed data')
 
     def create_optical_channel(self, metadata=None):
 
@@ -33,8 +40,19 @@ class OphysNWBConverter(NWBConverter):
 
         return OpticalChannel(**input_kwargs)
 
-    def add_imaging_plane(self, metadata=None, optical_channel=None):
+    def add_imaging_plane(self, metadata=None):
+        """
+        Creates an imaging plane. Converts the device and optical channel attributes in the metadata file to an actual
+        object.
+        Parameters
+        ----------
+        metadata
 
+        Returns
+        -------
+
+        """
+        planes_list = []
         input_kwargs = dict(
             name='ImagingPlane',
             description='no description',
@@ -44,25 +62,49 @@ class OphysNWBConverter(NWBConverter):
             indicator='unknown',
             location='unknown'
         )
-        if metadata is None and 'Ophys' in self.metadata and 'ImagingPlane' in self.metadata['Ophys']:
-            metadata = self.metadata['Ophys']['ImagingPlane'][0]
-            if metadata.get('device'):
-                metadata['device'] = self.nwbfile.devices[metadata['device']]
-            if metadata.get('optical_channel'):
-                if len(metadata['optical_channel'])>0:
-                    metadata['optical_channel'] = [self.create_optical_channel(metadata=i) for i in metadata['optical_channel']]
-            else:
-                metadata['optical_channel'] = self.create_optical_channel()
-        if metadata:
-            input_kwargs.update(metadata)
-        self.nwbfile.add_imaging_plane(ImagingPlane(**input_kwargs))
+        c=0
+        if 'Ophys' in self.metadata and 'ImagingPlane' in self.metadata['Ophys']:
+            if metadata is None:
+                metadata = [dict()]*len(self.metadata['Ophys']['ImagingPlane'])
+            elif isinstance(metadata,dict):# metadata should ideally be of the length of number of imaging planes in the metadata file input
+                metadata = [metadata]*len(self.metadata['Ophys']['ImagingPlane'])
+            for i in self.metadata['Ophys']['ImagingPlane']:
+                # get device object
+                if i.get('device'):
+                    i['device'] = self.nwbfile.devices[i['device']]
+                else:
+                    i['device'] = self.devices[list(self.devices.keys())[0]]
+                # get optical channel object
+                if i.get('optical_channel'):
+                    if len(i['optical_channel'])>0:# calling the bui creates an empty optical channel list when there was none.
+                        i['optical_channel'] = [self.create_optical_channel(metadata=i) for i in i['optical_channel']]
+                else:
+                    i['optical_channel'] = self.create_optical_channel()
 
-        return self.nwbfile.get_imaging_plane(name=input_kwargs['name'])
+                input_kwargs.update(i)
+                input_kwargs.update(metadata[c])
+                planes_list.extend([self.nwbfile.create_imaging_plane(**input_kwargs)])
+                c+=1
+        else:
+            if not isinstance(metadata,list):
+                if metadata is not None:
+                    metadata = [metadata]
+                else:
+                    metadata = [dict()]
+            for i in metadata:
+                input_kwargs.update(i)
+                planes_list.extend([self.nwbfile.create_imaging_plane(**input_kwargs)])
+        if self.imaging_planes is not None:
+            self.imaging_planes.extend(planes_list)
+        else:
+            self.imaging_planes = planes_list
+        return planes_list
 
 
 class ProcessedOphysNWBConverter(OphysNWBConverter):
 
-    def __init__(self, metadata, nwbfile=None, source_paths=None):
+    def __init__(self, metadata, nwbfile=None, source_paths=None, imaging_plane_set=True):
+        self.imaging_plane_set = imaging_plane_set
         super(ProcessedOphysNWBConverter, self).__init__(metadata, nwbfile=nwbfile, source_paths=source_paths)
 
         self.image_segmentation = self.create_image_segmentation()
