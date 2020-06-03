@@ -25,12 +25,14 @@ import importlib
 import yaml
 import sys
 import os
-
+import inspect
+# TODO: implement changes specified downstread
+#   -check kwargs
 
 class Application(QMainWindow):
     def __init__(self, metafile=None, conversion_module='', source_paths={},
                  kwargs_fields={}, extension_modules={}, extension_forms={},
-                 show_add_del=False):
+                 show_add_del=False, nwb_file=None, conversion_class=None):
         super().__init__()
         # Dictionary storing source files paths
         self.source_paths = source_paths
@@ -47,6 +49,10 @@ class Application(QMainWindow):
         self.name_to_gui_class.update(extension_forms)
         # Temporary folder path
         self.temp_dir = tempfile.mkdtemp()
+        # default nwbfile save location:
+        self.nwb_file = nwb_file
+        # conversion_class:
+        self.conversion_class = conversion_class
 
         self.resize(1200, 900)
         self.setWindowTitle('NWB:N conversion tools')
@@ -96,7 +102,7 @@ class Application(QMainWindow):
 
         self.lbl_nwb_file = QLabel('Output nwb file:')
         self.lbl_nwb_file.setToolTip("Path to the NWB file that will be created.")
-        self.lin_nwb_file = QLineEdit('')
+        self.lin_nwb_file = QLineEdit(self.nwb_file)
         self.btn_nwb_file = QPushButton()
         self.btn_nwb_file.setIcon(self.style().standardIcon(QStyle.SP_DialogOpenButton))
         self.btn_nwb_file.clicked.connect(self.load_nwb_file)
@@ -131,7 +137,7 @@ class Application(QMainWindow):
                 ii += 1
                 lbl_src = QLabel(k + ':')
                 setattr(self, 'lbl_src_' + str(ii), lbl_src)
-                lin_src = QLineEdit('')
+                lin_src = QLineEdit(v['path'])
                 setattr(self, 'lin_src_' + str(ii), lin_src)
                 btn_src = QPushButton()
                 btn_src.setIcon(self.style().standardIcon(QStyle.SP_DialogOpenButton))
@@ -293,7 +299,7 @@ class Application(QMainWindow):
 
     def save_meta_file(self):
         """Saves metadata to .yml file."""
-        filename, _ = QFileDialog.getSaveFileName(self, 'Save file', '', "(*.yml)")
+        filename, _ = QFileDialog.getSaveFileName(self, 'Save file', '', "(*.yml);;(*.yaml)")
         if filename:
             data = {}
             for grp in self.groups_list:
@@ -367,9 +373,9 @@ class Application(QMainWindow):
                 parent=self,
                 caption='Open file',
                 directory='',
-                filter="(*.yml)"
+                filter="(*.yml);;(*.yaml)"
             )
-            if ftype != '(*.yml)':
+            if ftype != '(*.yml)' or ftype != '(*.yaml)':
                 return
         with open(filename) as f:
             self.metadata = yaml.safe_load(f)
@@ -649,15 +655,20 @@ class ConversionFunctionThread(QtCore.QThread):
 
     def run(self):
         #try:
-        mod_file = self.parent.conversion_module_path
-        spec = importlib.util.spec_from_file_location(os.path.basename(mod_file).strip('.py'), mod_file)
-        conv_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(conv_module)
+        if len(self.parent.conversion_module_path)>0:# if not an empty string (if value was selected from gui)
+            mod_file = self.parent.conversion_module_path
+            spec = importlib.util.spec_from_file_location(os.path.basename(mod_file).strip('.py'), mod_file)
+            conv_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(conv_module)
+            for name,obj in inspect.getmembers(conv_module):
+                if inspect.isclass(obj):
+                    self.parent.conversion_class = obj#override the passed in class
+                    break
         metadata = self.parent.read_metadata_from_form()
-        conv_module.conversion_function(source_paths=self.parent.source_paths,
-                                        f_nwb=self.parent.lin_nwb_file.text(),
-                                        metadata=metadata,
-                                        **self.parent.kwargs_fields)
+        fileloc = list(self.parent.source_paths.values())[0]['path']
+        conversion_obj = self.parent.conversion_class(fileloc, self.parent.lin_nwb_file.text(), metadata)
+        conversion_obj.run_conversion()
+        conversion_obj.save()
         #    self.error = None
         #except Exception as error:
         #    self.error = error
@@ -681,9 +692,14 @@ if __name__ == '__main__':
 # If it is imported as a module
 def nwb_conversion_gui(metafile=None, conversion_module='', source_paths={},
                        kwargs_fields={}, extension_modules={}, extension_forms={},
-                       show_add_del=False):
+                       show_add_del=False, nwbfile=None, conversion_class=None):
     """Sets up QT application."""
     app = QtCore.QCoreApplication.instance()
+    if conversion_class is None and conversion_module=='':
+        raise Exception('provice one of conversion_module:str or conversion_class:class')
+    # if conversion_class is not None:
+    if nwbfile is None:
+        nwbfile = os.path.join(os.getcwd(),conversion_class.__name__ + '_nwbfile_gui.nwb')
     if app is None:
         app = QApplication(sys.argv)  # instantiate a QtGui (holder for the app)
     Application(
@@ -693,6 +709,8 @@ def nwb_conversion_gui(metafile=None, conversion_module='', source_paths={},
         kwargs_fields=kwargs_fields,
         extension_modules=extension_modules,
         extension_forms=extension_forms,
-        show_add_del=show_add_del
+        show_add_del=show_add_del,
+        nwb_file=nwbfile,
+        conversion_class=conversion_class
     )
     sys.exit(app.exec_())
