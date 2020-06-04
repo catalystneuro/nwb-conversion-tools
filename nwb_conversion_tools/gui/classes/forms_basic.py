@@ -180,7 +180,11 @@ class BasicFormCollapsible(CollapsibleBox):
                 try:
                     metadata[name] = float(group.text())
                 except:
-                    metadata[name] = group.text()
+                    if group.text() == '':
+                        # metadata[name] = None
+                        continue
+                    else:
+                        metadata[name] = group.text()
             if isinstance(group, QComboBox):
                 metadata[name] = str(group.currentText())
             if isinstance(group, QGroupBox):
@@ -374,7 +378,11 @@ class BasicFormFixed(QGroupBox):
                 try:
                     metadata[name] = float(group.text())
                 except:
-                    metadata[name] = group.text()
+                    if group.text()=='':
+                        # metadata[name] = None
+                        continue
+                    else:
+                        metadata[name] = group.text()
             if isinstance(group, QComboBox):
                 metadata[name] = str(group.currentText())
             if isinstance(group, QGroupBox):
