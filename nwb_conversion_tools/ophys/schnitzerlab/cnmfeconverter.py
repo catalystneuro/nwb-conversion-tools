@@ -16,15 +16,3 @@ class Cnmfe2NWB(SegmentationExtractor2NWBConverter):
             raise Exception('provide a *cnmfe*.mat file source')
         self.segext_obj = CnmfeSegmentationExtractor(source_path[0])  # source_path=['*\folder.sima']
         super(Cnmfe2NWB, self).__init__(source_path, nwbfile, metadata)
-
-def conversion_function(source_paths=None, f_nwb=None, metadata=None):
-    if isinstance(f_nwb, str):
-        f_nwb = None
-    nwbloc =  r'C:\Users\Saksham\Google Drive (sxs1790@case.edu)\NWB\nwb-conversion-tools\tests\Ophys\datasets\test_nwb_cnmfe_gui.nwb'
-    fileloc = list(source_paths.values())[0]['path']
-    obj = Cnmfe2NWB(fileloc, None, metadata)
-
-    obj.run_conversion()
-
-    obj.save(nwbloc)
-    return obj.nwbfile

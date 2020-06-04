@@ -25,12 +25,14 @@ import importlib
 import yaml
 import sys
 import os
-
+import inspect
+# TODO: implement changes specified downstread
+#   -check kwargs
 
 class Application(QMainWindow):
     def __init__(self, metafile=None, conversion_module='', source_paths={},
                  kwargs_fields={}, extension_modules={}, extension_forms={},
-                 show_add_del=False):
+                 show_add_del=False, nwb_file=None, conversion_class=None):
         super().__init__()
         # Dictionary storing source files paths
         self.source_paths = source_paths
@@ -47,6 +49,10 @@ class Application(QMainWindow):
         self.name_to_gui_class.update(extension_forms)
         # Temporary folder path
         self.temp_dir = tempfile.mkdtemp()
+        # default nwbfile save location:
+        self.nwb_file = nwb_file
+        # conversion_class:
+        self.conversion_class = conversion_class
 
         self.resize(1200, 900)
         self.setWindowTitle('NWB:N conversion tools')
@@ -649,15 +655,20 @@ class ConversionFunctionThread(QtCore.QThread):
 
     def run(self):
         #try:
-        mod_file = self.parent.conversion_module_path
-        spec = importlib.util.spec_from_file_location(os.path.basename(mod_file).strip('.py'), mod_file)
-        conv_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(conv_module)
+        if len(self.parent.conversion_module_path)>0:# if not an empty string (if value was selected from gui)
+            mod_file = self.parent.conversion_module_path
+            spec = importlib.util.spec_from_file_location(os.path.basename(mod_file).strip('.py'), mod_file)
+            conv_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(conv_module)
+            for name,obj in inspect.getmembers(conv_module):
+                if inspect.isclass(obj):
+                    self.parent.conversion_class = obj#override the passed in class
+                    break
         metadata = self.parent.read_metadata_from_form()
-        conv_module.conversion_function(source_paths=self.parent.source_paths,
-                                        f_nwb=self.parent.lin_nwb_file.text(),
-                                        metadata=metadata,
-                                        **self.parent.kwargs_fields)
+        fileloc = list(self.parent.source_paths.values())[0]['path']
+        conversion_obj = self.parent.conversion_class(fileloc, self.parent.lin_nwb_file.text(), metadata)
+        conversion_obj.run_conversion()
+        conversion_obj.save()
         #    self.error = None
         #except Exception as error:
         #    self.error = error
@@ -681,9 +692,13 @@ if __name__ == '__main__':
 # If it is imported as a module
 def nwb_conversion_gui(metafile=None, conversion_module='', source_paths={},
                        kwargs_fields={}, extension_modules={}, extension_forms={},
-                       show_add_del=False):
+                       show_add_del=False, nwbfile=None, conversion_class=None):
     """Sets up QT application."""
     app = QtCore.QCoreApplication.instance()
+    if conversion_class is None and conversion_module=='':
+        raise Exception('provide one of conversion_module:str or conversion_class:class')
+    if nwbfile is None:
+        nwbfile = os.path.join(os.getcwd(),conversion_class.__name__ + '_nwbfile_gui.nwb')
     if app is None:
         app = QApplication(sys.argv)  # instantiate a QtGui (holder for the app)
     Application(
@@ -693,6 +708,8 @@ def nwb_conversion_gui(metafile=None, conversion_module='', source_paths={},
         kwargs_fields=kwargs_fields,
         extension_modules=extension_modules,
         extension_forms=extension_forms,
-        show_add_del=show_add_del
+        show_add_del=show_add_del,
+        nwb_file=nwbfile,
+        conversion_class=conversion_class
     )
     sys.exit(app.exec_())
