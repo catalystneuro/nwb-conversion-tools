@@ -96,7 +96,7 @@ class Application(QMainWindow):
 
         self.lbl_nwb_file = QLabel('Output nwb file:')
         self.lbl_nwb_file.setToolTip("Path to the NWB file that will be created.")
-        self.lin_nwb_file = QLineEdit('')
+        self.lin_nwb_file = QLineEdit(self.nwb_file)
         self.btn_nwb_file = QPushButton()
         self.btn_nwb_file.setIcon(self.style().standardIcon(QStyle.SP_DialogOpenButton))
         self.btn_nwb_file.clicked.connect(self.load_nwb_file)
@@ -131,7 +131,7 @@ class Application(QMainWindow):
                 ii += 1
                 lbl_src = QLabel(k + ':')
                 setattr(self, 'lbl_src_' + str(ii), lbl_src)
-                lin_src = QLineEdit('')
+                lin_src = QLineEdit(v['path'])
                 setattr(self, 'lin_src_' + str(ii), lin_src)
                 btn_src = QPushButton()
                 btn_src.setIcon(self.style().standardIcon(QStyle.SP_DialogOpenButton))
@@ -293,7 +293,7 @@ class Application(QMainWindow):
 
     def save_meta_file(self):
         """Saves metadata to .yml file."""
-        filename, _ = QFileDialog.getSaveFileName(self, 'Save file', '', "(*.yml)")
+        filename, _ = QFileDialog.getSaveFileName(self, 'Save file', '', "(*.yml);;(*.yaml)")
         if filename:
             data = {}
             for grp in self.groups_list:
@@ -367,9 +367,9 @@ class Application(QMainWindow):
                 parent=self,
                 caption='Open file',
                 directory='',
-                filter="(*.yml)"
+                filter="(*.yml);;(*.yaml)"
             )
-            if ftype != '(*.yml)':
+            if ftype != '(*.yml)' or ftype != '(*.yaml)':
                 return
         with open(filename) as f:
             self.metadata = yaml.safe_load(f)
