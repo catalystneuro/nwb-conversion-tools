@@ -50,7 +50,7 @@ class BasicFormCollapsible(CollapsibleBox):
             # Required fields get a red star in their label
             if 'default' not in field:
                 required = True
-                default = ''
+                default = 'required: '+ str(field['type'])
             # Optional fields
             else:
                 required = False
@@ -105,11 +105,20 @@ class BasicFormCollapsible(CollapsibleBox):
             # String types
             if field['type'] == 'str':
                 form = QLineEdit('')
-                form.setText(field['default'])
+                if field['required']:
+                    form.setPlaceholderText(field['default'])
+                else:
+                    form.setText(field['default'])
             # Float types
             elif field['type'] == 'float':
-                form = QLineEdit('')
-                form.setText(str(field['default']))
+                if field['default'] is not None:
+                    form = QLineEdit('')
+                    if field['required']:
+                        form.setPlaceholderText(str(field['default']))
+                    else:
+                        form.setText(str(field['default']))
+                else:
+                    form = QLineEdit(None)
                 form.setValidator(validator_float)
             # Link types
             elif field['type'] == 'link':
@@ -234,7 +243,7 @@ class BasicFormFixed(QGroupBox):
             # Required fields get a red star in their label
             if 'default' not in field:
                 required = True
-                default = ''
+                default = 'required: '+ str(field['type'])
             # Optional fields
             else:
                 required = False
@@ -289,11 +298,20 @@ class BasicFormFixed(QGroupBox):
             # String types
             if field['type'] == 'str':
                 form = QLineEdit('')
-                form.setText(field['default'])
+                if field['required']:
+                    form.setPlaceholderText(field['default'])
+                else:
+                    form.setText(field['default'])
             # Float types
             elif field['type'] == 'float':
-                form = QLineEdit('')
-                form.setText(str(field['default']))
+                if field['default'] is not None:
+                    form = QLineEdit('')
+                    if field['required']:
+                        form.setPlaceholderText(str(field['default']))
+                    else:
+                        form.setText(str(field['default']))
+                else:
+                    form = QLineEdit(None)
                 form.setValidator(validator_float)
             # Link types
             elif field['type'] == 'link':
