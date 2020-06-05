@@ -1,6 +1,8 @@
 import numpy as np
 import yaml
 from pynwb.ophys import OpticalChannel, ImageSegmentation, ImagingPlane, TwoPhotonSeries, Fluorescence, DfOverF
+from pynwb.base import Images
+from pynwb.image import GrayscaleImage
 from segmentationextractors.nwbextractor.nwbsegmentationextractor import iter_datasetvieww
 from nwb_conversion_tools.converter import NWBConverter
 from hdmf.data_utils import DataChunkIterator
@@ -294,6 +296,18 @@ class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
     def create_roi_table_region(self, rois, region_name= 'NeuronROIs'):
         return self.ps_list[0].create_roi_table_region(region_name, region=rois)
 
+    def add_images(self):
+        images_dict = self.segext_obj.get_images()
+        if images_dict is not None:
+            image_names_obj = list(images_dict.keys())
+            if 'Images' in self.metadata['Ophys'] and len(self.metadata['Ophys']['Images'])>0:
+                image_names_obj = [i['name'] for i in self.metadata['Ophys']['Images']]
+            for img_set_name, img_set in images_dict.items():
+                images = Images(img_set_name)
+                for img_name, img_no in img_set.items():
+                    images.add_image(GrayscaleImage(name=img_name,data=img_no))
+                self.ophys_mod.add(images)
+
     def run_conversion(self):
         """
         To populate the nwb file completely.
@@ -303,5 +317,6 @@ class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
         self.add_rois()
         self.add_fluorescence_traces()
         self.create_two_photon_series(imaging_plane=list(self.nwbfile.imaging_planes.values())[0])
+        self.add_images()
 
 
