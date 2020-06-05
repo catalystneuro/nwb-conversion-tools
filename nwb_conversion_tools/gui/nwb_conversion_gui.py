@@ -96,7 +96,7 @@ class Application(QMainWindow):
 
         self.lbl_nwb_file = QLabel('Output nwb file:')
         self.lbl_nwb_file.setToolTip("Path to the NWB file that will be created.")
-        self.lin_nwb_file = QLineEdit(self.nwb_file)
+        self.lin_nwb_file = QLineEdit(self.nwbfile_loc)
         self.btn_nwb_file = QPushButton()
         self.btn_nwb_file.setIcon(self.style().standardIcon(QStyle.SP_DialogOpenButton))
         self.btn_nwb_file.clicked.connect(self.load_nwb_file)
