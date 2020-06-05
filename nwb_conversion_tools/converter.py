@@ -23,13 +23,9 @@ class NWBConverter:
         """
         self.metadata = metadata
         self.source_paths = source_paths
-        self.nwbfile_saveloc = None
         # create self.nwbfile object
         if nwbfile is None:
             self.create_nwbfile(metadata['NWBFile'])
-        elif isinstance(nwbfile,str):
-            self.create_nwbfile(metadata['NWBFile'])
-            self.nwbfile_saveloc = nwbfile
         else:
             self.nwbfile = nwbfile
 
@@ -261,7 +257,7 @@ class NWBConverter:
                 index=index
             )
 
-    def save(self, to_path=None, read_check=True):
+    def save(self, to_path, read_check=True):
         """
         This method should not be overridden.
         Saves object self.nwbfile.
@@ -272,10 +268,6 @@ class NWBConverter:
         read_check: bool
             If True, try to read the file after writing
         """
-        if to_path is None:
-            to_path = self.nwbfile_saveloc
-        if to_path is None:
-            raise Exception('provice nwb save location as argument')
         with NWBHDF5IO(to_path, 'w') as io:
             io.write(self.nwbfile)
 

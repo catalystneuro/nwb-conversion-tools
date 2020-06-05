@@ -32,7 +32,7 @@ import inspect
 class Application(QMainWindow):
     def __init__(self, metafile=None, conversion_module='', source_paths={},
                  kwargs_fields={}, extension_modules={}, extension_forms={},
-                 show_add_del=False, nwb_file=None, conversion_class=None):
+                 show_add_del=False, nwbfile_loc=None, conversion_class=None):
         super().__init__()
         # Dictionary storing source files paths
         self.source_paths = source_paths
@@ -50,7 +50,7 @@ class Application(QMainWindow):
         # Temporary folder path
         self.temp_dir = tempfile.mkdtemp()
         # default nwbfile save location:
-        self.nwb_file = nwb_file
+        self.nwbfile_loc = nwbfile_loc
         # conversion_class:
         self.conversion_class = conversion_class
 
@@ -666,9 +666,9 @@ class ConversionFunctionThread(QtCore.QThread):
                     break
         metadata = self.parent.read_metadata_from_form()
         fileloc = list(self.parent.source_paths.values())[0]['path']
-        conversion_obj = self.parent.conversion_class(fileloc, self.parent.lin_nwb_file.text(), metadata)
+        conversion_obj = self.parent.conversion_class(fileloc, None, metadata)
         conversion_obj.run_conversion()
-        conversion_obj.save()
+        conversion_obj.save(self.parent.lin_nwb_file.text())
         #    self.error = None
         #except Exception as error:
         #    self.error = error
@@ -692,13 +692,13 @@ if __name__ == '__main__':
 # If it is imported as a module
 def nwb_conversion_gui(metafile=None, conversion_module='', source_paths={},
                        kwargs_fields={}, extension_modules={}, extension_forms={},
-                       show_add_del=False, nwbfile=None, conversion_class=None):
+                       show_add_del=False, nwbfile_loc=None, conversion_class=None):
     """Sets up QT application."""
     app = QtCore.QCoreApplication.instance()
     if conversion_class is None and conversion_module=='':
         raise Exception('provide one of conversion_module:str or conversion_class:class')
-    if nwbfile is None:
-        nwbfile = os.path.join(os.getcwd(),conversion_class.__name__ + '_nwbfile_gui.nwb')
+    if nwbfile_loc is None:
+        nwbfile_loc = os.path.join(os.getcwd(),conversion_class.__name__ + '_nwbfile_gui.nwb')
     if app is None:
         app = QApplication(sys.argv)  # instantiate a QtGui (holder for the app)
     Application(
@@ -709,7 +709,7 @@ def nwb_conversion_gui(metafile=None, conversion_module='', source_paths={},
         extension_modules=extension_modules,
         extension_forms=extension_forms,
         show_add_del=show_add_del,
-        nwb_file=nwbfile,
+        nwbfile_loc=nwbfile_loc,
         conversion_class=conversion_class
     )
     sys.exit(app.exec_())
