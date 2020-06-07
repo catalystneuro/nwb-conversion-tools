@@ -7,6 +7,21 @@ from segmentationextractors.nwbextractor.nwbsegmentationextractor import iter_da
 from nwb_conversion_tools.converter import NWBConverter
 from hdmf.data_utils import DataChunkIterator
 
+def iter_datasetvieww(datasetview_obj):
+    """
+    Generator to return a row of the array each time it is called.
+    This will be wrapped with a DataChunkIterator class.
+
+    Parameters
+    ----------
+    datasetview_obj: DatasetView
+        2-D array to iteratively write to nwb.
+    """
+
+    for i in range(datasetview_obj.shape[0]):
+        curr_data = datasetview_obj[i]
+        yield curr_data
+    return
 
 class OphysNWBConverter(NWBConverter):
 
