@@ -103,7 +103,9 @@ class Application(QMainWindow):
 
         self.lbl_nwb_file = QLabel('Output nwb file:')
         self.lbl_nwb_file.setToolTip("Path to the NWB file that will be created.")
-        self.lin_nwb_file = QLineEdit(self.nwbfile_loc)
+        self.lin_nwb_file = QLineEdit('')
+        if self.nwbfile_loc is not None:
+            self.lin_nwb_file = QLineEdit(self.nwbfile_loc)
         self.btn_nwb_file = QPushButton()
         self.btn_nwb_file.setIcon(self.style().standardIcon(QStyle.SP_DialogOpenButton))
         self.btn_nwb_file.clicked.connect(self.load_nwb_file)
@@ -657,6 +659,8 @@ class ConversionFunctionThread(QtCore.QThread):
 
     def run(self):
         #try:
+        if not self.parent.lin_nwb_file.text():
+            raise ValueError('select a save location for nwbfile')
         if self.parent.conversion_module_path:# if not an empty string (if value was selected from gui)
             mod_file = self.parent.conversion_module_path
             spec = importlib.util.spec_from_file_location(os.path.basename(mod_file).strip('.py'), mod_file)
@@ -704,8 +708,6 @@ def nwb_conversion_gui(metafile=None, conversion_module=None, source_paths=None,
     app = QtCore.QCoreApplication.instance()
     if conversion_class is None and conversion_module is None:
         raise Exception('provide one of conversion_module:str or conversion_class:class')
-    if nwbfile_loc is None:
-        nwbfile_loc = os.path.join(os.getcwd(),conversion_class.__name__ + '_nwbfile_gui.nwb')
     if app is None:
         app = QApplication(sys.argv)  # instantiate a QtGui (holder for the app)
     Application(
