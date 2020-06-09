@@ -50,7 +50,7 @@ class BasicFormCollapsible(CollapsibleBox):
             # Required fields get a red star in their label
             if 'default' not in field:
                 required = True
-                default = 'required: '+ str(field['type'])
+                default = ''
             # Optional fields
             else:
                 required = False
@@ -64,6 +64,8 @@ class BasicFormCollapsible(CollapsibleBox):
                 continue
             # String types
             if field['type'] is str:
+                if not default:
+                    default = 'unfilled field value'
                 self.fields_info.append({
                     'name': field['name'],
                     'type': 'str',
@@ -74,6 +76,8 @@ class BasicFormCollapsible(CollapsibleBox):
                 })
             # Float types
             elif field['type'] in ('float', float):
+                if not default:
+                    default = float('NaN')
                 self.fields_info.append({
                     'name': field['name'],
                     'type': 'float',
@@ -105,20 +109,11 @@ class BasicFormCollapsible(CollapsibleBox):
             # String types
             if field['type'] == 'str':
                 form = QLineEdit('')
-                if field['required']:
-                    form.setPlaceholderText(field['default'])
-                else:
-                    form.setText(field['default'])
+                form.setText(field['default'])
             # Float types
             elif field['type'] == 'float':
-                if field['default'] is not None:
-                    form = QLineEdit('')
-                    if field['required']:
-                        form.setPlaceholderText(str(field['default']))
-                    else:
-                        form.setText(str(field['default']))
-                else:
-                    form = QLineEdit(None)
+                form = QLineEdit('')
+                form.setText(str(field['default']))
                 form.setValidator(validator_float)
             # Link types
             elif field['type'] == 'link':
@@ -247,7 +242,7 @@ class BasicFormFixed(QGroupBox):
             # Required fields get a red star in their label
             if 'default' not in field:
                 required = True
-                default = 'required: '+ str(field['type'])
+                default = ''
             # Optional fields
             else:
                 required = False
@@ -261,6 +256,8 @@ class BasicFormFixed(QGroupBox):
                 continue
             # String types
             if field['type'] is str:
+                if not default:
+                    default = 'unfilled field value'
                 self.fields_info.append({
                     'name': field['name'],
                     'type': 'str',
@@ -271,6 +268,8 @@ class BasicFormFixed(QGroupBox):
                 })
             # Float types
             elif field['type'] in ('float', float):
+                if not default:
+                    default = float('NaN')
                 self.fields_info.append({
                     'name': field['name'],
                     'type': 'float',
@@ -302,20 +301,11 @@ class BasicFormFixed(QGroupBox):
             # String types
             if field['type'] == 'str':
                 form = QLineEdit('')
-                if field['required']:
-                    form.setPlaceholderText(field['default'])
-                else:
-                    form.setText(field['default'])
+                form.setText(field['default'])
             # Float types
             elif field['type'] == 'float':
-                if field['default'] is not None:
-                    form = QLineEdit('')
-                    if field['required']:
-                        form.setPlaceholderText(str(field['default']))
-                    else:
-                        form.setText(str(field['default']))
-                else:
-                    form = QLineEdit(None)
+                form = QLineEdit('')
+                form.setText(str(field['default']))
                 form.setValidator(validator_float)
             # Link types
             elif field['type'] == 'link':
