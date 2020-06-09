@@ -30,8 +30,8 @@ import inspect
 #   -check kwargs
 
 class Application(QMainWindow):
-    def __init__(self, metafile=None, conversion_module=None, source_paths={},
-                 kwargs_fields={}, extension_modules={}, extension_forms={},
+    def __init__(self, metafile=None, conversion_module=None, source_paths=None,
+                 kwargs_fields=None, extension_modules=None, extension_forms=None,
                  show_add_del=False, nwbfile_loc=None, conversion_class=None):
         super().__init__()
         # Dictionary storing source files paths
@@ -46,7 +46,8 @@ class Application(QMainWindow):
         self.extension_modules = extension_modules
         # Updates name_to_gui_class with extension classes
         self.name_to_gui_class = name_to_gui_class
-        self.name_to_gui_class.update(extension_forms)
+        if extension_forms:
+            self.name_to_gui_class.update(extension_forms)
         # Temporary folder path
         self.temp_dir = tempfile.mkdtemp()
         # default nwbfile save location:
@@ -119,7 +120,7 @@ class Application(QMainWindow):
         l_grid1.addWidget(self.btn_nwb_file, 1, 4, 1, 1)
 
         # Adds custom files/dir paths fields
-        if len(self.source_paths.keys()) == 0:
+        if self.source_paths is None:
             self.lbl_source_file = QLabel('source files:')
             self.lin_source_file = QLineEdit('')
             self.btn_source_file = QPushButton()
@@ -153,7 +154,7 @@ class Application(QMainWindow):
             l_grid1.addWidget(self.group_source_paths, 3, 0, 1, 6)
 
         # Adds custom kwargs checkboxes
-        if len(self.kwargs_fields.keys()) > 0:
+        if self.kwargs_fields:
             self.group_kwargs = QGroupBox('KWARGS')
             self.grid_kwargs = QGridLayout()
             self.grid_kwargs.setColumnStretch(4, 1)
@@ -432,8 +433,9 @@ class Application(QMainWindow):
         """Loads NWB file on Ipython console"""
         # Imports extension modules
         imports_text = ""
-        for k, v in self.extension_modules.items():
-            imports_text += "\nfrom " + k + " import " + ", ".join(v)
+        if self.extension_modules:
+            for k, v in self.extension_modules.items():
+                imports_text += "\nfrom " + k + " import " + ", ".join(v)
         code = """
             import pynwb
             import os
@@ -692,8 +694,8 @@ if __name__ == '__main__':
 
 
 # If it is imported as a module
-def nwb_conversion_gui(metafile=None, conversion_module=None, source_paths={},
-                       kwargs_fields={}, extension_modules={}, extension_forms={},
+def nwb_conversion_gui(metafile=None, conversion_module=None, source_paths=None,
+                       kwargs_fields=None, extension_modules=None, extension_forms=None,
                        show_add_del=False, nwbfile_loc=None, conversion_class=None):
     """Sets up QT application."""
     if conversion_module:
