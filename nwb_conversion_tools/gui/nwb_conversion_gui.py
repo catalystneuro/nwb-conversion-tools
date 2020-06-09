@@ -25,9 +25,7 @@ import importlib
 import yaml
 import sys
 import os
-import inspect
-# TODO: implement changes specified downstread
-#   -check kwargs
+
 
 class Application(QMainWindow):
     def __init__(self, metafile=None, conversion_module=None, source_paths=None,
@@ -140,7 +138,7 @@ class Application(QMainWindow):
                 ii += 1
                 lbl_src = QLabel(k + ':')
                 setattr(self, 'lbl_src_' + str(ii), lbl_src)
-                lin_src = QLineEdit('')
+                lin_src = QLineEdit(v['path'])
                 setattr(self, 'lin_src_' + str(ii), lin_src)
                 btn_src = QPushButton()
                 btn_src.setIcon(self.style().standardIcon(QStyle.SP_DialogOpenButton))
@@ -302,7 +300,7 @@ class Application(QMainWindow):
 
     def save_meta_file(self):
         """Saves metadata to .yml file."""
-        filename, _ = QFileDialog.getSaveFileName(self, 'Save file', '', "(*.yml)")
+        filename, _ = QFileDialog.getSaveFileName(self, 'Save file', '', "(*.yml);;(*.yaml)")
         if filename:
             data = {}
             for grp in self.groups_list:
@@ -376,9 +374,9 @@ class Application(QMainWindow):
                 parent=self,
                 caption='Open file',
                 directory='',
-                filter="(*.yml)"
+                filter="(*.yml);;(*.yaml)"
             )
-            if ftype != '(*.yml)':
+            if ftype != '(*.yml)' or ftype != '(*.yaml)':
                 return
         with open(filename) as f:
             self.metadata = yaml.safe_load(f)
