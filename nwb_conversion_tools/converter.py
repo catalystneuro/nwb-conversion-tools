@@ -23,7 +23,6 @@ class NWBConverter:
         """
         self.metadata = metadata
         self.source_paths = source_paths
-
         # create self.nwbfile object
         if nwbfile is None:
             self.create_nwbfile(metadata['NWBFile'])
@@ -269,7 +268,6 @@ class NWBConverter:
         read_check: bool
             If True, try to read the file after writing
         """
-
         with NWBHDF5IO(to_path, 'w') as io:
             io.write(self.nwbfile)
 
