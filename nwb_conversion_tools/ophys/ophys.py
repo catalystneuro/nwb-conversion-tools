@@ -202,7 +202,8 @@ class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
             format='external',
             rate=self.segext_obj.get_sampling_frequency(),
             starting_time=0.0,
-            starting_frame=[0]
+            starting_frame=[0],
+            dimension=self.segext_obj.image_dims
         )
 
         if metadata is None and 'Ophys' in self.metadata and 'TwoPhotonSeries' in self.metadata['Ophys']:
@@ -233,9 +234,26 @@ class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
 
     def add_rois(self):
         ps = self.ps_list[0]
+        pixel_mask_exist = self.segext_obj.get_pixel_masks() is not None
         for i, roiid in enumerate(self.segext_obj.roi_idx):
-            ps.add_roi(image_mask=self.segext_obj.get_image_masks(ROI_ids=[roiid]),
-                       pixel_mask=self.segext_obj.get_pixel_masks(ROI_ids=[roiid])[:,0:-1])
+            if pixel_mask_exist:
+                ps.add_roi(id=roiid,
+                           pixel_mask=self.segext_obj.get_pixel_masks(ROI_ids=[roiid])[:,0:-1])
+            else:
+                ps.add_roi(id=roiid,
+                           image_mask=self.segext_obj.get_image_masks(ROI_ids=[roiid]))
+
+    def add_roi_table_column(self):
+        self.ps_list[0].add_column(name='RoiCentroid',
+                                   description='x,y location of centroid of the roi in image_mask',
+                                   data=np.array(self.segext_obj.get_roi_locations()).T)
+        accepted = np.zeros(self.segext_obj.no_rois)
+        for j,i in enumerate(self.segext_obj.roi_idx):
+            if i in self.segext_obj.accepted_list:
+                accepted[j] = 1
+        self.ps_list[0].add_column(name='Accepted',
+                                   description='1 if ROi was accepted or 0 if rejected as a cell during segmentation operation',
+                                   data=accepted)
 
     def add_fluorescence_traces(self, metadata=None):
         """
@@ -292,6 +310,10 @@ class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
 
     def add_images(self):
         images_dict = self.segext_obj.get_images()
+        if 'Ophys' in self.metadata and list(images_dict.keys())[0] in self.metadata['Ophys']:
+            images_names = [i['name'] for i in self.metadata['Ophys'][list(images_dict.keys())[0]]]
+        else:
+            images_names = list(list(images_dict.values())[0].keys())
         if images_dict is not None:
             image_names_obj = list(images_dict.keys())
             if 'Images' in self.metadata['Ophys'] and len(self.metadata['Ophys']['Images'])>0:
@@ -299,7 +321,8 @@ class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
             for img_set_name, img_set in images_dict.items():
                 images = Images(img_set_name)
                 for img_name, img_no in img_set.items():
-                    images.add_image(GrayscaleImage(name=img_name,data=img_no))
+                    if img_name in images_names:
+                        images.add_image(GrayscaleImage(name=img_name,data=img_no))
                 self.ophys_mod.add(images)
 
     def run_conversion(self):
@@ -309,6 +332,7 @@ class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
         self.create_imaging_plane()
         self.create_plane_segmentation()
         self.add_rois()
+        self.add_roi_table_column()
         self.add_fluorescence_traces()
         self.create_two_photon_series(imaging_plane=list(self.nwbfile.imaging_planes.values())[0])
         self.add_images()
