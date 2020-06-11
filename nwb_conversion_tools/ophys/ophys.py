@@ -7,21 +7,6 @@ from segmentationextractors.nwbextractor.nwbsegmentationextractor import iter_da
 from nwb_conversion_tools.converter import NWBConverter
 from hdmf.data_utils import DataChunkIterator
 
-def iter_datasetvieww(datasetview_obj):
-    """
-    Generator to return a row of the array each time it is called.
-    This will be wrapped with a DataChunkIterator class.
-
-    Parameters
-    ----------
-    datasetview_obj: DatasetView
-        2-D array to iteratively write to nwb.
-    """
-
-    for i in range(datasetview_obj.shape[0]):
-        curr_data = datasetview_obj[i]
-        yield curr_data
-    return
 
 class OphysNWBConverter(NWBConverter):
 
@@ -183,7 +168,7 @@ class ProcessedOphysNWBConverter(OphysNWBConverter):
 
 class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
     
-    def __init__(self, source_path, nwbfile, metadata):
+    def __init__(self, segext_obj, nwbfile, metadata):
         """
         Conversion of Sima segmentationExtractor object to an NWB file using GUI
         Parameters
@@ -195,6 +180,8 @@ class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
         metadata: str
             location of the metadata.yaml file that can be used to populate nwb file metadata.
         """
+        self.segext_obj = segext_obj
+        source_path = self.segext_obj.filepath
         if isinstance(metadata,str):
             with open(metadata,'r') as f:
                 metadata = yaml.safe_load(f)
@@ -290,21 +277,13 @@ class SegmentationExtractor2NWBConverter(ProcessedOphysNWBConverter):
         #Create the main fluorescence container
         fl = container_func()
         self.ophys_mod.add_data_interface(fl)
-        roi_resp = dict()
-        if isinstance(self.segext_obj.roi_response,dict):
-            roi_resp = self.segext_obj.roi_response
-        elif isinstance(self.segext_obj.roi_response,list):
-            for j,i in enumerate(metadata_iter):
-                if isinstance(self.segext_obj.roi_response,list):
-                    roi_resp.update({i['name']:self.segext_obj.roi_response[j]})
-        else:# if only one roi_resp_data set is provided, assume its corresponding to the first one
-            roi_resp.update({metadata_iter[0]['name']: self.segext_obj.roi_response})
-            metadata_iter = [metadata_iter[0]]
         #Iteratively populate fluo container with various roi_resp_series
         for i in metadata_iter:
             i.update(**input_kwargs)
             i.update(
-                data=DataChunkIterator(data=iter_datasetvieww(roi_resp[i['name']]))
+                data=DataChunkIterator(data=iter_datasetvieww(
+                    self.segext_obj.get_traces_info()[i['name']])
+                )
             )
             fl.create_roi_response_series(**i)
 
