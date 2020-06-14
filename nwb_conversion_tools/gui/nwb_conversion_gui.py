@@ -707,6 +707,8 @@ def nwb_conversion_gui(metafile=None, conversion_module=None, source_paths=None,
     app = QtCore.QCoreApplication.instance()
     if conversion_class is None and conversion_module is None:
         raise Exception('provide one of conversion_module:str or conversion_class:class')
+    elif conversion_class is not None and conversion_module is not None:
+        raise Exception('provide either of conversion_module:str or conversion_class:class')
     if app is None:
         app = QApplication(sys.argv)  # instantiate a QtGui (holder for the app)
     Application(
