@@ -30,7 +30,7 @@ import os
 class Application(QMainWindow):
     def __init__(self, metafile=None, conversion_module=None, source_paths=None,
                  kwargs_fields=None, extension_modules=None, extension_forms=None,
-                 show_add_del=False, nwbfile_loc=None, conversion_class=None):
+                 show_add_del=False, nwbfile_loc=None, conversion_class=None, nwbwidgets=True):
         super().__init__()
         # Dictionary storing source files paths
         self.source_paths = source_paths
@@ -60,7 +60,8 @@ class Application(QMainWindow):
         self.init_gui()
         self.init_meta_tab()
         self.load_meta_file(filename=metafile)
-        self.init_nwb_explorer()
+        if nwbwidgets:
+            self.init_nwb_explorer()
         self.show()
 
     def init_gui(self):
@@ -271,7 +272,7 @@ class Application(QMainWindow):
         hsplitter.addWidget(right_w)
 
         # Add tab to GUI
-        self.tabs.addTab(hsplitter, 'NWB explorer')
+        self.tabs.addTab(hsplitter, 'NWB widgets')
 
     def write_to_logger(self, txt):
         time = datetime.datetime.now().time().strftime("%H:%M:%S")
@@ -698,7 +699,7 @@ if __name__ == '__main__':
 # If it is imported as a module
 def nwb_conversion_gui(metafile=None, conversion_module=None, source_paths=None,
                        kwargs_fields=None, extension_modules=None, extension_forms=None,
-                       show_add_del=False, nwbfile_loc=None, conversion_class=None):
+                       show_add_del=False, nwbfile_loc=None, conversion_class=None,load_nwbwidgets=True):
     """Sets up QT application."""
     if conversion_module:
         raise DeprecationWarning('use of conversion_module will be replaced by conversion_class'
@@ -717,6 +718,7 @@ def nwb_conversion_gui(metafile=None, conversion_module=None, source_paths=None,
         extension_forms=extension_forms,
         show_add_del=show_add_del,
         nwbfile_loc=nwbfile_loc,
-        conversion_class=conversion_class
+        conversion_class=conversion_class,
+        nwbwidgets=load_nwbwidgets
     )
     sys.exit(app.exec_())
