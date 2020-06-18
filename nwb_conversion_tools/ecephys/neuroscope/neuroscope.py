@@ -12,6 +12,11 @@ class Neuroscope2NWB(NWBConverter):
         ----------
         nwbfile: pynwb.NWBFile
         metadata: dict
+        source_paths: dict
+            Example:
+            {path_to_xml: 'path\to\file.xml',
+             path_to_res: ['file1.res', 'file2.res'...],
+             path_to_clus: ['file1.clu', 'file2.clu'...]}
         """
         super().__init__(nwbfile=nwbfile, metadata=metadata, source_paths=source_paths)
 
