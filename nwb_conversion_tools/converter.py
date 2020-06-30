@@ -18,7 +18,7 @@ class NWBConverter:
         Parameters
         ----------
         metadata: dict
-        nwbfile: pynwb.NWBFile
+        nwbfile: [pynwb.NWBFile, None]
         source_paths: dict
         """
         self.metadata = metadata
@@ -37,7 +37,7 @@ class NWBConverter:
         self.devices = dict()
         for domain in ('Icephys', 'Ecephys', 'Ophys'):
             if domain in metadata and 'Device' in metadata[domain]:
-                self.devices.update(self.create_devices(metadata[domain]['Device']))
+                self.devices.update({domain: self.create_devices(metadata[domain]['Device'])})
 
         if 'Ecephys' in metadata:
             if 'ElectrodeGroup' in metadata['Ecephys']:
@@ -73,7 +73,7 @@ class NWBConverter:
         """
         self.nwbfile.subject = Subject(**metadata_subject)
 
-    def create_devices(self, metadata_device) -> Dict:
+    def create_devices(self, metadata_device) -> list:
         """
         This method is called at __init__.
         Use metadata to create Device object(s) in the NWBFile
@@ -88,15 +88,9 @@ class NWBConverter:
 
         """
         if isinstance(metadata_device, list):
-            devices = dict()
-            [devices.update(self.create_devices(idevice_meta)) for idevice_meta in metadata_device]
-            return devices
+            return [self.create_devices(idevice_meta)[0] for idevice_meta in metadata_device]
         else:
-            if 'tag' in metadata_device:
-                key = metadata_device['tag']
-            else:
-                key = metadata_device['name']
-            return {key: self.nwbfile.create_device(**metadata_device)}
+            return [self.nwbfile.create_device(**metadata_device)]
 
     def create_electrode_groups(self, metadata_ecephys):
         """

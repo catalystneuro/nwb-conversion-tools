@@ -18,6 +18,8 @@ class OphysNWBConverter(NWBConverter):
         # self.nwbfile.add_device(device)
         # self.imaging_plane = self.add_imaging_plane()
         self.imaging_planes = None
+        if not getattr(self, 'imaging_plane_set', None):
+            self.imaging_plane_set = False
         if self.imaging_plane_set:
             self.add_imaging_plane()
         # self.two_photon_series = self.create_two_photon_series()
@@ -58,13 +60,13 @@ class OphysNWBConverter(NWBConverter):
         input_kwargs = dict(
             name='ImagingPlane',
             description='no description',
-            device=self.devices[list(self.devices.keys())[0]],
             excitation_lambda=np.nan,
             imaging_rate=1.0,
             indicator='unknown',
             location='unknown'
         )
         c=0
+        # metadata argument overrides the self.metadata:
         if 'Ophys' in self.metadata and 'ImagingPlane' in self.metadata['Ophys']:
             if metadata is None:
                 metadata = [dict()]*len(self.metadata['Ophys']['ImagingPlane'])
@@ -75,7 +77,7 @@ class OphysNWBConverter(NWBConverter):
                 if i.get('device'):
                     i['device'] = self.nwbfile.devices[i['device']]
                 else:
-                    i['device'] = self.devices[list(self.devices.keys())[0]]
+                    i['device'] = self.devices['Ophys'][0]
                 # get optical channel object
                 if i.get('optical_channel'):
                     if len(i['optical_channel'])>0:# calling the bui creates an empty optical channel list when there was none.
@@ -143,11 +145,12 @@ class ProcessedOphysNWBConverter(OphysNWBConverter):
             for i in metadata:# multiple plane segmentations
                 if i.get('imaging_planes'):
                    if i['imaging_planes'] in [i.name for i in self.imaging_planes]:
-                        current_img_plane = self.nwbfile.get_imaging_plane(name=i['imaging_plane'])
+                       i['imaging_planes'] = self.nwbfile.get_imaging_plane(name=i['imaging_plane'])
                    else:
-                       current_img_plane = self.add_imaging_plane(dict(name=i['imaging_plane']))
+                       i['imaging_planes'] = self.add_imaging_plane(dict(name=i['imaging_plane']))[0]
                 else:
-                    current_img_plane = self.add_imaging_plane(dict(name=i['name']))
+                    i['imaging_planes'] = self.add_imaging_plane(dict(name=i['name']))[0]
+                i['imaging_plane'] = i.pop('imaging_planes')
                 input_kwargs.update(i)
                 if input_kwargs['name'] not in self.image_segmentation.keys():
                     self.ps_list.append(self.image_segmentation.create_plane_segmentation(**input_kwargs))
