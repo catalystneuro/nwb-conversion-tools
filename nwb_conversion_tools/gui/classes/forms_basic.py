@@ -14,7 +14,7 @@
 # ------------------------------------------------------------------------------
 from PySide2.QtWidgets import (QLineEdit, QVBoxLayout, QGridLayout, QLabel,
                                QGroupBox, QComboBox)
-from PySide2.QtGui import QDoubleValidator
+from PySide2.QtGui import QDoubleValidator, QRegExpValidator
 
 from nwb_conversion_tools.gui.utils.configs import required_asterisk_color
 from nwb_conversion_tools.gui.classes.collapsible_box import CollapsibleBox
@@ -93,6 +93,7 @@ class BasicFormCollapsible(CollapsibleBox):
         self.grid = QGridLayout()
         self.grid.setColumnStretch(5, 1)
         validator_float = QDoubleValidator()
+        name_validator = QRegExpValidator(r'[^\\/]+')
 
         # Loops through fields info to create a form entry for each
         for ii, field in enumerate(self.fields_info):
@@ -105,6 +106,8 @@ class BasicFormCollapsible(CollapsibleBox):
             # String types
             if field['type'] == 'str':
                 form = QLineEdit('')
+                if field['name'] == 'name':
+                    form.setValidator(name_validator)
                 if field['required']:
                     form.setPlaceholderText(field['default'])
                 else:
@@ -290,7 +293,7 @@ class BasicFormFixed(QGroupBox):
         self.grid = QGridLayout()
         self.grid.setColumnStretch(5, 1)
         validator_float = QDoubleValidator()
-
+        name_validator = QRegExpValidator(r'[^\\/]+')
         # Loops through fields info to create a form entry for each
         for ii, field in enumerate(self.fields_info):
             # Required fields get a red star in their label
@@ -302,6 +305,8 @@ class BasicFormFixed(QGroupBox):
             # String types
             if field['type'] == 'str':
                 form = QLineEdit('')
+                if field['name'] == 'name':
+                    form.setValidator(name_validator)
                 if field['required']:
                     form.setPlaceholderText(field['default'])
                 else:
