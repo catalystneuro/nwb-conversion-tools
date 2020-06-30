@@ -1,0 +1,43 @@
+---
+NWBFile:
+  session_start_time: 2020-02-02 00:00:00
+  keywords: [keyword1, keyword2]
+  experiment_description: brief experiment description
+  session_id: session id goes here
+  experimenter: testname
+  identifier: nwbfile id
+  institution: inistitution name
+  lab: lab name
+  session_description: ses desc
+  surgery: surgery description
+  pharmacology: pharma
+  protocol: protocol used
+  related_publications: pub1, pub2
+  notes: nwbfile notes
+  virus: virus info
+Subject:
+  subject_id: subjectID
+  description: subject descriptoin
+  genotype: genotype
+  sex: F
+  species: species
+  weight: weight number
+  date_of_birth: 2010-02-02 00:00:00
+Ophys:
+  Device:
+  - name: ophys_Device1
+    description: ophys_device1_description
+  ImageSegmentation:
+    name: ABCD
+    plane_segmentations:
+    - name: MyplaneSegmentation
+      description: Segmented ROIs
+  ImagingPlane:
+    - description: ADDME
+      excitation_lambda: 488.0
+      indicator: NLS-GCaMP6s
+      location: whole central brain
+      name: ImagingPlane_1
+      optical_channel:
+        - name: OpticalChannel
+          emission_lambda: 500.0
