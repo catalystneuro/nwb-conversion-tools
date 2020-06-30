@@ -1,0 +1,30 @@
+NWBFile:
+  data_collection: null
+  experiment_description: brief experiment description
+  experimenter: testname
+  identifier: nwbfile id
+  institution: inistitution name
+  keywords:
+  - keyword1
+  - keyword2
+  lab: lab name
+  notes: nwbfile notes
+  pharmacology: pharma
+  protocol: protocol used
+  related_publications: pub1, pub2
+  session_description: ses desc
+  session_id: session id goes here
+  session_start_time: 2020-02-02 00:00:00
+  slices: null
+  stimulus_notes: null
+  surgery: surgery description
+  virus: virus info
+Subject:
+  age: ''
+  date_of_birth: 2010-02-02 00:00:00
+  description: subject descriptoin
+  genotype: genotype
+  sex: F
+  species: species
+  subject_id: subjectID
+  weight: weight number

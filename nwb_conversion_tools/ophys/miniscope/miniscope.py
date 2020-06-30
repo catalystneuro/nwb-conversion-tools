@@ -9,8 +9,8 @@ from nwb_conversion_tools.ophys import OphysNWBConverter
 
 class Miniscope2NWB(OphysNWBConverter):
 
-    def __init__(self, nwbfile, from_path=None):
-        super(Miniscope2NWB).__init__(nwbfile)
+    def __init__(self, from_path, nwbfile, metadata_dict):
+        super(Miniscope2NWB, self).__init__(metadata_dict, nwbfile=nwbfile)
         self.from_path = from_path
 
     def add_microscopy(self, from_path):
@@ -44,3 +44,7 @@ class Miniscope2NWB(OphysNWBConverter):
                 starting_frame=[0] * len(behav_files)
             )
         )
+
+    def run_conversion(self):
+        self.add_microscopy(self.from_path)
+        self.add_behavior_video(self.from_path)
