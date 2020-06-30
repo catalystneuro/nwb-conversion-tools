@@ -25,6 +25,7 @@ import importlib
 import yaml
 import sys
 import os
+import warnings
 
 
 class Application(QMainWindow):
@@ -702,8 +703,8 @@ def nwb_conversion_gui(metafile=None, conversion_module=None, source_paths=None,
                        show_add_del=False, nwbfile_loc=None, conversion_class=None,load_nwbwidgets=True):
     """Sets up QT application."""
     if conversion_module:
-        raise DeprecationWarning('use of conversion_module will be replaced by conversion_class'
-                                 'with its \'run_conversion\' method called directly')
+        warnings.warn('use of conversion_module will be replaced by conversion_class with its' 
+                      '\'run_conversion\' method called directly',DeprecationWarning)
     app = QtCore.QCoreApplication.instance()
     if conversion_class is None and conversion_module is None:
         raise Exception('provide one of conversion_module:str or conversion_class:class')
