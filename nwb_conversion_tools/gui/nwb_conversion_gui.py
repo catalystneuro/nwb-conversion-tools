@@ -704,7 +704,7 @@ if __name__ == '__main__':
 # If it is imported as a module
 def nwb_conversion_gui(metafile=None, conversion_module=None, source_paths=None,
                        kwargs_fields=None, extension_modules=None, extension_forms=None,
-                       show_add_del=False, nwbfile_loc=None, conversion_class=None,load_nwbwidgets=True):
+                       show_add_del=False, nwbfile_loc=None, conversion_class=None,load_nwbwidgets=False):
     """Sets up QT application."""
     if conversion_module:
         warnings.warn('use of conversion_module will be replaced by conversion_class with its'
