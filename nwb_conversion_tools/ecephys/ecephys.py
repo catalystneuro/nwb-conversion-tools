@@ -1,4 +1,4 @@
-from ..converter import NWBConverter
+from converter import NWBConverter
 import spikesorters as ss
 import spiketoolkit as st
 import spikeextractors as se
@@ -70,22 +70,86 @@ class SpikeExtractor2NWBConverter(NWBConverter):
             for id in ids:
                 spkt = self.SX.get_unit_spike_train(unit_id=id) / fs
                 if 'waveforms' in self.SX.get_unit_spike_feature_names(unit_id=id):
-                    # Stores average and std of spike traces
-                    wf = self.SX.get_unit_spike_features(unit_id=id,
-                                                         feature_name='waveforms')
-                    relevant_ch = most_relevant_ch(wf)
-                    # Spike traces on the most relevant channel
-                    traces = wf[:, relevant_ch, :]
-                    traces_avg = np.mean(traces, axis=0)
-                    traces_std = np.std(traces, axis=0)
-                    self.nwbfile.add_unit(
-                        id=id,
-                        spike_times=spkt,
-                        waveform_mean=traces_avg,
-                        waveform_sd=traces_std
-                    )
+                    if 'electrode_group' in self.SX.get_unit_property_names(unit_id=id):
+                        # Stores average and std of spike traces
+                        wf = self.SX.get_unit_spike_features(unit_id=id,
+                                                             feature_name='waveforms')
+                        relevant_ch = most_relevant_ch(wf)
+                        # Spike traces on the most relevant channel
+                        traces = wf[:, relevant_ch, :]
+                        traces_avg = np.mean(traces, axis=0)
+                        traces_std = np.std(traces, axis=0)
+                        self.nwbfile.add_unit(
+                            id=id,
+                            spike_times=spkt,
+                            waveform_mean=traces_avg,
+                            waveform_sd=traces_std,
+                            electrode_group=self.SX.get_unit_property(id,'electrode_group')
+                        )
+                    else:
+                        # Stores average and std of spike traces
+                        wf = self.SX.get_unit_spike_features(unit_id=id,
+                                                             feature_name='waveforms')
+                        relevant_ch = most_relevant_ch(wf)
+                        # Spike traces on the most relevant channel
+                        traces = wf[:, relevant_ch, :]
+                        traces_avg = np.mean(traces, axis=0)
+                        traces_std = np.std(traces, axis=0)
+                        self.nwbfile.add_unit(
+                            id=id,
+                            spike_times=spkt,
+                            waveform_mean=traces_avg,
+                            waveform_sd=traces_std
+                        )
                 else:
-                    self.nwbfile.add_unit(id=id, spike_times=spkt)
+                    if 'electrode_group' in self.SX.get_unit_property_names(unit_id=id):
+                        self.nwbfile.add_unit(id=id, spike_times=spkt, electrode_group=self.SX.get_unit_property(id,'electrode_group'))
+                    else: 
+                        self.nwbfile.add_unit(id=id, spike_times=spkt)
+        # Extract and add custom column data from unit properties
+        descriptions = [
+            {
+                'name': 'cell_type',
+                'description': 'name of cell type'},
+            {
+                'name': 'global_id',
+                'description': 'global id for cell for entire experiment'},
+            {
+                'name': 'shank_id',
+                'description': '0-indexed id of cluster of shank'},
+#             {
+#                'name': 'electrode_group',
+#                'description': 'the electrode group that each spike unit came from'},
+            {
+               'name': 'max_electrode',
+               'description': 'electrode that has the maximum amplitude of the waveform'
+            }
+        ]
+        property_names = self.SX.get_unit_property_names(0)
+        if 'electrode_group' in property_names:
+            property_names.remove('electrode_group')
+        custom_unit_columns = []
+        for unit_property in property_names: # Use ID zero as base case, and assume all other IDs have those same unit properties
+            custom_unit_column = []
+            for id in self.SX.get_unit_ids():
+                custom_unit_column.append(self.SX.get_unit_property(id,unit_property))
+        
+            this_description = list(filter(lambda description: description['name'] == unit_property, descriptions))
+            
+            if unit_property=='max_electrode':
+                custom_unit_columns.append({'name': unit_property,
+                                            'description': this_description[0]['description'],
+                                            'data': custom_unit_column,
+                                            'table': self.nwbfile.electrodes})
+            else:
+                custom_unit_columns.append({'name': unit_property,
+                                            'description': this_description[0]['description'],
+                                            'data': custom_unit_column})
+        
+#         if not custom_unit_columns:
+        [self.nwbfile.add_unit_column(**x) for x in custom_unit_columns]
+            
+            
 
     def run_spike_sorting(self, sorter_name='herdingspikes', add_to_nwb=True,
                           output_folder='my_sorter_output', delete_output_folder=True):
