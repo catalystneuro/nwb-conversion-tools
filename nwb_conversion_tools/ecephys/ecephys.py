@@ -103,47 +103,31 @@ class SpikeExtractor2NWBConverter(NWBConverter):
                         )
                 else:
                     if 'electrode_group' in self.SX.get_unit_property_names(unit_id=id):
-                        self.nwbfile.add_unit(id=id, spike_times=spkt, electrode_group=self.SX.get_unit_property(id,'electrode_group'))
+                        self.nwbfile.add_unit(id=id, spike_times=spkt,
+                                              electrode_group=self.SX.get_unit_property(id,'electrode_group'))
                     else: 
                         self.nwbfile.add_unit(id=id, spike_times=spkt)
         # Extract and add custom column data from unit properties
-        descriptions = [
-            {
-                'name': 'cell_type',
-                'description': 'name of cell type'},
-            {
-                'name': 'global_id',
-                'description': 'global id for cell for entire experiment'},
-            {
-                'name': 'shank_id',
-                'description': '0-indexed id of cluster of shank'},
-#             {
-#                'name': 'electrode_group',
-#                'description': 'the electrode group that each spike unit came from'},
-            {
-               'name': 'max_electrode',
-               'description': 'electrode that has the maximum amplitude of the waveform'
-            }
-        ]
+        # Use ID zero as base case, and assume all other IDs have those same unit properties
         property_names = self.SX.get_unit_property_names(0)
-        if 'electrode_group' in property_names:
-            property_names.remove('electrode_group')
+        if 'electrode_group_info' in property_names:
+            property_names.remove('electrode_group_info')
         custom_unit_columns = []
-        for unit_property in property_names: # Use ID zero as base case, and assume all other IDs have those same unit properties
+        for unit_property in property_names:
             custom_unit_column = []
             for id in self.SX.get_unit_ids():
-                custom_unit_column.append(self.SX.get_unit_property(id,unit_property))
-        
-            this_description = list(filter(lambda description: description['name'] == unit_property, descriptions))
+                this_info = self.SX.get_unit_property(id,unit_property)
+                custom_unit_column.append(this_info['data'])
             
-            if unit_property=='max_electrode':
-                custom_unit_columns.append({'name': unit_property,
-                                            'description': this_description[0]['description'],
-                                            'data': custom_unit_column,
+            if unit_property=='max_electrode_info':
+                custom_unit_columns.append({'name': this_info['name'],
+                                            'description': this_info['description'],
+                                            'data': this_info['description'],
                                             'table': self.nwbfile.electrodes})
             else:
-                custom_unit_columns.append({'name': unit_property,
-                                            'description': this_description[0]['description'],
+                # technically using the names and description present in the final id
+                custom_unit_columns.append({'name': this_info['name'],
+                                            'description': this_info['description'],
                                             'data': custom_unit_column})
         
 #         if not custom_unit_columns:
