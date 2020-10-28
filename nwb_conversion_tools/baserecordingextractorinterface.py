@@ -57,24 +57,6 @@ class BaseRecordingExtractorInterface(BaseDataInterface):
                                                  metadata=metadata_dict)
 
 
-def recording_extractor_instance_to_data_interface_class(rx):
-    RX = rx.__class__
-    RX_name = rx.__class__.__name__
-
-    def __init__(self, **input_args):
-        BaseDataInterface.__init__(**input_args)
-        self.recording_extractor = rx
-
-    return type(  # create new class ( a lesser-known functionality of the `type` function)
-        RX_name + 'DataInterface',  # class name
-        (BaseRecordingExtractorInterface,),  # base classes
-        dict(
-            __init__=__init__,
-            RX=RX
-        )
-    )
-
-
 def recording_extractor_class_to_data_interface_class(RX):
     return type(
         RX.__name__ + 'DataInterface',  # class name
