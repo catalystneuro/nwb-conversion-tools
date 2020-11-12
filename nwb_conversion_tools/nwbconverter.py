@@ -3,8 +3,28 @@ from .utils import (get_schema_from_hdmf_class, get_root_schema, get_input_schem
                     get_schema_for_NWBFile, dict_deep_update)
 from pynwb import NWBHDF5IO, NWBFile
 from pynwb.file import Subject
+import spikeextractors as se
+from .baserecordingextractorinterface import BaseRecordingExtractorInterface
 from datetime import datetime
 import uuid
+
+
+def recording_extractor_to_data_interface_class(RX):
+    """Auxilliary function for automatically generating interface class from RecordingExtractor class."""
+
+    def __init__(self, extractor):
+        self.input_args = None
+        self.recording_extractor = extractor
+
+    interface_class = type(
+        RX.__name__ + 'DataInterface',  # class name
+        (BaseRecordingExtractorInterface,),  # base classes
+        dict(
+            RX=RX,
+            __init__=__init__
+        )
+    )
+    return interface_class
 
 
 class NWBConverter:
@@ -89,3 +109,11 @@ class NWBConverter:
             print(f'NWB file saved at {nwbfile_path}')
         else:
             return nwbfile
+
+    def add_extractor(self, extractor):
+        """Add a SpikeExtractor object into the converter; called after initialization but before run_conversion."""
+        if isinstance(extractor, se.RecordingExtractor):
+            interface_class = recording_extractor_to_data_interface_class(type(extractor))
+            interface_name = interface_class.__name__.replace("ExtractorDataInterface", "")
+            self.data_interface_objects.update({interface_name: interface_class(extractor)})
+            # Add to data_interface_classes as well? Wouldn't be necessary for running the conversion
