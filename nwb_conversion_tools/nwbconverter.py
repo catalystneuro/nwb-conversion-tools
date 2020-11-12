@@ -9,7 +9,7 @@ from datetime import datetime
 import uuid
 
 
-def recording_extractor_to_data_interface_class(RX):
+def recording_extractor_class_to_data_interface_class(RX):
     """Auxilliary function for automatically generating interface class from RecordingExtractor class."""
 
     def __init__(self, extractor):
@@ -113,7 +113,7 @@ class NWBConverter:
     def add_extractor(self, extractor):
         """Add a SpikeExtractor object into the converter; called after initialization but before run_conversion."""
         if isinstance(extractor, se.RecordingExtractor):
-            interface_class = recording_extractor_to_data_interface_class(type(extractor))
+            interface_class = recording_extractor_class_to_data_interface_class(type(extractor))
             interface_name = interface_class.__name__.replace("ExtractorDataInterface", "")
             self.data_interface_objects.update({interface_name: interface_class(extractor)})
             # Add to data_interface_classes as well? Wouldn't be necessary for running the conversion
