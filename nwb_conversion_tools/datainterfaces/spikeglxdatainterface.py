@@ -11,24 +11,20 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
 
     RX = SpikeGLXRecordingExtractor
 
-    def get_metadata(self):
-        """Auto-populate as much metadata as possible from the high-pass (ap) SpikeGLX format."""
-        file_path = Path(self.source_data['file_path'])
-        session_id = file_path.parent.stem
-
-        n_shanks = int(self.recording_extractor._meta['snsShankMap'][1])
+    @staticmethod
+    def get_ecephys_metadata(spikeglx_meta: dict, channel_ids):
+        n_shanks = int(spikeglx_meta['snsShankMap'][1])
         if n_shanks > 1:
             raise NotImplementedError("SpikeGLX metadata for more than a single shank is not yet supported.")
 
-        channels = self.recording_extractor.get_channel_ids()
-        shank_electrode_number = channels
-        shank_group_name = ["Shank1" for x in channels]
+        shank_electrode_number = channel_ids
+        shank_group_name = ["Shank1" for x in channel_ids]
 
         ecephys_metadata = dict(
             Ecephys=dict(
                 Device=[
                     dict(
-                        description=f"More details for the high-pass (ap) data found in {session_id}.ap.meta!"
+                        description="More details for the high-pass (ap) data found in session_id.ap.meta!"
                     )
                 ],
                 ElectrodeGroup=[
@@ -57,3 +53,10 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
             )
         )
         return ecephys_metadata
+
+    def get_metadata(self):
+        """Auto-populate as much metadata as possible from the high-pass (ap) SpikeGLX format."""
+        return SpikeGLXRecordingInterface.get_ecephys_metadata(
+            spikeglx_meta=self.recording_extractor._meta,
+            channel_ids=self.recording_extractor.get_channel_ids()
+        )
