@@ -12,7 +12,12 @@ def get_schema_from_hdmf_class(hdmf_class):
     schema = get_base_schema()
     schema['tag'] = hdmf_class.__module__ + '.' + hdmf_class.__name__
 
+    # Detect child-like (as opposed to link) fields
     pynwb_children_fields = [f['name'] for f in hdmf_class.get_fields_conf() if f.get('child', False)]
+    # For MultiContainerInterface
+    if hasattr(hdmf_class, '__clsconf__'):
+        print(f"{schema['tag']} has clsconf: {hdmf_class.__clsconf__['attr']}")
+        pynwb_children_fields.append(hdmf_class.__clsconf__['attr'])
 
     docval = hdmf_class.__init__.__docval__
     for docval_arg in docval['args']:
@@ -42,11 +47,11 @@ def get_schema_from_hdmf_class(hdmf_class):
                 and pynwb.base.TimeSeries in docval_arg['type']):
             continue
 
-        # if PlaneSegmentation, skip it
-        elif docval_arg['type'] is pynwb.ophys.PlaneSegmentation or \
-                (isinstance(docval_arg['type'], tuple) and
-                 pynwb.ophys.PlaneSegmentation in docval_arg['type']):
-            continue
+        # # if PlaneSegmentation, skip it
+        # elif docval_arg['type'] is pynwb.ophys.PlaneSegmentation or \
+        #         (isinstance(docval_arg['type'], tuple) and
+        #          pynwb.ophys.PlaneSegmentation in docval_arg['type']):
+        #     continue
 
         else:
             if not isinstance(docval_arg['type'], tuple):
