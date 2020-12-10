@@ -46,11 +46,11 @@ def get_schema_from_hdmf_class(hdmf_class):
                 and pynwb.base.TimeSeries in docval_arg['type']):
             continue
 
-        # # if PlaneSegmentation, skip it
-        # elif docval_arg['type'] is pynwb.ophys.PlaneSegmentation or \
-        #         (isinstance(docval_arg['type'], tuple) and
-        #          pynwb.ophys.PlaneSegmentation in docval_arg['type']):
-        #     continue
+        # if PlaneSegmentation, skip it
+        elif docval_arg['type'] is pynwb.ophys.PlaneSegmentation or \
+                (isinstance(docval_arg['type'], tuple) and
+                 pynwb.ophys.PlaneSegmentation in docval_arg['type']):
+            continue
 
         else:
             if not isinstance(docval_arg['type'], tuple):
