@@ -16,7 +16,7 @@ experiment_types:
 
     sessions:
       - output_path: filepath1.nwb
-        source_args:
+        source_data:
           plexon:
             filepath: rawdata1.plx
           deeplabcut:
@@ -53,4 +53,3 @@ experiment_types:
               session_start_time: "2020-11-10T21:19:09+00:00"
             Subject:
               subject_id: '002'
-
