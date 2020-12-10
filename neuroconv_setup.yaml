@@ -8,7 +8,7 @@ experiment_types:
     metadata:
       NWBFile:
         session_description: "maze is shaped like a Y"
-    input_data_types:
+    source_data_types:
       - name: plexon
         data_interface: PlexonRecordingExtractorInterface
       - name: deeplabcut
