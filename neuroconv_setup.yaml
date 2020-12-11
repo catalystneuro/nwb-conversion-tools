@@ -32,20 +32,20 @@ experiment_types:
             session_start_time: "2020-11-10T21:19:09+00:00"
           Subject:
             subject_id: '002'
-        source_args:
+        source_data:
           plexon:
             filepath: rawdata2.plx
           deeplabcut:
             directory: dlc_folder2
 
   - open_explore:
-      input_data_types:
+      source_data_types:
         - name: plexon
           data_interface: PlexonRecordingExtractorInterface
 
       sessions:
         - output_path: filepath3.nwb
-          source_args:
+          source_data:
           plexon:
             filepath: rawdata3.plx
           metadata:
