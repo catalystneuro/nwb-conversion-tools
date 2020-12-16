@@ -18,6 +18,10 @@ def get_schema_from_hdmf_class(hdmf_class):
     if hasattr(hdmf_class, '__clsconf__'):
         pynwb_children_fields.append(hdmf_class.__clsconf__['attr'])
 
+    # Temporary solution before this is solved: https://github.com/hdmf-dev/hdmf/issues/475
+    if 'device' in pynwb_children_fields:
+        pynwb_children_fields.remove('device')
+
     docval = hdmf_class.__init__.__docval__
     for docval_arg in docval['args']:
         schema_arg = {docval_arg['name']: dict(description=docval_arg['doc'])}
