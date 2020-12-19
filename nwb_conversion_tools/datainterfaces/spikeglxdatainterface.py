@@ -4,6 +4,7 @@ from pathlib import Path
 from spikeextractors import SpikeGLXRecordingExtractor
 
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
+from ..baselfpextractorinterface import BaseLFPExtractorInterface
 
 
 class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
@@ -12,7 +13,6 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
     RX = SpikeGLXRecordingExtractor
 
     def get_metadata(self):
-        """Auto-populate as much metadata as possible from the high-pass (ap) SpikeGLX format."""
         file_path = Path(self.source_data['file_path'])
         session_id = file_path.parent.stem
 
@@ -56,4 +56,23 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
                 )
             )
         )
+
         return ecephys_metadata
+
+
+class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
+    """Primary data interface class for converting the high-pass (ap) SpikeGLX format."""
+
+    RX = SpikeGLXRecordingExtractor
+
+    def get_metadata(self):
+        metadata = dict(
+            Ecephys=dict(
+                LFPElectricalSeries=dict(
+                    name="LFP",
+                    description="Local field potential signal."
+                )
+            )
+        )
+
+        return metadata
