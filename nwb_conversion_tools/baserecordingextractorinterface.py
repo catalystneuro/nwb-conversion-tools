@@ -49,7 +49,6 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
     def subset_recording(self, stub_test: bool = False):
         """
         Subset a recording extractor according to stub and channel subset options.
-
         Parameters
         ----------
         stub_test : bool, optional (default False)
@@ -73,7 +72,6 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
     def run_conversion(self, nwbfile: NWBFile, metadata: dict = None, stub_test: bool = False):
         """
         Primary function for converting recording extractor data to nwb.
-
         Parameters
         ----------
         nwbfile: pynwb.NWBFile
