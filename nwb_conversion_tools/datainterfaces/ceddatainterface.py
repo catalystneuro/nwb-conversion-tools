@@ -8,10 +8,6 @@ from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ..json_schema_utils import get_schema_from_method_signature
 
 
-def read_probe_file(file_path):
-    pass
-
-
 class CEDRecordingInterface(BaseRecordingExtractorInterface):
     """Primary data interface class for converting a CEDRecordingExtractor."""
 
