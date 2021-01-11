@@ -7,7 +7,9 @@ from typing import Optional
 
 from pynwb import NWBHDF5IO, NWBFile
 from pynwb.file import Subject
+import spikeextractors as se
 
+from .basesortingextractorinterface import BaseSortingExtractorInterface
 from .utils import get_schema_from_hdmf_class, get_schema_for_NWBFile
 from .json_schema_utils import dict_deep_update, get_base_schema, fill_defaults, \
     unroot_schema
@@ -28,9 +30,11 @@ class NWBConverter:
             description='Schema for the source data, files and directories',
             version='0.1.0'
         )
-        for interface_name, data_interface in cls.data_interface_classes.items():
-            source_schema['properties'].update(
-                {interface_name: unroot_schema(data_interface.get_source_schema())})
+        if cls.data_interface_classes is not None:
+            for interface_name, data_interface in cls.data_interface_classes.items():
+                source_schema['properties'].update(
+                    {interface_name: unroot_schema(data_interface.get_source_schema())}
+                )
         return source_schema
 
     @classmethod
@@ -43,10 +47,11 @@ class NWBConverter:
             description="Schema for the conversion options",
             version="0.1.0"
         )
-        for interface_name, data_interface in cls.data_interface_classes.items():
-            conversion_options_schema['properties'].update({
-                interface_name: unroot_schema(data_interface.get_conversion_options_schema())
-            })
+        if cls.data_interface_classes is not None:
+            for interface_name, data_interface in cls.data_interface_classes.items():
+                conversion_options_schema['properties'].update({
+                    interface_name: unroot_schema(data_interface.get_conversion_options_schema())
+                })
         return conversion_options_schema
 
     def __init__(self, source_data):
@@ -55,11 +60,36 @@ class NWBConverter:
         validate(instance=source_data, schema=self.get_source_schema())
 
         # If data is valid, proceed to instantiate DataInterface objects
-        self.data_interface_objects = {
-            name: data_interface(**source_data[name])
-            for name, data_interface in self.data_interface_classes.items()
-            if name in source_data
-        }
+        if self.data_interface_classes is not None:
+            self.data_interface_objects = {
+                name: data_interface(**source_data[name])
+                for name, data_interface in self.data_interface_classes.items()
+                if name in source_data
+            }
+        else:
+            self.data_interface_objects = None
+
+    def add_sorting_extractor(self, sorting_extractor: se.SortingExtractor):
+        """Manually add an instantiated SortingExtractor object into the NWBConverter object."""
+        class_name = type(sorting_extractor).__name__
+        interface_class_name = f'{class_name}DataInterface'
+        interface_name = class_name[:-9]  # SortingExtractor class names always end in "Extractor"
+        data_interface = type(
+            interface_class_name,
+            (BaseSortingExtractorInterface,),
+            dict(SX=class_name, sorting_extractor=sorting_extractor)
+        )
+
+        class_dict = {interface_name: interface_class_name}
+        object_dict = {interface_name: data_interface}
+        if self.data_interface_classes is not None:
+            self.data_interface_classes.update(class_dict)
+        else:
+            self.data_interface_classes = class_dict
+        if self.data_interface_objects is not None:
+            self.data_interface_objects.update(object_dict)
+        else:
+            self.data_interface_objects = object_dict
 
     def get_metadata_schema(self):
         """Compile metadata schemas from each of the data interface objects."""
@@ -96,9 +126,15 @@ class NWBConverter:
             metadata = dict_deep_update(metadata, interface_metadata)
         return metadata
 
-    def run_conversion(self, metadata: dict, save_to_file: bool = True, nwbfile_path: Optional[str] = None,
-                       overwrite: bool = False, nwbfile: Optional[NWBFile] = None,
-                       conversion_options: Optional[dict] = None):
+    def run_conversion(
+            self,
+            metadata: dict,
+            save_to_file: bool = True,
+            nwbfile_path: Optional[str] = None,
+            overwrite: bool = False,
+            nwbfile: Optional[NWBFile] = None,
+            conversion_options: Optional[dict] = None
+    ):
         """Build nwbfile object, auto-populate with minimal values if missing."""
         assert (not save_to_file and nwbfile_path is None) or nwbfile is None, \
             "Either pass a nwbfile_path location with save_to_file=True, or a nwbfile object, but not both!"
