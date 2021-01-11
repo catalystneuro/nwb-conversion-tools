@@ -61,6 +61,6 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
 
 
 class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
-    """Primary data interface class for converting the high-pass (ap) SpikeGLX format."""
+    """Primary data interface class for converting the low-pass (ap) SpikeGLX format."""
 
     RX = SpikeGLXRecordingExtractor
