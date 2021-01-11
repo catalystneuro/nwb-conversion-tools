@@ -64,15 +64,3 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
     """Primary data interface class for converting the high-pass (ap) SpikeGLX format."""
 
     RX = SpikeGLXRecordingExtractor
-
-    def get_metadata(self):
-        metadata = dict(
-            Ecephys=dict(
-                LFPElectricalSeries=dict(
-                    name="LFP",
-                    description="Local field potential signal."
-                )
-            )
-        )
-
-        return metadata
