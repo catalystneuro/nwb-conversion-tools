@@ -11,16 +11,12 @@ from .utils import get_schema_from_hdmf_class
 from .json_schema_utils import get_base_schema, get_schema_from_method_signature, fill_defaults
 
 
-class BaseSortingExtractorInterface(BaseDataInterface, ABC):
+class AbstractSortingExtractorInterface(BaseDataInterface, ABC):
     SX = None
 
     @classmethod
     def get_source_schema(cls):
         return get_schema_from_method_signature(cls.SX.__init__)
-
-    def __init__(self, **source_data):
-        super().__init__(**source_data)
-        self.sorting_extractor = self.SX(**source_data)
 
     def get_metadata_schema(self):
         metadata_schema = get_base_schema(
@@ -89,3 +85,19 @@ class BaseSortingExtractorInterface(BaseDataInterface, ABC):
             property_descriptions=property_descriptions,
             nwbfile=nwbfile
         )
+        
+        
+class BaseSortingExtractorInterface(AbstractSortingExtractorInterface):
+    
+    def __init__(self, **source_data):
+        super().__init__(**source_data)
+        self.sorting_extractor = self.SX(**source_data)
+        
+class DynamicSortingExtractorInterface(AbstractSortingExtractorInterface):
+    
+    def __init__(self, sorting_extractor: se.SortingExtractor):
+        super().__init__()
+        self.sorting_extractor = sorting_extractor
+        self.SX = type(sorting_extractor)
+    
+    
