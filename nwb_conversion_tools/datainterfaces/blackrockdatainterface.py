@@ -18,7 +18,7 @@ class BlackrockRecordingInterface(BaseRecordingExtractorInterface):
         """Compile input schema for the RecordingExtractor."""
         return get_schema_from_method_signature(
             class_method=cls.RX.__init__,
-            exclude=['block_index', 'seg_index_index']
+            exclude=['block_index', 'seg_index']
         )
 
     def get_metadata(self):
@@ -34,6 +34,14 @@ class BlackrockRecordingInterface(BaseRecordingExtractorInterface):
             session_start_time=session_start_time,
             session_description=comment,
             identifier=''.join(random.choices(string.ascii_uppercase + string.digits, k=12))
+        )
+
+        metadata['Ecephys'] = dict(
+            Device=[dict(
+                name='Device_ecephys',
+                description='no description'
+            )],
+            ElectrodeGroup=[]
         )
 
         return metadata
