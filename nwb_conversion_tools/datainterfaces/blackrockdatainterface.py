@@ -17,3 +17,9 @@ class BlackrockRecordingInterface(BaseRecordingExtractorInterface):
             class_method=cls.RX.__init__,
             exclude=['block_index', 'seg_index_index']
         )
+
+    def get_metadata(self):
+        """Auto-fill as much of the metadata as possible. Must comply with metadata schema."""
+        metadata = super().get_metadata()
+    
+        return metadata

@@ -18,6 +18,7 @@ from .roiextractordatainterface import (
     ExtractSegmentationInterface,
     SimaSegmentationInterface
 )
+from .blackrockdatainterface import BlackrockRecordingInterface
 
 
 interface_list = [
@@ -33,5 +34,6 @@ interface_list = [
     CnmfeSegmentationInterface,
     Suite2pSegmentationInterface,
     ExtractSegmentationInterface,
-    SimaSegmentationInterface
+    SimaSegmentationInterface,
+    BlackrockRecordingInterface
 ]
