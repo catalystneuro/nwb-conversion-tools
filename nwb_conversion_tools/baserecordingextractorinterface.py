@@ -25,6 +25,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         super().__init__(**source_data)
         self.recording_extractor = self.RX(**source_data)
         self.subset_channels = None
+        self.source_data = source_data
 
     def get_metadata_schema(self):
         """Compile metadata schema for the RecordingExtractor."""
@@ -43,14 +44,6 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
     def get_metadata(self):
         """Auto-fill as much of the metadata as possible. Must comply with metadata schema."""
         metadata = super().get_metadata()
-        metadata.update(
-            Ecephys=dict(
-                Device=[],
-                ElectrodeGroup=[],
-                Electrodes=[],
-                ElectricalSeries=dict(),
-            )
-        )
         return metadata
 
     def subset_recording(self, stub_test: bool = False):
