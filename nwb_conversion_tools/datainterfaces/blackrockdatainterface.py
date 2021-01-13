@@ -1,6 +1,7 @@
 """Authors: Luiz Tauffer"""
 import random
 import string
+import pytz
 from typing import Union
 from pathlib import Path
 import spikeextractors as se
@@ -35,10 +36,11 @@ class BlackrockRecordingInterface(BaseRecordingExtractorInterface):
         # Open file and extract headers
         nsx_file = NsxFile(datafile=self.source_data['filename'])
         session_start_time = nsx_file.basic_header['TimeOrigin']
+        session_start_time_tzaware = pytz.timezone('EST').localize(session_start_time)
         comment = nsx_file.basic_header['Comment']
 
         metadata['NWBFile'] = dict(
-            session_start_time=session_start_time,
+            session_start_time=session_start_time_tzaware,
             session_description=comment,
             identifier=''.join(random.choices(string.ascii_uppercase + string.digits, k=12))
         )
