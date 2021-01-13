@@ -33,8 +33,14 @@ class BaseSortingExtractorInterface(BaseDataInterface, ABC):
 
         return metadata_schema
 
-    def run_conversion(self, nwbfile: NWBFile, metadata: dict, stub_test: bool = False,
-                       write_ecephys_metadata: bool = False):
+    def run_conversion(
+            self,
+            nwbfile: NWBFile,
+            metadata: dict,
+            stub_test: bool = False,
+            write_ecephys_metadata: bool = False,
+            write_waveforms: bool = False
+    ):
         if 'UnitProperties' not in metadata:
             metadata['UnitProperties'] = []
         if write_ecephys_metadata and 'Ecephys' in metadata:
@@ -87,5 +93,6 @@ class BaseSortingExtractorInterface(BaseDataInterface, ABC):
         se.NwbSortingExtractor.write_sorting(
             sorting_extractor,
             property_descriptions=property_descriptions,
-            nwbfile=nwbfile
+            nwbfile=nwbfile,
+            write_waveforms=write_waveforms
         )
