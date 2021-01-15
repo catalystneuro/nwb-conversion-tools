@@ -61,8 +61,8 @@ class BlackrockRecordingInterface(BaseRecordingExtractorInterface):
         return metadata
 
     def run_conversion(self, nwbfile: NWBFile, metadata: dict = None, use_timestamps: bool = False, 
-                       write_as_lfp: bool = False, save_path: PathType = None, overwrite: bool = False,
-                       stub_test: bool = False):
+                       write_as_lfp: bool = False, return_scaled: bool = True, 
+                       save_path: PathType = None, overwrite: bool = False, stub_test: bool = False):
         """
         Primary function for converting recording extractor data to nwb.
 
@@ -96,6 +96,7 @@ class BlackrockRecordingInterface(BaseRecordingExtractorInterface):
             metadata=metadata, 
             use_timestamps=use_timestamps, 
             write_as_lfp=write_as_lfp, 
+            return_scaled=return_scaled,
             save_path=save_path, 
             overwrite=overwrite,
             stub_test=stub_test
