@@ -1,6 +1,7 @@
 Welcome to the documentation for NWB-conversion-tools!
 ==========================================
 
+..
   :scale: 100 %
   :align: right
 
