@@ -16,6 +16,22 @@ With thiis package, users can:
 
 - We are still in alpha development; as such, we make every effort towards a stable environment but bugs are known to occur. If you decide to use our platform for your conversion, and discover any issues, please let us know through the GitHub Issues <https://github.com/catalystneuro/nwb-conversion-tools/issues> page.
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Contents:
+   
+   overview
+   installation
+   supported
+   sortersinfo
+   getting_started/plot_getting_started.rst
+   modules/index.rst
+   sorters_comparison
+   contribute
+   api
+   whatisnew
+   authors
+
 For more information regarding the NWB Standard, please view
 
 - The `NWB Format Specification <https://nwb-schema.readthedocs.io/en/latest/>`_
