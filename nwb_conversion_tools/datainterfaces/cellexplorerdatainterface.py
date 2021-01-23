@@ -48,7 +48,7 @@ class CellExplorerSortingInterface(BaseSortingExtractorInterface):
                     dict(
                         name="location",
                         description="Brain region where each unit was detected.",
-                        data=[str(list_get(x, 0, np.nan)) for x in cell_info['region'][0][0][0]]
+                        data=[str(list_get(x, 0, "unknown")) for x in cell_info['region'][0][0][0]]
                     )
                 )
 
