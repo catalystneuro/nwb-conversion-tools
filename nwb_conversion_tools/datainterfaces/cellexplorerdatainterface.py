@@ -6,6 +6,7 @@ from scipy.io import loadmat
 import numpy as np
 
 from ..basesortingextractorinterface import BaseSortingExtractorInterface
+from ..utils import list_get
 
 
 class CellExplorerSortingInterface(BaseSortingExtractorInterface):
@@ -47,7 +48,7 @@ class CellExplorerSortingInterface(BaseSortingExtractorInterface):
                     dict(
                         name="location",
                         description="Brain region where each unit was detected.",
-                        data=[str(x[0]) for x in cell_info['region'][0][0][0]]
+                        data=[str(list_get(x, 0, np.nan)) for x in cell_info['region'][0][0][0]]
                     )
                 )
 

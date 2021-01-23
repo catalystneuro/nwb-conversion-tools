@@ -7,6 +7,14 @@ import pynwb
 from .json_schema_utils import get_base_schema
 
 
+def list_get(li, idx, default):
+    """Safe retrieval of indices from a list."""
+    try:
+        return li[idx]
+    except IndexError:
+        return default
+
+
 def get_schema_from_hdmf_class(hdmf_class):
     """Get metadata schema from hdmf class."""
     schema = get_base_schema()
