@@ -2,19 +2,20 @@
 import random
 import string
 import pytz
-from typing import Union
+from typing import Union, Optional
 from pathlib import Path
 import spikeextractors as se
 from pynwb import NWBFile
 
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
+from ..basesortingextractorinterface import BaseSortingExtractorInterface
 from ..json_schema_utils import get_schema_from_method_signature
 from .interface_utils.brpylib import NsxFile
 
 PathType = Union[str, Path, None]
 
 
-class BlackrockRecordingInterface(BaseRecordingExtractorInterface):
+class BlackrockRecordingExtractorInterface(BaseRecordingExtractorInterface):
     """Primary data interface class for converting a BlackrockRecordingExtractor."""
 
     RX = se.BlackrockRecordingExtractor
@@ -28,6 +29,9 @@ class BlackrockRecordingInterface(BaseRecordingExtractorInterface):
         )
         metadata_schema['additionalProperties'] = True
         return metadata_schema
+    
+    def __init__(self, filename: PathType, nsx_to_load: Optional[int] = None):
+        super().__init__(filename=filename, nsx_to_load=nsx_to_load)
 
     def get_metadata(self):
         """Auto-fill as much of the metadata as possible. Must comply with metadata schema."""
@@ -101,3 +105,15 @@ class BlackrockRecordingInterface(BaseRecordingExtractorInterface):
             overwrite=overwrite,
             stub_test=stub_test
         )
+
+
+class BlackrockSortingExtractorInterface(BaseSortingExtractorInterface):
+    """Primary data interface class for converting Blackrock spiking data."""
+
+    SX = se.BlackrockSortingExtractor
+
+    def __init__(self, filename: PathType, nsx_to_load: Optional[int] = None):
+        super().__init__(filename=filename, nsx_to_load=nsx_to_load)
+
+    def get_metadata(self):
+        """Auto-populates spiking unit metadata."""
