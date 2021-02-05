@@ -19,7 +19,7 @@ from .roiextractordatainterface import (
     SimaSegmentationInterface
 )
 
-
+from .giocomovrdatainterface import GiocomoVRInterface
 interface_list = [
     NeuroscopeRecordingInterface,
     NeuroscopeSortingInterface,
@@ -33,5 +33,6 @@ interface_list = [
     CnmfeSegmentationInterface,
     Suite2pSegmentationInterface,
     ExtractSegmentationInterface,
-    SimaSegmentationInterface
+    SimaSegmentationInterface,
+    GiocomoVRInterface
 ]
