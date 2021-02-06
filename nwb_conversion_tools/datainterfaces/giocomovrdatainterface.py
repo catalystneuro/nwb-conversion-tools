@@ -10,7 +10,6 @@ from pynwb import NWBFile, NWBHDF5IO, TimeSeries
 from pynwb.file import Subject
 from pynwb.behavior import BehavioralTimeSeries
 
-
 class GiocomoVRInterface(BaseDataInterface):
     """Data interface for VR Pickled data, Giocomo Lab"""
 
@@ -54,14 +53,16 @@ class GiocomoVRInterface(BaseDataInterface):
         )
 
     def get_metadata(self):
-        session_desc = self.file_path.parents[0].stem
-        date = self.file_path.parents[1].stem
-        subject_id = self.file_path.parents[2].stem
+        exp_desc = self.file_path.parents[0].name
+        date = self.file_path.parents[1].name
+        subject_id = self.file_path.parents[2].name
+        session_desc = self.file_path.stem
         metadata = dict(
             NWBFile=dict(
                 session_description=session_desc,
                 identifier=str(uuid.uuid4()),
-                session_start_time=datetime.strptime(date, "%m_%d_%Y")
+                session_start_time=datetime.strptime(date, "%m_%d_%Y"),
+                experiment_description=exp_desc
             ),
             Subject=dict(
                 subject_id=subject_id,
