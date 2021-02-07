@@ -72,9 +72,10 @@ class GiocomoVRInterface(BaseDataInterface):
                 genotype=subject_details['genotype'],
                 sex=subject_details['sex'],
                 weight=subject_details['weight at time of implant'],
-                description=f'virus injection date: {subject_details["virus injection date"]}, \
-                            virus: {subject_details["VIRUS"]},\
-                            cannula implant date: {subject_details["cannula implant date"]}'
+                description=f'virus details for subject number: {subject_num}: '
+                            f'virus injection date: {subject_details["virus injection date"]}, ' 
+                            f'virus: {subject_details["VIRUS"]}, '
+                            f'cannula implant date: {subject_details["cannula implant date"]}'
             ),
             Behavior=dict(
                 time_series=[beh_arg for beh_arg in self.beh_args if beh_arg['name'] in self.data_frame]
