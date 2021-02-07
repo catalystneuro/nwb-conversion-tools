@@ -32,12 +32,12 @@ class GiocomoImagingInterface(NWBConverter):
         if not s2p_folder.exists():
             warnings.warn('could not find suite2p')
         else:
-            source_data_dict.update(Suite2pSegmentationInterface=dict(file_path=s2p_folder))
+            source_data_dict.update(Suite2pSegmentationInterface=dict(file_path=str(s2p_folder)))
 
         pkl_folder = \
             source_data.parents[3]/'VR_pd_pickles'/source_data.relative_to(source_data.parents[3]).with_suffix('.pkl')
         if not pkl_folder.exists():
             warnings.warn('could not find .pkl file')
         else:
-            source_data_dict.update(GiocomoVRInterface=dict(file_path=pkl_folder))
+            source_data_dict.update(GiocomoVRInterface=dict(file_path=str(pkl_folder)))
         super().__init__(source_data_dict)
