@@ -18,6 +18,11 @@ from .roiextractordatainterface import (
     ExtractSegmentationInterface,
     SimaSegmentationInterface
 )
+from .imagingextractorinterface import (
+    SbxImagingInterface,
+    TiffImagingInterface,
+    Hdf5ImagingInterface
+)
 
 from .giocomovrdatainterface import GiocomoVRInterface
 interface_list = [
@@ -34,5 +39,7 @@ interface_list = [
     Suite2pSegmentationInterface,
     ExtractSegmentationInterface,
     SimaSegmentationInterface,
-    GiocomoVRInterface
+    SbxImagingInterface,
+    TiffImagingInterface,
+    Hdf5ImagingInterface
 ]
