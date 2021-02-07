@@ -25,6 +25,7 @@ from .imagingextractorinterface import (
 )
 
 from .giocomoconverter import GiocomoImagingInterface
+from .giocomovrdatainterface import GiocomoVRInterface
 interface_list = [
     NeuroscopeRecordingInterface,
     NeuroscopeSortingInterface,
@@ -42,5 +43,6 @@ interface_list = [
     SbxImagingInterface,
     TiffImagingInterface,
     Hdf5ImagingInterface,
-    GiocomoImagingInterface
+    GiocomoImagingInterface,
+    GiocomoVRInterface
 ]
