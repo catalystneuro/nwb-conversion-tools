@@ -117,3 +117,5 @@ class BlackrockSortingExtractorInterface(BaseSortingExtractorInterface):
 
     def get_metadata(self):
         """Auto-populates spiking unit metadata."""
+        metadata = super().get_metadata()
+        return metadata
