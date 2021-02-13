@@ -49,7 +49,7 @@ def get_shank_channels(xml_file_path: str, sort: bool = False):
         ]
     except (TypeError, AttributeError):
         shank_channels = [
-            [int(channel.text) for channel in group.find('channels')]
+            [int(channel.text) for channel in group.findall('channel')]
             for group in root.find('anatomicalDescription').find('channelGroups').findall('group')
         ]
 
