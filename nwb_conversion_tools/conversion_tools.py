@@ -8,7 +8,7 @@ import spikeextractors as se
 def check_regular_timestamps(ts):
     """Check whether rate should be used instead of timestamps."""
     time_tol_decimals = 9
-    uniq_diff_ts = np.unique(np.diff(ts.timestamps).round(decimals=time_tol_decimals))
+    uniq_diff_ts = np.unique(np.diff(ts).round(decimals=time_tol_decimals))
     if len(uniq_diff_ts) == 1:
         error_code = "A101"
         print(
