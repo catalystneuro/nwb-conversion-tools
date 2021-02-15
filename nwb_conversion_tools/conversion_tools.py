@@ -9,12 +9,7 @@ def check_regular_timestamps(ts):
     """Check whether rate should be used instead of timestamps."""
     time_tol_decimals = 9
     uniq_diff_ts = np.unique(np.diff(ts).round(decimals=time_tol_decimals))
-    if len(uniq_diff_ts) == 1:
-        error_code = "A101"
-        print(
-            "- %s: '%s' %s has a constant sampling rate. Consider using starting_time %f and rate %f instead of using "
-            "the timestamps array." % (error_code, ts.name, type(ts).__name__, ts.timestamps[0], uniq_diff_ts[0])
-        )
+    return len(uniq_diff_ts) == 1
 
 
 def save_si_object(object_name: str, si_object, output_folder,
