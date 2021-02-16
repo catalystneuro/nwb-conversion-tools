@@ -19,6 +19,8 @@ from .roiextractordatainterface import (
     SimaSegmentationInterface
 )
 from .blackrockdatainterface import BlackrockRecordingExtractorInterface, BlackrockSortingExtractorInterface
+from .openephysdatainterface import OpenEphysRecordingExtractorInterface, OpenEphysSortingExtractorInterface
+
 
 interface_list = [
     NeuroscopeRecordingInterface,
@@ -35,5 +37,7 @@ interface_list = [
     ExtractSegmentationInterface,
     SimaSegmentationInterface,
     BlackrockRecordingExtractorInterface,
-    BlackrockSortingExtractorInterface
+    BlackrockSortingExtractorInterface,
+    OpenEphysRecordingExtractorInterface, 
+    OpenEphysSortingExtractorInterface
 ]
