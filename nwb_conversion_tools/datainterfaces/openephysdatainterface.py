@@ -43,7 +43,7 @@ class OpenEphysRecordingExtractorInterface(BaseRecordingExtractorInterface):
         metadata = super().get_metadata()
 
         # Open file and extract info
-        session_start_time = self.recording_extractor._file_obj.experiments[0].datetime
+        session_start_time = self.recording_extractor._fileobj.experiments[0].datetime
         session_start_time_tzaware = pytz.timezone('EST').localize(session_start_time)
 
         metadata['NWBFile'] = dict(
@@ -52,7 +52,7 @@ class OpenEphysRecordingExtractorInterface(BaseRecordingExtractorInterface):
         )
 
         # Ecephys metadata
-        device_name = self.recording_extractor._file_obj.experiments[0].acquisition_system
+        device_name = self.recording_extractor._fileobj.experiments[0].acquisition_system
         metadata['Ecephys'] = dict(
             Device=[dict(
                 name=device_name,
