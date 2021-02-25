@@ -46,7 +46,7 @@ interface_list = [
     BlackrockRecordingExtractorInterface,
     BlackrockSortingExtractorInterface,
     OpenEphysRecordingExtractorInterface, 
-    OpenEphysSortingExtractorInterface
+    OpenEphysSortingExtractorInterface,
     SbxImagingInterface,
     TiffImagingInterface,
     Hdf5ImagingInterface
