@@ -28,7 +28,9 @@ class OpenEphysRecordingExtractorInterface(BaseRecordingExtractorInterface):
             class_method=cls.__init__,
             exclude=['recording_id', 'experiment_id']
         )
-        metadata_schema['additionalProperties'] = True
+        metadata_schema['properties']['folder_path']['format'] = 'directory'
+        metadata_schema['properties']['folder_path']['description'] = 'Path to directory containing OpenEphys files.'
+        metadata_schema['additionalProperties'] = False
         return metadata_schema
     
     def __init__(self, folder_path: PathType, experiment_id: Optional[int] = 0, 
