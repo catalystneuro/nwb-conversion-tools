@@ -18,8 +18,15 @@ from .roiextractordatainterface import (
     ExtractSegmentationInterface,
     SimaSegmentationInterface
 )
+
 from .blackrockdatainterface import BlackrockRecordingExtractorInterface, BlackrockSortingExtractorInterface
 from .openephysdatainterface import OpenEphysRecordingExtractorInterface, OpenEphysSortingExtractorInterface
+
+from .imagingextractorinterface import (
+    SbxImagingInterface,
+    TiffImagingInterface,
+    Hdf5ImagingInterface
+)
 
 
 interface_list = [
@@ -40,4 +47,7 @@ interface_list = [
     BlackrockSortingExtractorInterface,
     OpenEphysRecordingExtractorInterface, 
     OpenEphysSortingExtractorInterface
+    SbxImagingInterface,
+    TiffImagingInterface,
+    Hdf5ImagingInterface
 ]
