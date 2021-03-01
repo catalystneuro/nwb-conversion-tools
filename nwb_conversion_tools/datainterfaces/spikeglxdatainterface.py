@@ -17,18 +17,18 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
         file_path = Path(self.source_data['file_path'])
         session_id = file_path.parent.stem
 
-        if isinstance(self.recording_extractor, SubRecordingExtractor):
-            n_shanks = int(self.recording_extractor._parent_recording._meta['snsShankMap'][1])
-        else:
-            n_shanks = int(self.recording_extractor._meta['snsShankMap'][1])
-        if n_shanks > 1:
-            raise NotImplementedError("SpikeGLX metadata for more than a single shank is not yet supported.")
+        if 'snsShankMap' in self.recording_extractor._meta:
+            if isinstance(self.recording_extractor, SubRecordingExtractor):
+                n_shanks = int(self.recording_extractor._parent_recording._meta['snsShankMap'][1])
+            else:
+                n_shanks = int(self.recording_extractor._meta['snsShankMap'][1])
+            if n_shanks > 1:
+                raise NotImplementedError("SpikeGLX metadata for more than a single shank is not yet supported.")
 
         channels = self.recording_extractor.get_channel_ids()
         shank_electrode_number = channels
         shank_group_name = ["Shank1" for x in channels]
-        session_start_time = datetime.fromisoformat(
-            self.recording_extractor._meta['fileCreateTime']).astimezone()
+        session_start_time = datetime.fromisoformat(self.recording_extractor._meta['fileCreateTime']).astimezone()
 
         ecephys_metadata = dict(
             Ecephys=dict(
@@ -42,7 +42,6 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
                         name='Shank1',
                         description="Shank1 electrodes."
                     )
-                    for n in range(n_shanks)
                 ],
                 Electrodes=[
                     dict(
