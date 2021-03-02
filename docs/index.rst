@@ -28,6 +28,7 @@ With thiis package, users can:
    modules/index.rst
    sorters_comparison
    contribute
+   how_to_convert_formats.rst
    api
    whatisnew
    authors
