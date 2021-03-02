@@ -87,5 +87,5 @@ class MovieInterface(BaseDataInterface):
                 unit='Frames'
             )
             if starting_times is None:
-                self.starting_times.append((n_frames+1) / fps)
+                self.starting_times.append(self.starting_times[j] + (n_frames+1) / fps)
             nwbfile.add_acquisition(video)
