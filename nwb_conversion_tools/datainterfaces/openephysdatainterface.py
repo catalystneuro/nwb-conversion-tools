@@ -108,10 +108,19 @@ class OpenEphysSortingExtractorInterface(BaseSortingExtractorInterface):
 
     SX = se.OpenEphysSortingExtractor
 
-    def __init__(self, filename: PathType, nsx_to_load: Optional[int] = None):
-        super().__init__(filename=filename, nsx_to_load=nsx_to_load)
+    @classmethod
+    def get_source_schema(cls):
+        """Compile input schema for the SortingExtractor."""
+        metadata_schema = get_schema_from_method_signature(
+            class_method=cls.__init__,
+            exclude=['recording_id', 'experiment_id']
+        )
+        metadata_schema['properties']['folder_path']['format'] = 'directory'
+        metadata_schema['properties']['folder_path']['description'] = 'Path to directory containing OpenEphys files.'
+        metadata_schema['additionalProperties'] = False
+        return metadata_schema
 
-    # def get_metadata(self):
-    #     """Auto-populates spiking unit metadata."""
-    #     metadata = super().get_metadata()
-    #     return metadata
+    def __init__(self, folder_path: PathType, experiment_id: Optional[int] = 0, 
+                 recording_id: Optional[int] = 0):
+        super().__init__(folder_path=str(folder_path), experiment_id=experiment_id, 
+                         recording_id=recording_id)
