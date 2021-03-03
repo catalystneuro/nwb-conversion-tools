@@ -10,7 +10,7 @@ from pynwb.image import ImageSeries
 from hdmf.backends.hdf5.h5_utils import H5DataIO
 from hdmf.data_utils import DataChunkIterator
 
-from .conversion_tools import check_regular_timestamps
+from ..conversion_tools import check_regular_timestamps
 
 
 try:
