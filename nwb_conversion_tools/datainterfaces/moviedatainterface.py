@@ -83,7 +83,7 @@ class MovieInterface(BaseDataInterface):
                 timestamps.append(starting_times[j] + cap.get(cv2.CAP_PROP_POS_MSEC))
                 success, frame = cap.read()
             cap.release()
-            if starting_times is None:
+            if len(starting_times) != len(file_paths):
                 starting_times.append(timestamps[-1])
 
             image_series_kwargs = dict(

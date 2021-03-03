@@ -33,7 +33,6 @@ def test_movie_interface():
         fourcc=cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'),
         fps=25,
         frameSize=(ny, nx),
-        # isColor=True,
         params=None
     )
     for k in range(nf):
