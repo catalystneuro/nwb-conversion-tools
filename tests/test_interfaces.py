@@ -27,7 +27,15 @@ def test_movie_interface():
     movie_file = test_dir / "test1.avi"
     nwbfile_path = test_dir / "test1.nwb"
     (nf, nx, ny) = (50, 640, 480)
-    writer = cv2.VideoWriter(movie_file, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25, (ny, nx), True)
+    writer = cv2.VideoWriter(
+        filename=str(movie_file),
+        apiPreference=None,
+        fourcc=cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'),
+        fps=25,
+        frameSize=(ny, nx),
+        # isColor=True,
+        params=None
+    )
     for k in range(nf):
         writer.write(np.random.randint(0, 255, (nx, ny, 3)).astype('uint8'))
     writer.release()
