@@ -7,6 +7,8 @@ from pynwb import NWBFile
 from pynwb.image import ImageSeries
 from hdmf.backends.hdf5.h5_utils import H5DataIO
 
+from .conversion_tools import check_regular_timestamps
+
 
 try:
     import cv2
@@ -63,6 +65,8 @@ class MovieInterface(BaseDataInterface):
 
         for j, file in enumerate(file_paths):
             cap = cv2.VideoCapture(file)
+
+            timestamps = [self.starting_times[j] + cap.get(cv2.CAP_PROP_POS_MSEC)]
             if int((cv2.__version__).split('.')[0]) < 3:
                 fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)
             else:
@@ -72,20 +76,24 @@ class MovieInterface(BaseDataInterface):
             n_frames = 0
             success, frame = cap.read()
             while success and n_frames < count_max:
+                timestamps.append(self.starting_times[j] + cap.get(cv2.CAP_PROP_POS_MSEC))
                 mov.append(frame)
                 n_frames += 1
                 success, frame = cap.read()
             mov = np.array(mov)
             cap.release()
 
-            video = ImageSeries(
+            image_series_kwargs = dict(
                 name=f"Video: {Path(file).stem}",
                 description="Video recorded by camera.",
                 data=H5DataIO(mov, compression="gzip"),
-                starting_time=self.starting_times[j],
-                rate=fps,
                 unit='Frames'
             )
+            if check_regular_timestamps(timestamps):
+                image_series_kwargs.update(starting_time=self.starting_times[j], rate=fps)
+            else:
+                image_series_kwargs.update(timestamps=timestamps)
+            nwbfile.add_acquisition(ImageSeries(**image_series_kwargs))
+
             if starting_times is None:
-                self.starting_times.append(self.starting_times[j] + (n_frames+1) / fps)
-            nwbfile.add_acquisition(video)
+                self.starting_times.append(timestamps[-1])

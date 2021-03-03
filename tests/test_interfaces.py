@@ -1,5 +1,8 @@
 from jsonschema import Draft7Validator
 import numpy as np
+from tempfile import mkdtemp
+from shututil import rmtree
+from pathlib import Path
 
 import cv2
 
@@ -20,8 +23,9 @@ def test_interface_schemas():
 
 
 def test_movie_interface():
-    movie_file = "test1.avi"
-    nwbfile_path = "test1.nwb"
+    test_dir = Path(mkdtemp())
+    movie_file = test_dir / "test1.avi"
+    nwbfile_path = test_dir / "test1.nwb"
     (nf, nx, ny) = (50, 640, 480)
     writer = cv2.VideoWriter(movie_file, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 25, (ny, nx), True)
     for k in range(nf):
@@ -34,3 +38,4 @@ def test_movie_interface():
     converter = MovieTestNWBConverter(source_data)
     metadata = converter.get_metadata()
     converter.run_conversion(metadata=metadata, nwbfile_path=nwbfile_path, overwrite=True)
+    rmtree(test_dir)
