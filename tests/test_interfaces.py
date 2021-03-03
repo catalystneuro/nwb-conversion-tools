@@ -1,7 +1,7 @@
 from jsonschema import Draft7Validator
 import numpy as np
 from tempfile import mkdtemp
-from shututil import rmtree
+from shutil import rmtree
 from pathlib import Path
 
 import cv2
@@ -38,4 +38,6 @@ def test_movie_interface():
     converter = MovieTestNWBConverter(source_data)
     metadata = converter.get_metadata()
     converter.run_conversion(metadata=metadata, nwbfile_path=nwbfile_path, overwrite=True)
+    converter.run_conversion(metadata=metadata, nwbfile_path=nwbfile_path, overwrite=True, starting_times=[123.])
+    converter.run_conversion(metadata=metadata, nwbfile_path=nwbfile_path, overwrite=True, chunk_data=True)
     rmtree(test_dir)
