@@ -6,12 +6,25 @@ from spikeextractors import SpikeGLXRecordingExtractor, SubRecordingExtractor
 
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ..baselfpextractorinterface import BaseLFPExtractorInterface
+from ..json_schema_utils import get_schema_from_method_signature
 
 
 class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
     """Primary data interface class for converting the high-pass (ap) SpikeGLX format."""
 
     RX = SpikeGLXRecordingExtractor
+
+    @classmethod
+    def get_source_schema(cls):
+        """Compile input schema for the RecordingExtractor."""
+        metadata_schema = get_schema_from_method_signature(
+            class_method=cls.RX.__init__,
+            exclude=['block_index', 'seg_index']
+        )
+        metadata_schema['additionalProperties'] = True
+        metadata_schema['properties']['file_path']['format'] = 'file'
+        metadata_schema['properties']['file_path']['description'] = 'Path to SpikeGLX file.'
+        return metadata_schema
 
     def get_metadata(self):
         file_path = Path(self.source_data['file_path'])
