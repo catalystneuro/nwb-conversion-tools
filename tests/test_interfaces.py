@@ -25,7 +25,7 @@ def test_interface_schemas():
 def test_movie_interface():
     test_dir = Path(mkdtemp())
     movie_file = test_dir / "test1.avi"
-    nwbfile_path = test_dir / "test1.nwb"
+    nwbfile_path = str(test_dir / "test1.nwb")
     (nf, nx, ny) = (50, 640, 480)
     writer = cv2.VideoWriter(
         filename=str(movie_file),
