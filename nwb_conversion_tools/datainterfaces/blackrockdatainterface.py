@@ -113,8 +113,3 @@ class BlackrockSortingExtractorInterface(BaseSortingExtractorInterface):
 
     def __init__(self, filename: PathType, nsx_to_load: Optional[int] = None):
         super().__init__(filename=filename, nsx_to_load=nsx_to_load)
-
-    def get_metadata(self):
-        """Auto-populates spiking unit metadata."""
-        metadata = super().get_metadata()
-        return metadata
