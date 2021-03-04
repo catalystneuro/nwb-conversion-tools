@@ -24,9 +24,7 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
             ).astimezone()
         else:
             n_shanks = int(self.recording_extractor._meta['snsShankMap'][1])
-            session_start_time = datetime.fromisoformat(
-                self.recording_extractor._meta['fileCreateTime']
-            ).astimezone()
+            session_start_time = datetime.fromisoformat(self.recording_extractor._meta['fileCreateTime']).astimezone()
         if n_shanks > 1:
             raise NotImplementedError("SpikeGLX metadata for more than a single shank is not yet supported.")
 
