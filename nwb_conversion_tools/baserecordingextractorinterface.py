@@ -74,7 +74,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         )
         return recording_extractor
 
-    def run_conversion(self, nwbfile: NWBFile, metadata: dict = None, use_timestamps: bool = False, 
+    def run_conversion(self, nwbfile: NWBFile, metadata: dict = None, use_times: bool = False, 
                        write_as_lfp: bool = False, save_path: PathType = None, 
                        overwrite: bool = False, stub_test: bool = False):
         """
@@ -89,8 +89,8 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
             Should be of the format
                 metadata['Ecephys']['ElectricalSeries'] = {'name': my_name,
                                                            'description': my_description}
-        use_timestamps: bool
-            If True, the timestamps are saved to the nwb file using recording.frame_to_time(). If False (defualut),
+        use_times: bool
+            If True, the times are saved to the nwb file using recording.frame_to_time(). If False (default),
             the sampling rate is used.
         write_as_lfp: bool (optional, defaults to False)
             If True, writes the traces under a processing LFP module in the NWBFile instead of acquisition.
@@ -111,7 +111,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
             recording=recording,
             nwbfile=nwbfile,
             metadata=metadata,
-            use_timestamps=use_timestamps,
+            use_times=use_times,
             write_as_lfp=write_as_lfp,
             save_path=save_path,
             overwrite=overwrite
