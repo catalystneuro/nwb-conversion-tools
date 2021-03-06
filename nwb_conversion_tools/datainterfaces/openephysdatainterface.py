@@ -26,17 +26,19 @@ class OpenEphysRecordingExtractorInterface(BaseRecordingExtractorInterface):
         """Compile input schema for the RecordingExtractor."""
         metadata_schema = get_schema_from_method_signature(
             class_method=cls.__init__,
-            exclude=['recording_id', 'experiment_id']
+            exclude=['recording_id', 'experiment_id', 'stub_test']
         )
         metadata_schema['properties']['folder_path']['format'] = 'directory'
         metadata_schema['properties']['folder_path']['description'] = 'Path to directory containing OpenEphys files.'
-        metadata_schema['additionalProperties'] = False
+        metadata_schema['additionalProperties'] = True
         return metadata_schema
     
     def __init__(self, folder_path: PathType, experiment_id: Optional[int] = 0, 
-                 recording_id: Optional[int] = 0):
+                 recording_id: Optional[int] = 0, stub_test: Optional[bool] = False):
         super().__init__(folder_path=str(folder_path), experiment_id=experiment_id, 
                          recording_id=recording_id)
+        if stub_test:
+            self.subset_channels = [0, 1]
 
     def get_metadata(self):
         """Auto-fill as much of the metadata as possible. Must comply with metadata schema."""
@@ -62,45 +64,6 @@ class OpenEphysRecordingExtractorInterface(BaseRecordingExtractorInterface):
         )
 
         return metadata
-
-    def run_conversion(self, nwbfile: NWBFile, metadata: dict = None, use_times: bool = False, 
-                       write_as_lfp: bool = False, save_path: PathType = None, overwrite: bool = False, 
-                       stub_test: bool = False):
-        """
-        Primary function for converting recording extractor data to nwb.
-
-        Parameters
-        ----------
-        nwbfile: NWBFile
-            nwb file to which the recording information is to be added
-        metadata: dict
-            metadata info for constructing the nwb file (optional).
-            Should be of the format
-                metadata['Ecephys']['ElectricalSeries'] = {'name': my_name,
-                                                           'description': my_description}
-        use_times: bool
-            If True, the timestamps are saved to the nwb file using recording.frame_to_time(). If False (default),
-            the sampling rate is used.
-        write_as_lfp: bool (optional, defaults to False)
-            If True, writes the traces under a processing LFP module in the NWBFile instead of acquisition.
-        save_path: PathType
-            Required if an nwbfile is not passed. Must be the path to the nwbfile
-            being appended, otherwise one is created and written.
-        overwrite: bool
-            If using save_path, whether or not to overwrite the NWBFile if it already exists.
-        stub_test: bool, optional (default False)
-            If True, will truncate the data to run the conversion faster and take up less memory.
-        """
-
-        super().run_conversion(
-            nwbfile=nwbfile, 
-            metadata=metadata, 
-            use_times=use_times, 
-            write_as_lfp=write_as_lfp,
-            save_path=save_path, 
-            overwrite=overwrite,
-            stub_test=stub_test
-        )
 
 
 class OpenEphysSortingExtractorInterface(BaseSortingExtractorInterface):

@@ -1,12 +1,14 @@
 """Authors: Cody Baker and Ben Dichter."""
 from datetime import datetime
 from pathlib import Path
-
+from typing import Union, Optional
 from spikeextractors import SpikeGLXRecordingExtractor, SubRecordingExtractor
 
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ..baselfpextractorinterface import BaseLFPExtractorInterface
 from ..json_schema_utils import get_schema_from_method_signature
+
+PathType = Union[str, Path, None]
 
 
 class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
@@ -19,12 +21,17 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
         """Compile input schema for the RecordingExtractor."""
         metadata_schema = get_schema_from_method_signature(
             class_method=cls.RX.__init__,
-            exclude=['block_index', 'seg_index']
+            exclude=['x_pitch', 'y_pitch']
         )
         metadata_schema['additionalProperties'] = True
         metadata_schema['properties']['file_path']['format'] = 'file'
         metadata_schema['properties']['file_path']['description'] = 'Path to SpikeGLX file.'
         return metadata_schema
+
+    def __init__(self, file_path: PathType, stub_test: Optional[bool] = False):
+        super().__init__(file_path=str(file_path))
+        if stub_test:
+            self.subset_channels = [0, 1]
 
     def get_metadata(self):
         file_path = Path(self.source_data['file_path'])
