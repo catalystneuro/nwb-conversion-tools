@@ -128,7 +128,7 @@ class MovieInterface(BaseDataInterface):
                 mov = DataChunkIterator(
                     data=tqdm(
                         iterable=data_generator(file=file, count_max=count_max),
-                        desc=f"Copying movie data for {file.name}",
+                        desc=f"Copying movie data for {Path(file).name}",
                         position=tqdm_pos,
                         total=total_frames,
                         mininterval=tqdm_mininterval
@@ -145,7 +145,7 @@ class MovieInterface(BaseDataInterface):
                 n_frames = 0
                 success, frame = cap.read()
                 with tqdm(
-                        desc=f"Reading movie data for {file.name}",
+                        desc=f"Reading movie data for {Path(file).name}",
                         position=tqdm_pos,
                         total=total_frames,
                         mininterval=tqdm_mininterval
@@ -161,7 +161,7 @@ class MovieInterface(BaseDataInterface):
                         DataChunkIterator(
                             tqdm(
                                 iterable=np.array(mov),
-                                desc=f"Writing movie data for {file.name}",
+                                desc=f"Writing movie data for {Path(file).name}",
                                 position=tqdm_pos,
                                 mininterval=tqdm_mininterval
                             ),
