@@ -45,6 +45,16 @@ def test_movie_interface():
     converter = MovieTestNWBConverter(source_data)
     metadata = converter.get_metadata()
     converter.run_conversion(metadata=metadata, nwbfile_path=nwbfile_path, overwrite=True)
-    converter.run_conversion(metadata=metadata, nwbfile_path=nwbfile_path, overwrite=True, starting_times=[123.])
-    converter.run_conversion(metadata=metadata, nwbfile_path=nwbfile_path, overwrite=True, chunk_data=True)
+    converter.run_conversion(
+        metadata=metadata,
+        nwbfile_path=nwbfile_path,
+        overwrite=True,
+        conversion_options=dict(Movie=dict(starting_times=[123.]))
+    )
+    converter.run_conversion(
+        metadata=metadata,
+        nwbfile_path=nwbfile_path,
+        overwrite=True,
+        conversion_options=dict(Movie=dict(chunk_data=False))
+    )
     rmtree(test_dir)
