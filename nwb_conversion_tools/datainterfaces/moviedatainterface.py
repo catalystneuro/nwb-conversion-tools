@@ -102,8 +102,8 @@ class MovieInterface(BaseDataInterface):
             available_memory = psutil.virtual_memory().available
             if not chunk_data and uncompressed_estimate >= available_memory:
                 warn(
-                    "Not enough memory (estimated {uncompressed_estimate/1e9} GB) to load movie file as array "
-                    "({available_memory/1e9} GB available)! Forcing chunk_data to True."
+                    f"Not enough memory (estimated {round(uncompressed_estimate/1e9, 2)} GB) to load movie file as "
+                    f"array ({round(available_memory/1e9, 2)} GB available)! Forcing chunk_data to True."
                 )
                 chunk_data = True
 
