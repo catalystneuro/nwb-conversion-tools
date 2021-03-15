@@ -3,7 +3,7 @@ Below is a collection of simple conversion scripts that are all tested against s
 proprietary examples files. They are all optimized to handle very large data by iteratively
 steping through large files and read/writing them one piece at a time. They also leverage
 lossless compression within HDF5, which allows you to make large datasets smaller without
-losing any data. We have seen this reduce large datasets by up to 66%!!
+losing any data. We have seen this reduce large datasets by up to 66%!
 
 
 <details>
