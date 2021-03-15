@@ -29,6 +29,7 @@ With thiis package, users can:
    sorters_comparison
    contribute
    how_to_convert_formats.rst
+   converting_data_to_nwb
    api
    whatisnew
    authors
