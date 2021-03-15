@@ -1,3 +1,4 @@
+from .neuralynxdatainterface import NeuralynxRecordingInterface
 from .neuroscopedatainterface import (
     NeuroscopeRecordingInterface,
     NeuroscopeLFPInterface,
@@ -30,6 +31,7 @@ from .imagingextractorinterface import (
 
 
 interface_list = [
+    NeuralynxRecordingInterface,
     NeuroscopeRecordingInterface,
     NeuroscopeSortingInterface,
     SpikeGLXRecordingInterface,
