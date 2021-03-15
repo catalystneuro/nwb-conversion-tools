@@ -98,78 +98,73 @@ class MovieInterface(BaseDataInterface):
             else:
                 image_series_kwargs.update(timestamps=H5DataIO(timestamps, compression="gzip"))
 
-            uncompressed_estimate = Path(file).stat().st_size * 70
-            available_memory = psutil.virtual_memory().available
-            if not chunk_data and uncompressed_estimate >= available_memory:
-                warn(
-                    f"Not enough memory (estimated {round(uncompressed_estimate/1e9, 2)} GB) to load movie file as "
-                    f"array ({round(available_memory/1e9, 2)} GB available)! Forcing chunk_data to True."
-                )
-                chunk_data = True
-
-            total_frames = len(timestamps)
-            frame_shape = get_frame_shape(movie_file=file)
-            maxshape = [total_frames]
-            maxshape.extend(frame_shape)
-            best_gzip_chunk = (1, frame_shape[0], frame_shape[1], 3)
-            tqdm_pos, tqdm_mininterval = (0, 10)
-            if chunk_data:
-                def data_generator(file, count_max):
-                    cap = cv2.VideoCapture(str(file))
-                    n_frames = 0
-                    success, frame = cap.read()
-                    # with tqdm(total=total_frames, desc="Writing movie data", position=0) as pbar:
-                    while success and n_frames < count_max:
-                        n_frames += 1
-                        success, frame = cap.read()
-                        # pbar.update(n_frames)
-                        yield frame
-                    cap.release()
-                mov = DataChunkIterator(
-                    data=tqdm(
-                        iterable=data_generator(file=file, count_max=count_max),
-                        desc=f"Copying movie data for {Path(file).name}",
-                        position=tqdm_pos,
-                        total=total_frames,
-                        mininterval=tqdm_mininterval
-                    ),
-                    iter_axis=0,  # nwb standard is time as zero axis
-                    maxshape=tuple(maxshape)
-                )
-                image_series_kwargs.update(
-                    data=H5DataIO(mov, compression="gzip", chunks=best_gzip_chunk)
-                )
+            if external_mode:
+                image_series_kwargs.update(format="external", external_file=[file])
             else:
-                cap = cv2.VideoCapture(str(file))
-                mov = []
-                n_frames = 0
-                success, frame = cap.read()
-                with tqdm(
-                        desc=f"Reading movie data for {Path(file).name}",
-                        position=tqdm_pos,
-                        total=total_frames,
-                        mininterval=tqdm_mininterval
-                ) as pbar:
-                    while success and n_frames < count_max:
-                        mov.append(frame)
-                        n_frames += 1
-                        pbar.update(1)
-                        success, frame = cap.read()
-                cap.release()
-                image_series_kwargs.update(
-                    data=H5DataIO(
-                        DataChunkIterator(
-                            tqdm(
-                                iterable=np.array(mov),
-                                desc=f"Writing movie data for {Path(file).name}",
-                                position=tqdm_pos,
-                                mininterval=tqdm_mininterval
-                            ),
-                            iter_axis=0,  # nwb standard is time as zero axis
-                            maxshape=tuple(maxshape)
-                        ),
-                        compression="gzip",
-                        chunks=best_gzip_chunk
+                uncompressed_estimate = Path(file).stat().st_size * 70
+                available_memory = psutil.virtual_memory().available
+                if not chunk_data and uncompressed_estimate >= available_memory:
+                    warn(
+                        f"Not enough memory (estimated {round(uncompressed_estimate/1e9, 2)} GB) to load movie file as "
+                        f"array ({round(available_memory/1e9, 2)} GB available)! Forcing chunk_data to True."
                     )
-                )
+                    chunk_data = True
+
+                total_frames = len(timestamps)
+                frame_shape = get_frame_shape(movie_file=file)
+                maxshape = [total_frames]
+                maxshape.extend(frame_shape)
+                best_gzip_chunk = (1, frame_shape[0], frame_shape[1], 3)
+                tqdm_pos, tqdm_mininterval = (0, 10)
+                if chunk_data:
+                    def data_generator(file, count_max):
+                        cap = cv2.VideoCapture(str(file))
+                        for _ in range(min(count_max, total_frames)):
+                            success, frame = cap.read()
+                            yield frame
+                        cap.release()
+                    mov = DataChunkIterator(
+                        data=tqdm(
+                            iterable=data_generator(file=file, count_max=count_max),
+                            desc=f"Copying movie data for {Path(file).name}",
+                            position=tqdm_pos,
+                            total=total_frames,
+                            mininterval=tqdm_mininterval
+                        ),
+                        iter_axis=0,  # nwb standard is time as zero axis
+                        maxshape=tuple(maxshape)
+                    )
+                    image_series_kwargs.update(
+                        data=H5DataIO(mov, compression="gzip", chunks=best_gzip_chunk)
+                    )
+                else:
+                    cap = cv2.VideoCapture(str(file))
+                    mov = []
+                    with tqdm(
+                            desc=f"Reading movie data for {Path(file).name}",
+                            position=tqdm_pos,
+                            total=total_frames,
+                            mininterval=tqdm_mininterval
+                    ) as pbar:
+                        for _ in range(min(count_max, total_frames)):
+                            success, frame = cap.read()
+                            mov.append(frame)
+                            pbar.update(1)
+                    cap.release()
+                    image_series_kwargs.update(
+                        data=H5DataIO(
+                            DataChunkIterator(
+                                tqdm(
+                                    iterable=np.array(mov),
+                                    desc=f"Writing movie data for {Path(file).name}",
+                                    position=tqdm_pos,
+                                    mininterval=tqdm_mininterval
+                                ),
+                                iter_axis=0,  # nwb standard is time as zero axis
+                                maxshape=tuple(maxshape)
+                            ),
+                            compression="gzip",
+                            chunks=best_gzip_chunk
+                        )
+                    )
             nwbfile.add_acquisition(ImageSeries(**image_series_kwargs))
