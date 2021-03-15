@@ -2,7 +2,7 @@ Contribute
 ==========
 
 To contribute to NWB-conversion-tools, a user/developer can help us integrate a general data interface 
-format.
+format.!
 
 .. toctree::
    :maxdepth: 1
