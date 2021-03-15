@@ -23,15 +23,9 @@ With thiis package, users can:
    overview
    installation
    supported
-   sortersinfo
-   getting_started/plot_getting_started.rst
    modules/index.rst
-   sorters_comparison
    contribute
-   how_to_convert_formats.rst
    converting_data_to_nwb
-   api
-   whatisnew
    authors
 
 For more information regarding the NWB Standard, please view
