@@ -14,3 +14,4 @@ git+https://github.com/catalystneuro/roiextractors
 sphinx=3.5.1
 sphinx_rtd_theme==0.5.1
 readthedocs-sphinx-search==0.1.0rc3
+myst_parser
