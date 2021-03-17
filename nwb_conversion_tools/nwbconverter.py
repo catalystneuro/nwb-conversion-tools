@@ -133,7 +133,7 @@ class NWBConverter:
         else:
             validate(instance=conversion_options, schema=self.get_conversion_options_schema())
 
-        if nwbfile is None:
+        if nwbfile is None and nwbfile_path is not None and not Path(nwbfile_path).is_file():
             nwbfile_kwargs = metadata['NWBFile']
             if 'Subject' in metadata:
                 # convert ISO 8601 string to datetime
