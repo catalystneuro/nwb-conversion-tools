@@ -12,7 +12,7 @@ from pynwb.image import ImageSeries
 from hdmf.backends.hdf5.h5_utils import H5DataIO
 from hdmf.data_utils import DataChunkIterator
 
-from .movie_utils import get_movie_timestamps, get_movie_fps, get_frame_shape
+from .interface_utils.movie_utils import get_movie_timestamps, get_movie_fps, get_frame_shape
 from ..conversion_tools import check_regular_timestamps
 
 
