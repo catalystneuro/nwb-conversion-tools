@@ -3,6 +3,7 @@ import numpy as np
 from tempfile import mkdtemp
 from shutil import rmtree
 from pathlib import Path
+from itertools import product
 
 import cv2
 
@@ -58,7 +59,7 @@ def test_movie_interface():
 
     # These conversion options do not operate independently, so test them jointly
     conversion_options_testing_matrix = [
-        dict(Movie=dict(external_mode=False, stub_test=x, chunk_data=y)) for x in [True, False] for y in [True, False]
+        dict(Movie=dict(external_mode=False, stub_test=x, chunk_data=y)) for x, y in product([True, False], repeat=2)
     ]
     for conversion_options in conversion_options_testing_matrix:
         converter.run_conversion(
