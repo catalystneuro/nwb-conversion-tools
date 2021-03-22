@@ -13,7 +13,6 @@ from nwb_conversion_tools.datainterfaces.moviedatainterface import MovieInterfac
 
 def test_interface_schemas():
     for data_interface in interface_list:
-        
         # check validity of source schema
         schema = data_interface.get_source_schema()
         Draft7Validator.check_schema(schema)
@@ -45,17 +44,27 @@ def test_movie_interface():
     source_data = dict(Movie=dict(file_paths=[movie_file]))
     converter = MovieTestNWBConverter(source_data)
     metadata = converter.get_metadata()
+
+    # Default usage
     converter.run_conversion(metadata=metadata, nwbfile_path=nwbfile_path, overwrite=True)
+
+    # This conversion option operates independently of all others
     converter.run_conversion(
         metadata=metadata,
         nwbfile_path=nwbfile_path,
         overwrite=True,
         conversion_options=dict(Movie=dict(starting_times=[123.]))
     )
-    converter.run_conversion(
-        metadata=metadata,
-        nwbfile_path=nwbfile_path,
-        overwrite=True,
-        conversion_options=dict(Movie=dict(chunk_data=False))
-    )
+
+    # These conversion options do not operate independently, so test them jointly
+    conversion_options_testing_matrix = [
+        dict(Movie=dict(external_mode=False, stub_test=x, chunk_data=y)) for x in [True, False] for y in [True, False]
+    ]
+    for conversion_options in conversion_options_testing_matrix:
+        converter.run_conversion(
+            metadata=metadata,
+            nwbfile_path=nwbfile_path,
+            overwrite=True,
+            conversion_options=conversion_options
+        )
     rmtree(test_dir)
