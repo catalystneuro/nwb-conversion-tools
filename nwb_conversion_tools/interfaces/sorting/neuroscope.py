@@ -2,7 +2,7 @@ from pathlib import Path
 
 import spikeextractors as se
 
-from nwb_conversion_tools import NeuroscopeRecordingInterface
+from nwb_conversion_tools.interfaces.recording import NeuroscopeRecordingInterface
 from nwb_conversion_tools.interfaces.sorting.base_sorting import BaseSortingExtractorInterface
 
 

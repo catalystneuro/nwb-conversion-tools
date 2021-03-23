@@ -2,6 +2,7 @@ import typing
 
 
 from nwb_conversion_tools.interfaces.base_data import BaseDataInterface
+from nwb_conversion_tools.interfaces import imaging, interface_utils, recording, segmentation, sorting
 from nwb_conversion_tools.utils import _recursive_import, _recurse_subclasses
 
 
