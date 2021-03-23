@@ -12,6 +12,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
+    'sphinx.ext.todo',
     'myst_parser'
 ]
 templates_path = ['_templates']
@@ -22,6 +23,7 @@ html_static_path = ['_static']
 
 html_theme_options = {
     'collapse_navigation': False,
+    'navigation_depth': 6,
 }
 
 # --------------------------------------------------
@@ -30,7 +32,7 @@ html_theme_options = {
 
 # Napoleon
 napoleon_google_docstring = True
-napoleon_numpy_docstring = False
+napoleon_numpy_docstring = True
 napoleon_use_param = False
 napoleon_use_ivar = True
 napoleon_include_init_with_doc = False
@@ -46,7 +48,8 @@ autodoc_default_options = {
     'member-order': 'bysource',
     'private-members': True,
     'show-inheritance': False,
-    'toctree': True
+    'toctree': True,
+    'undoc-members': True
 }
 add_module_names=False
 

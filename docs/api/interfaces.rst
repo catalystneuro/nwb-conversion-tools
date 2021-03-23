@@ -1,14 +1,21 @@
 Interfaces
 ============
 
-.. automodule:: nwb_conversion_tools.interfaces
-    :members:
-    :no-undoc-members:
-
 .. toctree::
-    :maxdepth: 4
+    :hidden:
+    :maxdepth: 6
 
     interfaces.imaging
     interfaces.recording
     interfaces.segmentation
     interfaces.sorting
+
+.. automodule:: nwb_conversion_tools.interfaces
+    :members:
+
+Base Data Interface
+--------------------
+
+.. automodule:: nwb_conversion_tools.interfaces.base_data
+    :members:
+

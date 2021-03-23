@@ -105,21 +105,22 @@ class NWBConverter:
         """
         Run the NWB conversion over all the instantiated data interfaces.
 
-        Args:
-            metadata : dict
-            save_to_file : bool, optional
-                If False, returns an NWBFile object instead of writing it to the nwbfile_path. The default is True.
-            nwbfile_path : str, optional
-                Location to save the NWBFile, if save_to_file is True. The default is None.
-            overwrite : bool, optional
-                If True, replaces any existing NWBFile at the nwbfile_path location, if save_to_file is True.
-                If False, appends the existing NWBFile at the nwbfile_path location, if save_to_file is True.
-                The default is False.
-            nwbfile : NWBFile, optional
-                A pre-existing NWBFile object to be appended (instead of reading from nwbfile_path).
-            conversion_options : dict, optional
-                Similar to source_data, a dictionary containing keywords for each interface for which non-default
-                conversion specification is requested.
+        Parameters
+        ----------
+        metadata : dict
+        save_to_file : bool, optional
+            If False, returns an NWBFile object instead of writing it to the nwbfile_path. The default is True.
+        nwbfile_path : str, optional
+            Location to save the NWBFile, if save_to_file is True. The default is None.
+        overwrite : bool, optional
+            If True, replaces any existing NWBFile at the nwbfile_path location, if save_to_file is True.
+            If False, appends the existing NWBFile at the nwbfile_path location, if save_to_file is True.
+            The default is False.
+        nwbfile : NWBFile, optional
+            A pre-existing NWBFile object to be appended (instead of reading from nwbfile_path).
+        conversion_options : dict, optional
+            Similar to source_data, a dictionary containing keywords for each interface for which non-default
+            conversion specification is requested.
         """
         assert (not save_to_file and nwbfile_path is None) or nwbfile is None, \
             "Either pass a nwbfile_path location with save_to_file=True, or a nwbfile object, but not both!"

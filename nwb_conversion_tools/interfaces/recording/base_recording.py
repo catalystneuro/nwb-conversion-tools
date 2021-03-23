@@ -90,9 +90,13 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
             nwb file to which the recording information is to be added
         metadata: dict
             metadata info for constructing the nwb file (optional).
-            Should be of the format
-                metadata['Ecephys']['ElectricalSeries'] = {'name': my_name,
-                                                           'description': my_description}
+            Should be of the format::
+
+                metadata['Ecephys']['ElectricalSeries'] = {
+                    'name': my_name,
+                     'description': my_description
+                }
+
         use_times: bool
             If True, the times are saved to the nwb file using recording.frame_to_time(). If False (default),
             the sampling rate is used.

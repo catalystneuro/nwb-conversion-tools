@@ -1,6 +1,11 @@
 Recording
 ==========
 
+.. toctree::
+    :hidden:
+
+    interfaces.recording.lfp
+
 
 .. automodule:: nwb_conversion_tools.interfaces.recording
 
@@ -43,4 +48,8 @@ Spike Interface
 ---------------
 
 .. automodule:: nwb_conversion_tools.interfaces.recording.spike_interface
+
+
+
+
 
