@@ -1,7 +1,7 @@
 """Authors: Cody Baker."""
 import spikeextractors as se
 
-from ..basesortingextractorinterface import BaseSortingExtractorInterface
+from nwb_conversion_tools.interfaces.sorting.base_sorting import BaseSortingExtractorInterface
 
 
 class PhySortingInterface(BaseSortingExtractorInterface):

@@ -5,7 +5,7 @@ import spikeextractors as se
 from scipy.io import loadmat
 import numpy as np
 
-from ..basesortingextractorinterface import BaseSortingExtractorInterface
+from nwb_conversion_tools.interfaces.sorting.base_sorting import BaseSortingExtractorInterface
 
 
 class CellExplorerSortingInterface(BaseSortingExtractorInterface):

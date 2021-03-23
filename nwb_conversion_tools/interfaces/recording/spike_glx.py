@@ -4,9 +4,8 @@ from pathlib import Path
 from typing import Union, Optional
 from spikeextractors import SpikeGLXRecordingExtractor, SubRecordingExtractor
 
-from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
-from ..baselfpextractorinterface import BaseLFPExtractorInterface
-from ..json_schema_utils import get_schema_from_method_signature
+from nwb_conversion_tools.interfaces.recording.base_recording import BaseRecordingExtractorInterface
+from nwb_conversion_tools.json_schema_utils import get_schema_from_method_signature
 
 PathType = Union[str, Path, None]
 
@@ -88,7 +87,3 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
         return ecephys_metadata
 
 
-class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
-    """Primary data interface class for converting the low-pass (ap) SpikeGLX format."""
-
-    RX = SpikeGLXRecordingExtractor

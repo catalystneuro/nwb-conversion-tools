@@ -1,6 +1,6 @@
 from roiextractors import SbxImagingExtractor, Hdf5ImagingExtractor, \
     TiffImagingExtractor
-from ..baseimagingextractorinterface import BaseImagingExtractorInterface
+from nwb_conversion_tools.interfaces.imaging.base_imaging import BaseImagingExtractorInterface
 
 
 class TiffImagingInterface(BaseImagingExtractorInterface):

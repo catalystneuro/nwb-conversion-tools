@@ -4,9 +4,7 @@ from pathlib import Path
 import numpy as np
 import spikeextractors as se
 
-from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
-from ..baselfpextractorinterface import BaseLFPExtractorInterface
-from ..basesortingextractorinterface import BaseSortingExtractorInterface
+from nwb_conversion_tools.interfaces.recording.base_recording import BaseRecordingExtractorInterface
 
 try:
     from lxml import etree as et
@@ -151,44 +149,3 @@ class NeuroscopeMultiRecordingTimeInterface(BaseRecordingExtractorInterface):
         return metadata
 
 
-class NeuroscopeLFPInterface(BaseLFPExtractorInterface):
-    """Primary data interface class for converting Neuroscope LFP data."""
-
-    RX = se.NeuroscopeRecordingExtractor
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.subset_channels = get_shank_channels(
-            xml_file_path=get_xml_file_path(data_file_path=self.source_data['file_path']),
-            sort=True
-        )
-
-    def get_metadata(self):
-        """Retrieve Ecephys metadata specific to the Neuroscope format."""
-        metadata = NeuroscopeRecordingInterface.get_ecephys_metadata(
-            xml_file_path=get_xml_file_path(data_file_path=self.source_data['file_path'])
-        )
-        metadata['Ecephys'].update(
-            LFPElectricalSeries=dict(
-                name="LFP",
-                description="Local field potential signal."
-            )
-        )
-
-        return metadata
-
-
-class NeuroscopeSortingInterface(BaseSortingExtractorInterface):
-    """Primary data interface class for converting a NeuroscopeSortingExtractor."""
-
-    SX = se.NeuroscopeMultiSortingExtractor
-
-    def get_metadata(self):
-        """Auto-populates spiking unit metadata."""
-        session_path = Path(self.source_data['folder_path'])
-        session_id = session_path.stem
-        metadata = NeuroscopeRecordingInterface.get_ecephys_metadata(
-            xml_file_path=str((session_path / f"{session_id}.xml").absolute())
-        )
-        metadata.update(UnitProperties=[])
-        return metadata

@@ -6,9 +6,9 @@ import numpy as np
 from pynwb import NWBFile
 from pynwb.ecephys import SpikeEventSeries
 
-from .basedatainterface import BaseDataInterface
-from .utils import get_schema_from_hdmf_class
-from .json_schema_utils import get_base_schema, get_schema_from_method_signature, fill_defaults
+from nwb_conversion_tools.interfaces.base_data import BaseDataInterface
+from nwb_conversion_tools.utils import get_schema_from_hdmf_class
+from nwb_conversion_tools.json_schema_utils import get_base_schema, get_schema_from_method_signature
 
 
 class BaseSortingExtractorInterface(BaseDataInterface, ABC):

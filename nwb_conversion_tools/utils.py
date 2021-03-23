@@ -1,5 +1,10 @@
 """Authors: Cody Baker, Ben Dichter and Luiz Tauffer."""
 from datetime import datetime
+import pkgutil
+import importlib
+from pathlib import Path
+import typing
+import inspect
 
 import numpy as np
 import pynwb
@@ -187,3 +192,59 @@ def get_schema_for_NWBFile():
         }
     }
     return schema
+
+
+
+def _recurse_subclasses(cls, leaves_only=True) -> list:
+    """
+    Given some class, find its subclasses recursively
+
+    See: https://stackoverflow.com/a/17246726/13113166
+
+    Args:
+        leave_only (bool): If True, only include classes that have no further subclasses,
+        if False, return all subclasses.
+
+    Returns:
+        list of subclasses
+    """
+
+    all_subclasses = []
+
+    for subclass in cls.__subclasses__():
+        if leaves_only:
+            if len(subclass.__subclasses__()) == 0:
+                all_subclasses.append(subclass)
+        else:
+            all_subclasses.append(subclass)
+        all_subclasses.extend(_recurse_subclasses(subclass))
+
+    return all_subclasses
+
+def _recursive_import(module_name:str) -> typing.List[str]:
+    """
+    Given some path in a python package, import all modules beneath it
+
+    Args:
+        module_name (str): name of module to recursively import
+
+    Returns:
+        list of all modules that were imported
+    """
+
+    # iterate through modules, importing
+    # see https://codereview.stackexchange.com/a/70282
+
+
+    # import module (shouldnt hurt if it has already)
+    base_mod = importlib.import_module(module_name)
+
+    pkg_dir = Path(inspect.getsourcefile(base_mod)).resolve().parent
+
+    loaded_modules = []
+    for (module_loader, name, ispkg) in pkgutil.walk_packages([pkg_dir], base_mod.__package__+'.'):
+        if not ispkg:
+            importlib.import_module(name)
+            loaded_modules.append(name)
+
+    return loaded_modules

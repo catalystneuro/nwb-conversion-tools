@@ -2,7 +2,7 @@
 from abc import abstractmethod, ABC
 import warnings
 
-from .json_schema_utils import (
+from nwb_conversion_tools.json_schema_utils import (
     get_base_schema, get_schema_from_method_signature, fill_defaults)
 
 

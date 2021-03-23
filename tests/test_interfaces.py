@@ -1,10 +1,10 @@
 from jsonschema import Draft7Validator
 
-from nwb_conversion_tools import interface_list
+from nwb_conversion_tools import interfaces
 
 
 def test_interface_schemas():
-    for data_interface in interface_list:
+    for data_interface in interfaces.list_interfaces():
         
         # check validity of source schema
         schema = data_interface.get_source_schema()

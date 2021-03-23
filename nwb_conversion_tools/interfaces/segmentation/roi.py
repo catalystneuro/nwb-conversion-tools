@@ -1,7 +1,7 @@
 from roiextractors import CnmfeSegmentationExtractor, ExtractSegmentationExtractor, \
     CaimanSegmentationExtractor, Suite2pSegmentationExtractor, SimaSegmentationExtractor
 
-from ..basesegmentationextractorinterface import BaseSegmentationExtractorInterface
+from nwb_conversion_tools.interfaces.segmentation.base_segmentation import BaseSegmentationExtractorInterface
 
 
 class CnmfeSegmentationInterface(BaseSegmentationExtractorInterface):

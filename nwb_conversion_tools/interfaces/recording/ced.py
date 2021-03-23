@@ -1,8 +1,8 @@
 """Authors: Luiz Tauffer"""
 import spikeextractors as se
 
-from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
-from ..json_schema_utils import get_schema_from_method_signature
+from nwb_conversion_tools.interfaces.recording.base_recording import BaseRecordingExtractorInterface
+from nwb_conversion_tools.json_schema_utils import get_schema_from_method_signature
 
 
 class CEDRecordingInterface(BaseRecordingExtractorInterface):

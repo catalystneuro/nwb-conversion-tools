@@ -2,7 +2,7 @@
 import spikeextractors as se
 from pynwb import NWBFile
 
-from .baserecordingextractorinterface import BaseRecordingExtractorInterface
+from nwb_conversion_tools.interfaces.recording.base_recording import BaseRecordingExtractorInterface
 
 
 class BaseLFPExtractorInterface(BaseRecordingExtractorInterface):
