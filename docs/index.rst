@@ -28,6 +28,14 @@ With thiis package, users can:
    converting_data_to_nwb
    authors
 
+.. toctree::
+    :maxdepth: 4
+    :caption: API Documentation
+
+    NWBConverter <api/nwbconverter>
+    Interfaces <api/interfaces>
+
+
 For more information regarding the NWB Standard, please view
 
 - The `NWB Format Specification <https://nwb-schema.readthedocs.io/en/latest/>`_

@@ -9,6 +9,8 @@ from nwb_conversion_tools.json_schema_utils import get_schema_from_method_signat
 
 
 class BaseImagingExtractorInterface(BaseDataInterface):
+    """
+    """
     IX = None
 
     @classmethod
