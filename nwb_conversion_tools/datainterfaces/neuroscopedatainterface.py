@@ -1,7 +1,7 @@
 """Authors: Cody Baker and Ben Dichter."""
 from pathlib import Path
-
 import numpy as np
+
 import spikeextractors as se
 
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
@@ -16,21 +16,9 @@ except ImportError:
 INSTALL_MESSAGE = "Please install lxml to use this extractor!"
 
 
-def get_xml_file_path(data_file_path: str):
-    """
-    Infer the xml_file_path from the data_file_path (.dat or .eeg).
-
-    Assumes the two are in the same folder and follow the session_id naming convention.
-    """
-    session_path = Path(data_file_path).parent
-    session_id = session_path.stem
-    return str((session_path / f"{session_id}.xml").absolute())
-
-
 def get_xml(xml_file_path: str):
     """Auxiliary function for retrieving root of xml."""
     root = et.parse(xml_file_path).getroot()
-
     return root
 
 
@@ -55,7 +43,6 @@ def get_shank_channels(xml_file_path: str, sort: bool = False):
 
     if sort:
         shank_channels = sorted(np.concatenate(shank_channels))
-
     return shank_channels
 
 
@@ -66,7 +53,13 @@ class NeuroscopeRecordingInterface(BaseRecordingExtractorInterface):
 
     @staticmethod
     def get_ecephys_metadata(xml_file_path: str):
-        """Auto-populates ecephys metadata from the xml_file_path inferred."""
+        """
+        Auto-populates ecephys metadata from the xml_file_path inferred.
+
+        Though this is the same function called by the non-static get_metadata of any NeuroscopeRecordingInterface
+        object, this was made static to be usable by other interfaces that require upstream ecephys metadata to be
+        written to the NWBFile.
+        """
         session_path = Path(xml_file_path).parent
         session_id = session_path.stem
         shank_channels = get_shank_channels(xml_file_path)
@@ -99,20 +92,19 @@ class NeuroscopeRecordingInterface(BaseRecordingExtractorInterface):
                 ]
             )
         )
-
         return ecephys_metadata
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.subset_channels = get_shank_channels(
-            xml_file_path=get_xml_file_path(data_file_path=self.source_data['file_path']),
+            xml_file_path=self.source_data["file_path"].replace(".dat", ".xml"),
             sort=True
         )
 
     def get_metadata(self):
         """Retrieve Ecephys metadata specific to the Neuroscope format."""
         metadata = NeuroscopeRecordingInterface.get_ecephys_metadata(
-            xml_file_path=get_xml_file_path(data_file_path=self.source_data['file_path'])
+            xml_file_path=self.source_data["file_path"].replace(".dat", ".xml")
         )
         metadata['Ecephys'].update(
             ElectricalSeries=dict(
@@ -120,7 +112,6 @@ class NeuroscopeRecordingInterface(BaseRecordingExtractorInterface):
                 description="Raw acquisition traces."
             )
         )
-
         return metadata
 
 
@@ -132,14 +123,13 @@ class NeuroscopeMultiRecordingTimeInterface(BaseRecordingExtractorInterface):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.subset_channels = get_shank_channels(
-            xml_file_path=get_xml_file_path(data_file_path=self.source_data['folder_path']),
+            xml_file_path=self.source_data["file_path"].replace(".dat", ".xml"),
             sort=True
         )
-        
+
     def get_metadata(self):
-        """Retrieve Ecephys metadata specific to the Neuroscope format."""
         metadata = NeuroscopeRecordingInterface.get_ecephys_metadata(
-            xml_file_path=get_xml_file_path(data_file_path=self.source_data['folder_path'])
+            xml_file_path=self.source_data["file_path"].replace(".dat", ".xml")
         )
         metadata['Ecephys'].update(
             ElectricalSeries=dict(
@@ -147,7 +137,6 @@ class NeuroscopeMultiRecordingTimeInterface(BaseRecordingExtractorInterface):
                 description="Raw acquisition traces."
             )
         )
-
         return metadata
 
 
@@ -159,14 +148,13 @@ class NeuroscopeLFPInterface(BaseLFPExtractorInterface):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.subset_channels = get_shank_channels(
-            xml_file_path=get_xml_file_path(data_file_path=self.source_data['file_path']),
+            xml_file_path=self.source_data["file_path"].replace(Path(self.source_data["file_path"]).suffix, ".xml"),
             sort=True
         )
 
     def get_metadata(self):
-        """Retrieve Ecephys metadata specific to the Neuroscope format."""
         metadata = NeuroscopeRecordingInterface.get_ecephys_metadata(
-            xml_file_path=get_xml_file_path(data_file_path=self.source_data['file_path'])
+            xml_file_path=self.source_data["file_path"].replace(Path(self.source_data["file_path"]).suffix, ".xml")
         )
         metadata['Ecephys'].update(
             LFPElectricalSeries=dict(
@@ -174,7 +162,6 @@ class NeuroscopeLFPInterface(BaseLFPExtractorInterface):
                 description="Local field potential signal."
             )
         )
-
         return metadata
 
 
@@ -184,11 +171,10 @@ class NeuroscopeSortingInterface(BaseSortingExtractorInterface):
     SX = se.NeuroscopeMultiSortingExtractor
 
     def get_metadata(self):
-        """Auto-populates spiking unit metadata."""
-        session_path = Path(self.source_data['folder_path'])
-        session_id = session_path.stem
+        session_path = Path(self.source_data["folder_path"])
+        session_id = session_path.name
         metadata = NeuroscopeRecordingInterface.get_ecephys_metadata(
-            xml_file_path=str((session_path / f"{session_id}.xml").absolute())
+            xml_file_path=str(session_path / f"{session_id}.xml")
         )
         metadata.update(UnitProperties=[])
         return metadata
