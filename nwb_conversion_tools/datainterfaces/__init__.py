@@ -1,4 +1,7 @@
-from .neuralynxdatainterface import NeuralynxRecordingInterface
+from .tutorialdatainterface import (
+    TutorialRecordingInterface,
+    TutorialSortingInterface
+)
 from .neuroscopedatainterface import (
     NeuroscopeRecordingInterface,
     NeuroscopeLFPInterface,
@@ -22,6 +25,7 @@ from .roiextractordatainterface import (
 
 from .blackrockdatainterface import BlackrockRecordingExtractorInterface, BlackrockSortingExtractorInterface
 from .openephysdatainterface import OpenEphysRecordingExtractorInterface, OpenEphysSortingExtractorInterface
+from .neuralynxdatainterface import NeuralynxRecordingInterface
 
 from .imagingextractorinterface import (
     SbxImagingInterface,
@@ -31,7 +35,8 @@ from .imagingextractorinterface import (
 
 
 interface_list = [
-    NeuralynxRecordingInterface,
+    TutorialRecordingInterface,
+    TutorialSortingInterface,
     NeuroscopeRecordingInterface,
     NeuroscopeSortingInterface,
     SpikeGLXRecordingInterface,
@@ -47,8 +52,9 @@ interface_list = [
     SimaSegmentationInterface,
     BlackrockRecordingExtractorInterface,
     BlackrockSortingExtractorInterface,
-    OpenEphysRecordingExtractorInterface, 
+    OpenEphysRecordingExtractorInterface,
     OpenEphysSortingExtractorInterface,
+    NeuralynxRecordingInterface,
     SbxImagingInterface,
     TiffImagingInterface,
     Hdf5ImagingInterface

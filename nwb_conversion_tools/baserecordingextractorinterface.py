@@ -1,6 +1,6 @@
 """Authors: Cody Baker and Ben Dichter."""
 from abc import ABC
-from typing import Union
+from typing import Union, Optional
 from pathlib import Path
 
 import spikeextractors as se
@@ -10,9 +10,9 @@ from pynwb.ecephys import ElectrodeGroup, ElectricalSeries
 
 from .basedatainterface import BaseDataInterface
 from .utils import get_schema_from_hdmf_class
-from .json_schema_utils import get_schema_from_method_signature, fill_defaults
+from .json_schema_utils import get_schema_from_method_signature, fill_defaults, get_base_schema
 
-PathType = Union[str, Path, None]
+OptionalPathType = Optional[Union[str, Path]]
 
 
 class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
@@ -36,19 +36,15 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         metadata_schema = super().get_metadata_schema()
 
         # Initiate Ecephys metadata
-        metadata_schema['properties']['Ecephys'] = dict(
+        metadata_schema['properties']['Ecephys'] = get_base_schema(tag='Ecephys')
+        metadata_schema['properties']['Ecephys']['properties'] = dict(
             Device=get_schema_from_hdmf_class(Device),
             ElectrodeGroup=get_schema_from_hdmf_class(ElectrodeGroup),
             ElectricalSeries=get_schema_from_hdmf_class(ElectricalSeries)
         )
         metadata_schema['properties']['Ecephys']['required'] = ['Device', 'ElectrodeGroup', 'ElectricalSeries']
-        # fill_defaults(metadata_schema, self.get_metadata())
+        fill_defaults(metadata_schema, self.get_metadata())
         return metadata_schema
-
-    def get_metadata(self):
-        """Auto-fill as much of the metadata as possible. Must comply with metadata schema."""
-        metadata = super().get_metadata()
-        return metadata
 
     def subset_recording(self, stub_test: bool = False):
         """
@@ -74,11 +70,18 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         )
         return recording_extractor
 
-    def run_conversion(self, nwbfile: NWBFile, metadata: dict = None, use_times: bool = False, 
-                       write_as_lfp: bool = False, save_path: PathType = None, 
-                       overwrite: bool = False, stub_test: bool = False):
+    def run_conversion(
+      self,
+      nwbfile: NWBFile,
+      metadata: dict = None,
+      stub_test: bool = False,
+      use_times: bool = False,
+      save_path: OptionalPathType = None,
+      overwrite: bool = False,
+      buffer_mb: int = 500
+    ):
         """
-        Primary function for converting recording extractor data to nwb.
+        Primary function for converting raw (unprocessed) recording extractor data to nwb.
 
         Parameters
         ----------
@@ -87,13 +90,10 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         metadata: dict
             metadata info for constructing the nwb file (optional).
             Should be of the format
-                metadata['Ecephys']['ElectricalSeries'] = {'name': my_name,
-                                                           'description': my_description}
+                metadata['Ecephys']['ElectricalSeries'] = dict(name=my_name, description=my_description)
         use_times: bool
             If True, the times are saved to the nwb file using recording.frame_to_time(). If False (default),
             the sampling rate is used.
-        write_as_lfp: bool (optional, defaults to False)
-            If True, writes the traces under a processing LFP module in the NWBFile instead of acquisition.
         save_path: PathType
             Required if an nwbfile is not passed. Must be the path to the nwbfile
             being appended, otherwise one is created and written.
@@ -101,6 +101,9 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
             If using save_path, whether or not to overwrite the NWBFile if it already exists.
         stub_test: bool, optional (default False)
             If True, will truncate the data to run the conversion faster and take up less memory.
+        buffer_mb: int (optional, defaults to 500MB)
+            Maximum amount of memory (in MB) to use per iteration of the internal DataChunkIterator.
+            Requires trace data in the RecordingExtractor to be a memmap object.
         """
         if stub_test or self.subset_channels is not None:
             recording = self.subset_recording(stub_test=stub_test)
@@ -112,7 +115,8 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
             nwbfile=nwbfile,
             metadata=metadata,
             use_times=use_times,
-            write_as_lfp=write_as_lfp,
+            write_as_lfp=False,
             save_path=save_path,
-            overwrite=overwrite
+            overwrite=overwrite,
+            buffer_mb=buffer_mb
         )
