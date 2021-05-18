@@ -2,15 +2,15 @@
 from abc import ABC
 from typing import Union, Optional
 from pathlib import Path
-
+import numpy as np
 import spikeextractors as se
 from pynwb import NWBFile
 from pynwb.device import Device
 from pynwb.ecephys import ElectrodeGroup, ElectricalSeries
 
 from .basedatainterface import BaseDataInterface
-from .utils import get_schema_from_hdmf_class
-from .json_schema_utils import get_schema_from_method_signature, fill_defaults, get_base_schema
+from .utils.json_schema import (get_schema_from_hdmf_class, get_schema_from_method_signature, 
+    fill_defaults, get_base_schema)
 
 OptionalPathType = Optional[Union[str, Path]]
 
@@ -74,7 +74,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
                     ),
                     data=dict(
                         type="array",
-                        description="values for each row in this electrodes column"
+                        description="values for each row in this electrodes column",
                         default=[np.nan]*len(self.recording_extractor.get_channel_ids())
                     )
                 )
