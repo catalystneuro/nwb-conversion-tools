@@ -11,6 +11,7 @@ from pynwb.ecephys import ElectrodeGroup, ElectricalSeries
 from .basedatainterface import BaseDataInterface
 from .utils.json_schema import (get_schema_from_hdmf_class, get_schema_from_method_signature, 
     fill_defaults, get_base_schema)
+from .utils.spike_interface import write_recording
 
 OptionalPathType = Optional[Union[str, Path]]
 
@@ -153,7 +154,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         else:
             recording = self.recording_extractor
 
-        se.NwbRecordingExtractor.write_recording(
+        write_recording(
             recording=recording,
             nwbfile=nwbfile,
             metadata=metadata,
