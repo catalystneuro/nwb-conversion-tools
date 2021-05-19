@@ -3,6 +3,7 @@ from abc import ABC
 from typing import Union, Optional
 from pathlib import Path
 import numpy as np
+
 import spikeextractors as se
 from pynwb import NWBFile
 from pynwb.device import Device
@@ -53,6 +54,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
             Electrodes=dict(
                 type="array",
                 minItems=0,
+                renderForm=False,
                 items={"$ref": "#/properties/Ecephys/properties/definitions/Electrodes"}
             ),
         )
@@ -81,7 +83,6 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
                 )
             )
         )
-        #fill_defaults(metadata_schema, self.get_metadata())
         return metadata_schema
 
     def subset_recording(self, stub_test: bool = False):
