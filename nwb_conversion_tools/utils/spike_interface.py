@@ -89,6 +89,8 @@ def check_module(nwbfile, name: str, description: str = None):
 
 def get_nwb_metadata(recording: se.RecordingExtractor, metadata: dict = None):
     """
+    Return default metadata for all recording fields.
+    
     Parameters
     ----------
     recording: RecordingExtractor
@@ -102,16 +104,18 @@ def get_nwb_metadata(recording: se.RecordingExtractor, metadata: dict = None):
             session_start_time=datetime(1970, 1, 1)
         ),
         Ecephys=dict(
-            Device=[dict(
-                name="Device",
-                description="no description"
-            )],
+            Device=[
+                dict(
+                    name="Device",
+                    description="no description"
+                )
+            ],
             ElectrodeGroup=[
                 dict(
                     name=str(gn),
                     description="no description",
                     location="unknown",
-                    device_name="Device"
+                    device="Device"
                 ) for gn in np.unique(recording.get_channel_groups())
             ]
         )
@@ -156,8 +160,14 @@ def add_devices(
                 Device=[defaults]
             )
         )
-    assert all([isinstance(x, dict) for x in metadata['Ecephys']['Device']]), \
-        "Expected metadata['Ecephys']['Device'] to be a list of dictionaries!"
+    if metadata is None:
+        metadata = dict() 
+
+    if 'Ecephys' not in metadata:
+        metadata['Ecephys'] = dict()
+
+    if 'Device' not in metadata['Ecephys']:
+        metadata['Ecephys']['Device'] = [defaults]
 
     for dev in metadata['Ecephys']['Device']:
         if dev.get('name', defaults['name']) not in nwbfile.devices:
@@ -198,37 +208,44 @@ def add_electrode_groups(
         assert isinstance(nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
     if len(nwbfile.devices) == 0:
         add_devices(recording, nwbfile)
-    defaults = dict(
-        name="Electrode Group",
-        description="no description",
-        location="unknown",
-        device_name="Device"
-    )
-    if metadata is None or 'ElectrodeGroup' not in metadata['Ecephys']:
-        metadata = dict(
-            Ecephys=dict(
-                ElectrodeGroup=[defaults]
-            )
+    if metadata is None:
+        metadata = dict()
+
+    if 'Ecephys' not in metadata:
+        metadata['Ecephys'] = dict()
+
+    defaults = [
+        dict(
+            name=str(group_id),
+            description="no description",
+            location="unknown",
+            device=[i.name for i in nwbfile.devices.values()][0]
         )
+        for group_id in np.unique(recording.get_channel_groups())
+    ]
+
+    if 'ElectrodeGroup' not in metadata['Ecephys']:
+        metadata['Ecephys']['ElectrodeGroup'] = defaults
+
     assert all([isinstance(x, dict) for x in metadata['Ecephys']['ElectrodeGroup']]), \
         "Expected metadata['Ecephys']['ElectrodeGroup'] to be a list of dictionaries!"
 
     for grp in metadata['Ecephys']['ElectrodeGroup']:
-        device_name = grp.get('device_name', defaults['device_name'])
-        if grp.get('name', defaults['name']) not in nwbfile.electrode_groups:
-            if device_name not in nwbfile.devices:
-                new_device = dict(
-                    Ecephys=dict(
-                        Device=dict(
-                            name=device_name
+        if grp.get('name', defaults[0]['name']) not in nwbfile.electrode_groups:
+            device_name = grp.get('device', defaults[0]['device'])
+            if grp.get('name', defaults['name']) not in nwbfile.electrode_groups:
+                if device_name not in nwbfile.devices:
+                    new_device = dict(
+                        Ecephys=dict(
+                            Device=dict(
+                                name=device_name
+                            )
                         )
                     )
-                )
-                add_devices(recording, nwbfile, metadata=new_device)
-                warnings.warn(f"Device \'{device_name}\' not detected in "
-                                "attempted link to electrode group! Automatically generating.")
+                    add_devices(recording, nwbfile, metadata=new_device)
+                    warnings.warn(f"Device \'{device_name}\' not detected in "
+                                  "attempted link to electrode group! Automatically generating.")
             electrode_group_kwargs = dict(defaults, **grp)
-            electrode_group_kwargs.pop('device_name')
             electrode_group_kwargs.update(device=nwbfile.devices[device_name])
             nwbfile.create_electrode_group(**electrode_group_kwargs)
 
@@ -237,11 +254,10 @@ def add_electrode_groups(
         device = nwbfile.devices[device_name]
         if len(nwbfile.devices) > 1:
             warnings.warn("More than one device found when adding electrode group "
-                            f"via channel properties: using device \'{device_name}\'. To use a "
-                            "different device, indicate it the metadata argument.")
+                          f"via channel properties: using device \'{device_name}\'. To use a "
+                          "different device, indicate it the metadata argument.")
 
-        electrode_group_kwargs = dict(defaults)
-        electrode_group_kwargs.pop('device_name')
+        electrode_group_kwargs = dict(defaults[0])
         electrode_group_kwargs.update(device=device)
         for grp_name in np.unique(recording.get_channel_groups()).tolist():
             electrode_group_kwargs.update(name=str(grp_name))
@@ -310,12 +326,10 @@ def add_electrodes(
         imp=-1.0,
         location="unknown",
         filtering="none",
-        group_name="Electrode Group"
+        group_name="0"
     )
-    if metadata is None or 'Electrodes' not in metadata['Ecephys']:
-        metadata = dict(
-            Ecephys=dict()
-        )
+    if metadata is None:
+        metadata = dict(Ecephys=dict())
     if 'Electrodes' not in metadata['Ecephys']:
         metadata['Ecephys']['Electrodes'] = []
 
@@ -332,7 +346,7 @@ def add_electrodes(
 
     for metadata_column in metadata['Ecephys']['Electrodes']:
         if (nwbfile.electrodes is None or metadata_column['name'] not in nwbfile.electrodes.colnames) \
-                and metadata_column['name'] != 'group_name':
+                and metadata_column['name'] not in defaults:
             nwbfile.add_electrode_column(
                 name=str(metadata_column['name']),
                 description=str(metadata_column['description'])
@@ -362,13 +376,13 @@ def add_electrodes(
                                         "found in the nwbfile! Automatically adding.")
                         missing_group_metadata = dict(
                             Ecephys=dict(
-                                ElectrodeGroup=dict(
+                                ElectrodeGroup=[dict(
                                     name=group_name,
                                     description="no description",
                                     location="unknown",
-                                    device_name="Device"
+                                    device="Device"
                                 )
-                            )
+                            ])
                         )
                         add_electrode_groups(recording, nwbfile, missing_group_metadata)
                     electrode_kwargs.update(
@@ -436,7 +450,6 @@ def add_electrodes(
                 description=descr
             )
 
-@staticmethod
 def add_electrical_series(
     recording: se.RecordingExtractor,
     nwbfile=None,
@@ -632,7 +645,6 @@ def add_electrical_series(
         ecephys_mod.data_interfaces['LFP'].add_electrical_series(es)
         
 
-@staticmethod
 def add_epochs(
     recording: se.RecordingExtractor, 
     nwbfile=None,
@@ -674,7 +686,6 @@ def add_epochs(
                     tags=epoch_name
                 )
 
-@staticmethod
 def add_all_to_nwbfile(
     recording: se.RecordingExtractor,
     nwbfile=None,
@@ -801,7 +812,7 @@ def write_recording(
             metadata['Ecephys']['ElectrodeGroup'] = [{'name': my_name,
                                                         'description': my_description,
                                                         'location': electrode_location,
-                                                        'device_name': my_device_name}, ...]
+                                                        'device': my_device_name}, ...]
             metadata['Ecephys']['Electrodes'] = [{'name': my_name,
                                                     'description': my_description,
                                                     'data': [my_electrode_data]}, ...]
