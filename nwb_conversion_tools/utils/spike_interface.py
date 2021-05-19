@@ -233,19 +233,18 @@ def add_electrode_groups(
     for grp in metadata['Ecephys']['ElectrodeGroup']:
         if grp.get('name', defaults[0]['name']) not in nwbfile.electrode_groups:
             device_name = grp.get('device', defaults[0]['device'])
-            if grp.get('name', defaults['name']) not in nwbfile.electrode_groups:
-                if device_name not in nwbfile.devices:
-                    new_device = dict(
-                        Ecephys=dict(
-                            Device=dict(
-                                name=device_name
-                            )
+            if device_name not in nwbfile.devices:
+                new_device = dict(
+                    Ecephys=dict(
+                        Device=dict(
+                            name=device_name
                         )
                     )
-                    add_devices(recording, nwbfile, metadata=new_device)
-                    warnings.warn(f"Device \'{device_name}\' not detected in "
-                                  "attempted link to electrode group! Automatically generating.")
-            electrode_group_kwargs = dict(defaults, **grp)
+                )
+                add_devices(recording, nwbfile, metadata=new_device)
+                warnings.warn(f"Device \'{device_name}\' not detected in "
+                              "attempted link to electrode group! Automatically generating.")
+            electrode_group_kwargs = dict(defaults[0], **grp)
             electrode_group_kwargs.update(device=nwbfile.devices[device_name])
             nwbfile.create_electrode_group(**electrode_group_kwargs)
 
