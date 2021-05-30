@@ -56,6 +56,13 @@ class BlackrockRecordingExtractorInterface(BaseRecordingExtractorInterface):
         session_start_time_tzaware = pytz.timezone('EST').localize(session_start_time)
         comment = nsx_file.basic_header['Comment']
 
+        for channel_id in self.recording_extractor.get_channel_ids():
+            self.recording_extractor.set_channel_property(
+                channel_id=channel_id,
+                property_name="group_name",
+                value="ElectrodeGroup"
+            )
+
         metadata['NWBFile'] = dict(
             session_start_time=session_start_time_tzaware.strftime('%Y-%m-%dT%H:%M:%S'),
             session_description=comment,

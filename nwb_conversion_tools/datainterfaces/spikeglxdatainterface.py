@@ -29,8 +29,24 @@ def fetch_spikeglx_metadata(file_path: str, recording: RecordingExtractor, metad
         raise NotImplementedError("SpikeGLX metadata for more than a single shank is not yet supported.")
 
     channels = recording.get_channel_ids()
-    shank_electrode_number = channels
-    shank_group_name = ["Shank1" for x in channels]
+    shank_electrode_numbers = channels
+    shank_group_names = ["Shank1" for x in channels]
+
+    for channel_id, shank_group_name, shank_electrode_number in zip(
+            self.recording_extractor.get_channel_ids(),
+            shank_group_names,
+            shank_electrode_numbers
+    ):
+        self.recording_extractor.set_channel_property(
+            channel_id=channel_id,
+            property_name="group_name",
+            value=shank_group_name
+        )
+        self.recording_extractor.set_channel_property(
+            channel_id=channel_id,
+            property_name="shank_electrode_number",
+            value=shank_electrode_number
+        )
 
     metadata['NWBFile'] = dict(session_start_time=session_start_time.strftime('%Y-%m-%dT%H:%M:%S'))
 
@@ -52,13 +68,11 @@ def fetch_spikeglx_metadata(file_path: str, recording: RecordingExtractor, metad
         Electrodes=[
             dict(
                 name='shank_electrode_number',
-                description="0-indexed channel within a shank.",
-                data=shank_electrode_number
+                description="0-indexed channel within a shank."
             ),
             dict(
                 name='group_name',
-                description="The name of the ElectrodeGroup this electrode is a part of.",
-                data=shank_group_name
+                description="The name of the ElectrodeGroup this electrode is a part of."
             )
         ]
     )

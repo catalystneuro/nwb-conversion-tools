@@ -65,11 +65,29 @@ class NeuroscopeRecordingInterface(BaseRecordingExtractorInterface):
     RX = se.NeuroscopeRecordingExtractor
 
     @staticmethod
-    def get_ecephys_metadata(xml_file_path: str):
+    def get_ecephys_metadata(xml_file_path: str, recording):
         """Auto-populates ecephys metadata from the xml_file_path inferred."""
         session_path = Path(xml_file_path).parent
         session_id = session_path.stem
         shank_channels = get_shank_channels(xml_file_path)
+
+        elec_group_names = [f"Shank{n + 1}" for n, channels in enumerate(shank_channels) for _ in channels]
+        shank_electrode_numbers = [x for channels in shank_channels for x, _ in enumerate(channels)]
+        for channel_id, channel_group, shank_electrode_number in zip(
+                self.recording_extractor.get_channel_ids(),
+                elec_group_names,
+                shank_electrode_numbers
+        ):
+            self.recording_extractor.set_channel_property(
+                channel_id=channel_id,
+                property_name="group_name",
+                value=f"Group{channel_group}"
+            )
+            self.recording_extractor.set_channel_property(
+                channel_id=channel_id,
+                property_name="shank_electrode_number",
+                value=shank_electrode_number
+            )
 
         ecephys_metadata = dict(
             Ecephys=dict(
@@ -80,21 +98,19 @@ class NeuroscopeRecordingInterface(BaseRecordingExtractorInterface):
                 ],
                 ElectrodeGroup=[
                     dict(
-                        name=f'shank{n + 1}',
-                        description=f"shank{n + 1} electrodes"
+                        name=f'Shank{n + 1}',
+                        description=f"Shank{n + 1} electrodes"
                     )
                     for n, _ in enumerate(shank_channels)
                 ],
                 Electrodes=[
                     dict(
                         name='shank_electrode_number',
-                        description="0-indexed channel within a shank.",
-                        data=[x for channels in shank_channels for x, _ in enumerate(channels)]
+                        description="0-indexed channel within a shank."
                     ),
                     dict(
                         name='group_name',
-                        description="The name of the ElectrodeGroup this electrode is a part of.",
-                        data=[f"shank{n + 1}" for n, channels in enumerate(shank_channels) for _ in channels]
+                        description="The name of the ElectrodeGroup this electrode is a part of."
                     )
                 ]
             )
@@ -112,7 +128,8 @@ class NeuroscopeRecordingInterface(BaseRecordingExtractorInterface):
     def get_metadata(self):
         """Retrieve Ecephys metadata specific to the Neuroscope format."""
         metadata = NeuroscopeRecordingInterface.get_ecephys_metadata(
-            xml_file_path=get_xml_file_path(data_file_path=self.source_data['file_path'])
+            xml_file_path=get_xml_file_path(data_file_path=self.source_data['file_path']),
+            recording=self.recording_extractor
         )
         metadata['Ecephys'].update(
             ElectricalSeries=dict(
@@ -166,7 +183,8 @@ class NeuroscopeLFPInterface(BaseLFPExtractorInterface):
     def get_metadata(self):
         """Retrieve Ecephys metadata specific to the Neuroscope format."""
         metadata = NeuroscopeRecordingInterface.get_ecephys_metadata(
-            xml_file_path=get_xml_file_path(data_file_path=self.source_data['file_path'])
+            xml_file_path=get_xml_file_path(data_file_path=self.source_data['file_path']),
+            recording=self.recording_extractor
         )
         metadata['Ecephys'].update(
             ElectricalSeries_lfp=dict(
@@ -188,7 +206,13 @@ class NeuroscopeSortingInterface(BaseSortingExtractorInterface):
         session_path = Path(self.source_data['folder_path'])
         session_id = session_path.stem
         metadata = NeuroscopeRecordingInterface.get_ecephys_metadata(
-            xml_file_path=str((session_path / f"{session_id}.xml").absolute())
+            xml_file_path=str(session_path / f"{session_id}.xml"),
+            recording=NumpyRecordingExtractor(
+                timeseries=np.array([]),
+                sampling_frequency=self.sorting_extractor.get_sampling_frequency
+            )
+            # TODO, with new recording channel property format for heavy metadata, need to call add_electrodes
+            # on the data contained in this dummy RecordingExtractor
         )
         metadata.update(UnitProperties=[])
         return metadata

@@ -111,6 +111,12 @@ class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
 
         # Extract information from AxonaRecordingExtractor
         elec_group_names = self.recording_extractor.get_channel_groups()
+        for channel_id, channel_group in zip(self.recording_extractor.get_channel_ids(), elec_group_names):
+            self.recording_extractor.set_channel_property(
+                channel_id=channel_id,
+                property_name="group_name",
+                value=f"Group{channel_group}"
+            )
         unique_elec_group_names = set(elec_group_names)
 
         # Add available metadata
@@ -142,9 +148,7 @@ class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
             Electrodes=[
                 dict(
                     name='group_name',
-                    description="""The name of the ElectrodeGroup this electrode
-                                is a part of.""",
-                    data=[f"Group{x}" for x in elec_group_names]
+                    description="The name of the ElectrodeGroup this electrode is a part of."
                 )
             ],
             ElectricalSeries_raw=dict(
