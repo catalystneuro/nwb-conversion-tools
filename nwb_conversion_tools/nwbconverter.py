@@ -164,7 +164,7 @@ class NWBConverter:
             else:
                 mode = "w"
 
-            with NWBHDF5IO(nwbfile_path, mode=mode) as io:
+            with NWBHDF5IO(nwbfile_path, mode=mode, load_namespaces=True) as io:
                 if mode == "r+":
                     nwbfile = io.read()
                 elif nwbfile is None:
