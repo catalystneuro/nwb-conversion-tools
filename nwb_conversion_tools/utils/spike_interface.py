@@ -460,7 +460,8 @@ def add_electrical_series(
     use_times: bool = False,
     write_as: str = 'raw',
     es_key: str = None,
-    write_scaled: bool = False
+    write_scaled: bool = False,
+    use_compression: bool = True
 ):
     """
     Auxiliary static method for nwbextractor.
