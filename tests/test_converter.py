@@ -1,19 +1,15 @@
-from jsonschema import Draft7Validator
-import numpy as np
 from tempfile import mkdtemp
 from shutil import rmtree
 from pathlib import Path
-from itertools import product
 
 from pynwb import NWBFile
 from ndx_events import LabeledEvents
 
 from nwb_conversion_tools.basedatainterface import BaseDataInterface
 from nwb_conversion_tools import NWBConverter, TutorialRecordingInterface
-from nwb_conversion_tools.conversion_tools import get_default_nwbfile_metadata, make_nwbfile_from_metadata
 
 
-def test_movie_interface():
+def test_converter():
     test_dir = Path(mkdtemp())
     nwbfile_path = str(test_dir / "test1.nwb")
 
