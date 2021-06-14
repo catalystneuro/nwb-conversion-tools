@@ -29,7 +29,6 @@ def test_converter():
         data_interface_classes = dict(NdxEvents=NdxEventsInterface)
 
     converter = ExtensionTestNWBConverter(source_data=dict(NdxEvents=dict()))
-    metadata = converter.get_metadata()
-    converter.run_conversion(metadata=metadata, nwbfile_path=nwbfile_path, overwrite=True)
+    converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True)
 
     rmtree(test_dir)
