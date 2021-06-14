@@ -11,7 +11,7 @@ from nwb_conversion_tools import NWBConverter, TutorialRecordingInterface
 
 def test_converter():
     test_dir = Path(mkdtemp())
-    nwbfile_path = str(test_dir / "test1.nwb")
+    nwbfile_path = str(test_dir / "extension_test.nwb")
 
     class NdxEventsInterface(BaseDataInterface):
         def run_conversion(self, nwbfile: NWBFile):
