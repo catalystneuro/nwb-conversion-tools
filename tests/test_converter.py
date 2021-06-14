@@ -14,7 +14,7 @@ def test_converter():
     nwbfile_path = str(test_dir / "extension_test.nwb")
 
     class NdxEventsInterface(BaseDataInterface):
-        def run_conversion(self, nwbfile: NWBFile):
+        def run_conversion(self, nwbfile: NWBFile, metadata: dict):
             events = LabeledEvents(
                 name="LabeledEvents",
                 description="events from my experiment",
@@ -26,9 +26,9 @@ def test_converter():
             nwbfile.add_acquisition(events)
 
     class ExtensionTestNWBConverter(NWBConverter):
-        data_interface_classes = dict(Tutorial=TutorialRecordingInterface, NdxEvents=NdxEventsInterface)
+        data_interface_classes = dict(NdxEvents=NdxEventsInterface)
 
-    converter = ExtensionTestNWBConverter(source_data=dict())
+    converter = ExtensionTestNWBConverter(source_data=dict(NdxEvents=dict()))
     metadata = converter.get_metadata()
     converter.run_conversion(metadata=metadata, nwbfile_path=nwbfile_path, overwrite=True)
 
