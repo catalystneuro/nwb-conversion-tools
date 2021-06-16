@@ -6,9 +6,15 @@ from typing import Optional
 from pynwb import NWBHDF5IO, NWBFile
 from pynwb.file import Subject
 
-from .conversion_tools import get_default_nwbfile_metadata, make_nwbfile_from_metadata
-from .utils.json_schema import (get_schema_from_hdmf_class, get_schema_for_NWBFile,
-    dict_deep_update, get_base_schema, fill_defaults, unroot_schema)
+from .utils.conversion_tools import get_default_nwbfile_metadata, make_nwbfile_from_metadata
+from .utils.json_schema import (
+    get_schema_from_hdmf_class,
+    get_schema_for_NWBFile,
+    dict_deep_update,
+    get_base_schema,
+    fill_defaults,
+    unroot_schema
+)
 
 
 class NWBConverter:
@@ -156,16 +162,17 @@ class NWBConverter:
 
         # Save data to file or to nwbfile object
         if save_to_file:
+            load_kwargs = dict(path=nwbfile_path)
             if nwbfile_path is None:
                 raise TypeError("A path to the output file must be provided, but nwbfile_path got value None")
 
             if Path(nwbfile_path).is_file() and not overwrite:
-                mode = "r+"
+                load_kwargs.update(mode="r+", load_namespaces=True)
             else:
-                mode = "w"
+                load_kwargs.update(mode="w")
 
-            with NWBHDF5IO(nwbfile_path, mode=mode) as io:
-                if mode == "r+":
+            with NWBHDF5IO(**load_kwargs) as io:
+                if load_kwargs["mode"] == "r+":
                     nwbfile = io.read()
                 elif nwbfile is None:
                     nwbfile = make_nwbfile_from_metadata(metadata=metadata)
