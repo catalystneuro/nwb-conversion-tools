@@ -251,7 +251,7 @@ class TestExtractors(unittest.TestCase):
         del RX_nwb
         warn(
             "Time to write float traces to NWB with default options: "
-            f"{round(trace_size_mb / (time.perf_counter() - start), 2)}MB/s"
+            f"{round(trace_size_mb / (time.perf_counter() - start), 5)}MB/s"
         )
 
         write_recording(recording=self.RX, save_path=path, overwrite=True, compression="lzf")
@@ -277,7 +277,7 @@ class TestExtractors(unittest.TestCase):
         del RX_nwb
         warn(
             "Time to write float traces to NWB with no compression or iteration: "
-            f"{round(trace_size_mb / (time.perf_counter() - start), 2)}MB/s"
+            f"{round(trace_size_mb / (time.perf_counter() - start), 5)}MB/s"
         )
 
     def test_write_sorting(self):
