@@ -809,6 +809,13 @@ def add_all_to_nwbfile(
         Key in metadata dictionary containing metadata info for the specific electrical series
     write_scaled: bool (optional, defaults to True)
         If True, writes the scaled traces (return_scaled=True)
+    compression: str (optional, defaults to "gzip")
+        Type of compression to use. Valid types are "gzip" and "lzf".
+        Set to None to disable all compression.
+    compression_opts: int (optional, defaults to 4)
+        Only applies to compression="gzip". Controls the level of the GZIP.
+    iterate: bool (optional, defaults to True)
+        Whether or not to use DataChunkIteration. Highly recommended for large (16+ GB) recordings.
     """
     if nwbfile is not None:
         assert isinstance(nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
@@ -914,6 +921,13 @@ def write_recording(
         Key in metadata dictionary containing metadata info for the specific electrical series
     write_scaled: bool (optional, defaults to True)
         If True, writes the scaled traces (return_scaled=True)
+    compression: str (optional, defaults to "gzip")
+        Type of compression to use. Valid types are "gzip" and "lzf".
+        Set to None to disable all compression.
+    compression_opts: int (optional, defaults to 4)
+        Only applies to compression="gzip". Controls the level of the GZIP.
+    iterate: bool (optional, defaults to True)
+        Whether or not to use DataChunkIteration. Highly recommended for large (16+ GB) recordings.
     """
     if nwbfile is not None:
         assert isinstance(nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
