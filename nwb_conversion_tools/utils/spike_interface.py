@@ -973,7 +973,9 @@ def write_recording(
                 use_times=use_times,
                 write_as=write_as,
                 es_key=es_key,
-                write_scaled=write_scaled
+                write_scaled=write_scaled,
+                compression=compression,
+                iterate=iterate
             )
 
             # Write to file
@@ -987,7 +989,9 @@ def write_recording(
             metadata=metadata,
             write_as=write_as,
             es_key=es_key,
-            write_scaled=write_scaled
+            write_scaled=write_scaled,
+            compression=compression,
+            iterate=iterate
         )
 
 def get_nspikes(units_table, unit_id):
