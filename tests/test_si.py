@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 from datetime import datetime
 import time
+from warnings import warn
 
 import spikeextractors as se
 from spikeextractors.testing import (
@@ -246,7 +247,7 @@ class TestExtractors(unittest.TestCase):
         check_recordings_equal(self.RX, RX_nwb)
         check_dumping(RX_nwb)
         del RX_nwb
-        print(f"Time to write traces to NWB with default options: {round(time.perf_counter() - start, 2)}s")
+        warn(f"Time to write traces to NWB with default options: {round(time.perf_counter() - start, 2)}s")
 
         start = time.perf_counter()
         write_recording(recording=self.RX, save_path=path, overwrite=True, compression="lzf")
@@ -255,7 +256,7 @@ class TestExtractors(unittest.TestCase):
         check_recordings_equal(self.RX, RX_nwb)
         check_dumping(RX_nwb)
         del RX_nwb
-        print(f"Time to write traces to NWB with 'lzf' compression: {round(time.perf_counter() - start, 2)}s")
+        warn(f"Time to write traces to NWB with 'lzf' compression: {round(time.perf_counter() - start, 2)}s")
 
         start = time.perf_counter()
         write_recording(recording=self.RX, save_path=path, overwrite=True, compression=None)
@@ -264,7 +265,7 @@ class TestExtractors(unittest.TestCase):
         check_recordings_equal(self.RX, RX_nwb)
         check_dumping(RX_nwb)
         del RX_nwb
-        print(f"Time to write traces to NWB with no compression: {round(time.perf_counter() - start, 2)}s")
+        warn(f"Time to write traces to NWB with no compression: {round(time.perf_counter() - start, 2)}s")
 
         start = time.perf_counter()
         write_recording(recording=self.RX, save_path=path, overwrite=True, compression=None, iterate=False)
@@ -273,7 +274,7 @@ class TestExtractors(unittest.TestCase):
         check_recordings_equal(self.RX, RX_nwb)
         check_dumping(RX_nwb)
         del RX_nwb
-        print(f"Time to write traces to NWB with no compression or iteration: {round(time.perf_counter() - start, 2)}s")
+        warn(f"Time to write traces to NWB with no compression or iteration: {round(time.perf_counter() - start, 2)}s")
 
     def test_write_sorting(self):
         path = self.test_dir + '/test.nwb'
