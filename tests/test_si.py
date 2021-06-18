@@ -241,31 +241,32 @@ class TestExtractors(unittest.TestCase):
             es_key='ElectricalSeries_lfp',
         )
 
+        trace_dtype = self.RX.get_traces(channel_ids=[0], end_frame=1).dtype
+        trace_size_mb = trace_dtype.itemsize * self.RX.get_num_channels() * self.RX.get_num_frames() * 1e-6
         start = time.perf_counter()
         RX_nwb = se.NwbRecordingExtractor(file_path=path_multi, electrical_series_name='raw_traces')
         check_recording_return_types(RX_nwb)
         check_recordings_equal(self.RX, RX_nwb)
         check_dumping(RX_nwb)
         del RX_nwb
-        warn(f"Time to write traces to NWB with default options: {round(time.perf_counter() - start, 2)}s")
+        warn(
+            "Time to write float traces to NWB with default options: "
+            f"{round(trace_size_mb / (time.perf_counter() - start), 2)}MB/s"
+        )
 
-        start = time.perf_counter()
         write_recording(recording=self.RX, save_path=path, overwrite=True, compression="lzf")
         RX_nwb = se.NwbRecordingExtractor(path)
         check_recording_return_types(RX_nwb)
         check_recordings_equal(self.RX, RX_nwb)
         check_dumping(RX_nwb)
         del RX_nwb
-        warn(f"Time to write traces to NWB with 'lzf' compression: {round(time.perf_counter() - start, 2)}s")
 
-        start = time.perf_counter()
         write_recording(recording=self.RX, save_path=path, overwrite=True, compression=None)
         RX_nwb = se.NwbRecordingExtractor(path)
         check_recording_return_types(RX_nwb)
         check_recordings_equal(self.RX, RX_nwb)
         check_dumping(RX_nwb)
         del RX_nwb
-        warn(f"Time to write traces to NWB with no compression: {round(time.perf_counter() - start, 2)}s")
 
         start = time.perf_counter()
         write_recording(recording=self.RX, save_path=path, overwrite=True, compression=None, iterate=False)
@@ -274,7 +275,10 @@ class TestExtractors(unittest.TestCase):
         check_recordings_equal(self.RX, RX_nwb)
         check_dumping(RX_nwb)
         del RX_nwb
-        warn(f"Time to write traces to NWB with no compression or iteration: {round(time.perf_counter() - start, 2)}s")
+        warn(
+            "Time to write float traces to NWB with no compression or iteration: "
+            f"{round(trace_size_mb / (time.perf_counter() - start), 2)}MB/s"
+        )
 
     def test_write_sorting(self):
         path = self.test_dir + '/test.nwb'
