@@ -111,7 +111,6 @@ class TestExtractors(unittest.TestCase):
 
         return (RX, RX2, RX3, SX, SX2, SX3, example_info)
 
-
     def test_write_recording(self):
         path = self.test_dir + '/test.nwb'
 
@@ -154,6 +153,20 @@ class TestExtractors(unittest.TestCase):
         )
 
         RX_nwb = se.NwbRecordingExtractor(file_path=path_multi, electrical_series_name='raw_traces')
+        check_recording_return_types(RX_nwb)
+        check_recordings_equal(self.RX, RX_nwb)
+        check_dumping(RX_nwb)
+        del RX_nwb
+
+        write_recording(recording=self.RX, save_path=path, overwrite=True, commpression="lzf")
+        RX_nwb = se.NwbRecordingExtractor(path)
+        check_recording_return_types(RX_nwb)
+        check_recordings_equal(self.RX, RX_nwb)
+        check_dumping(RX_nwb)
+        del RX_nwb
+
+        write_recording(recording=self.RX, save_path=path, overwrite=True, iterate=False)
+        RX_nwb = se.NwbRecordingExtractor(path)
         check_recording_return_types(RX_nwb)
         check_recordings_equal(self.RX, RX_nwb)
         check_dumping(RX_nwb)
