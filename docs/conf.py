@@ -10,8 +10,7 @@ author = 'Cody Baker and Ben Dichter'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
-    'sphinx.ext.napoleon',
-    'myst_parser'
+    'sphinx.ext.napoleon'
 ]
 templates_path = ['_templates']
 master_doc = 'index'
