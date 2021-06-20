@@ -8,11 +8,8 @@ python:
    install:
        - requirements: docs/requirements.txt
    install:
-       - method: pip
        - path: myst_parser
    install:
-       - method: pip
        - path: .
    install:
-       - method: pip
        - path: git+https://github.com/spikeinterface/spikeextractors@master
