@@ -1,89 +1,63 @@
 Recording
 ==========
 
-
-.. automodule:: nwb_conversion_tools.interfaces.recording
-
 Base Recording
 ---------------
+.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.baserecordingextractorinterface
 
-.. automodule:: nwb_conversion_tools.interfaces.recording.base_recording
-
-Blackrock
+Axona Recording
 ---------------
+.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.axona.axonadatainterface
 
-.. automodule:: nwb_conversion_tools.interfaces.recording.blackrock
-
-CED
+Blackrock Recording
 ---------------
+.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.blackrock.blackrockdatainterface
 
-.. automodule:: nwb_conversion_tools.interfaces.recording.ced
-
-Intan
+CED Recording
 ---------------
+.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.ced.ceddatainterface
 
-.. automodule:: nwb_conversion_tools.interfaces.recording.intan
-
-Neuroscope
+Intan Recording
 ---------------
+.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.intan.intandatainterface
 
-.. automodule:: nwb_conversion_tools.interfaces.recording.neuroscope
-
-Open Ephys
+Neuroscope Recording
 ---------------
+.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.neuroscope.neuroscopedatainterface
 
-.. automodule:: nwb_conversion_tools.interfaces.recording.open_ephys
-
-Spike GLX
+OpenEphys Recording
 ---------------
+.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.openephys.openephysdatainterface
 
-.. automodule:: nwb_conversion_tools.interfaces.recording.spike_glx
-
-Spike Interface
+Tutorial Recording
 ---------------
+.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.tutorial.recordingtutorialdatainterface
 
-.. automodule:: nwb_conversion_tools.interfaces.recording.spike_interface
-
+SpikeGLX Recording
+---------------
+.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.spikeglx.spikeglxdatainterface
 
 
 
 Sorting
-========
-
-
-.. automodule:: nwb_conversion_tools.interfaces.sorting
+==========
 
 Base Sorting
------------------
+---------------
+.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.basesortingextractorinterface
 
-.. automodule:: nwb_conversion_tools.interfaces.sorting.base_sorting
+CellExplorer Sorting
+---------------
+.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.cellexplorer.cellexplorerdatainterface
 
-Blackrock
------------------
+Neuroscope Sorting
+---------------
+.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.neuroscope.neuroscopedatainterface
 
-.. automodule:: nwb_conversion_tools.interfaces.sorting.blackrock
+Phy Sorting
+---------------
+.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.phy.phydatainterface
 
-Cell Explorer
------------------
-
-.. automodule:: nwb_conversion_tools.interfaces.sorting.cell_explorer
-
-Neuroscope
------------------
-
-.. automodule:: nwb_conversion_tools.interfaces.sorting.neuroscope
-
-Open Ephys
------------------
-
-.. automodule:: nwb_conversion_tools.interfaces.sorting.open_ephys
-
-Phy
------------------
-
-.. automodule:: nwb_conversion_tools.interfaces.sorting.phy
-
-Spike Interface
------------------
-
-.. automodule:: nwb_conversion_tools.interfaces.sorting.spike_interface
+Tutorial Sorting
+---------------
+.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.tutorial.sortingtutorialdatainterface

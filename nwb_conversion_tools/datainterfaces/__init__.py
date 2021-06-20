@@ -1,7 +1,5 @@
-from .ecephys.tutorial.ecephystutorialdatainterface import (
-    TutorialRecordingInterface,
-    TutorialSortingInterface
-)
+from .ecephys.tutorial.recordingtutorialdatainterface import RecordingTutorialInterface
+from .ecephys.tutorial.sortingtutorialdatainterface import SortingTutorialInterface
 from .ecephys.neuroscope.neuroscopedatainterface import (
     NeuroscopeRecordingInterface,
     NeuroscopeLFPInterface,
@@ -37,8 +35,8 @@ from .behavior.movie.moviedatainterface import MovieInterface
 
 
 interface_list = [
-    TutorialRecordingInterface,
-    TutorialSortingInterface,
+    RecordingTutorialInterface,
+    SortingTutorialInterface,
     NeuroscopeRecordingInterface,
     NeuroscopeMultiRecordingTimeInterface,
     NeuroscopeSortingInterface,

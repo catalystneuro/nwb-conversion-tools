@@ -1,12 +1,13 @@
 Interfaces
 ============
 
-.. automodule:: nwb_conversion_tools.interfaces
+.. automodule:: nwb_conversion_tools.datainterfaces
     :members:
     :no-undoc-members:
 
 .. toctree::
     :maxdepth: 4
 
-    interfaces.ophys
     interfaces.ecephys
+    interfaces.ophys
+    interfaces.behavior

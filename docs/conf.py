@@ -1,4 +1,3 @@
-import os
 import sys
 from pathlib import Path
 
@@ -48,4 +47,4 @@ autodoc_default_options = {
     'show-inheritance': False,
     'toctree': True
 }
-add_module_names=False
+add_module_names = False

@@ -1,34 +1,49 @@
-Imaging
-========
-
-
-
-.. automodule:: nwb_conversion_tools.interfaces.imaging
-
-Base Imaging
-------------
-
-.. automodule:: nwb_conversion_tools.interfaces.imaging.base_imaging
-
-Imaging Interfaces
--------------------
-
-.. automodule:: nwb_conversion_tools.interfaces.imaging.imaging
-
-
 Segmentation
-=============
-
-
-
-.. automodule:: nwb_conversion_tools.interfaces.segmentation
+==========
 
 Base Segmentation
------------------
+---------------
 
-.. automodule:: nwb_conversion_tools.interfaces.segmentation.base_segmentation
+.. automodule:: nwb_conversion_tools.datainterfaces.ophys.basesegmentationextractorinterface
 
-ROI
----
+Caiman Segmentation
+---------------
 
-.. automodule:: nwb_conversion_tools.interfaces.segmentation.roi
+..automodule:: nwb_conversion_tools.datainterfaces.ophys.caiman.caimandatainterface
+
+Cnmfe Segmentation
+---------------
+..automodule:: nwb_conversion_tools.datainterfaces.ophys.cnmfe.cnmfedatainterface
+
+Extract Segmentation
+---------------
+..automodule:: nwb_conversion_tools.datainterfaces.ophys.extractr.extractdatainterface
+
+Sima Segmentation
+---------------
+..automodule:: nwb_conversion_tools.datainterfaces.ophys.sima.simadatainterface
+
+Suite2p Segmentation
+---------------
+..automodule:: nwb_conversion_tools.datainterfaces.ophys.suite2p.suite2pdatainterface
+
+
+
+Imaging
+==========
+
+Base Imaging
+---------------
+.. automodule:: nwb_conversion_tools.datainterfaces.ophys.baseimagingextractorinterface
+
+Hdf5 Imaging
+---------------
+.. automodule:: nwb_conversion_tools.datainterfaces.ophys.hdf5.hdf5datainterface
+
+Sbx Imaging
+---------------
+.. automodule:: nwb_conversion_tools.datainterfaces.ophys.sbx.sbxdatainterface
+
+Tiff Imaging
+---------------
+.. automodule:: nwb_conversion_tools.datainterfaces.ophys.tiff.tiffdatainterface
