@@ -12,4 +12,7 @@ python:
        - path: myst_parser
    install:
        - method: pip
-       - path: -e .
+       - path: .
+   install:
+       - method: pip
+       - path: git+https://github.com/spikeinterface/spikeextractors@master
