@@ -8,5 +8,4 @@ python:
    install:
        - requirements: docs/requirements.txt
    install:
-       - method: pip
        - path: .
