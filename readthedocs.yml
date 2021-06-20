@@ -6,12 +6,8 @@ sphinx:
 python:
    version: 3.7
    install:
-       - requirements: docs/requirements.txt
+       - requirements: docs/requirements.txt -r
    install:
        - path: myst_parser
    install:
        - path: .
-
-dependencies:
-  - pip:
-    - git+https://github.com/spikeinterface/spikeextractors@master
