@@ -2,7 +2,6 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, Path(__file__).resolve().parents[1])
-autodoc_mock_imports = ["nwb_conversion_tools"]
 
 project = 'NWB Conversion Tools'
 copyright = '2021, CatalystNeuro'
