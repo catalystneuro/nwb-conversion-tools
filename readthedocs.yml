@@ -6,7 +6,7 @@ sphinx:
 python:
    version: 3.7
    install:
-       - requirements: docs/requirements.txt
+       - requirements: docs/requirements-dev.txt
    install:
        - method: pip
        - path: myst_parser
