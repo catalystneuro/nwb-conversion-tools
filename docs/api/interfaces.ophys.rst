@@ -7,23 +7,23 @@ Base Segmentation
 
 Caiman Segmentation
 -------------------
-..automodule:: nwb_conversion_tools.datainterfaces.ophys.caiman.caimandatainterface
+.. automodule:: nwb_conversion_tools.datainterfaces.ophys.caiman.caimandatainterface
 
 Cnmfe Segmentation
 ------------------
-..automodule:: nwb_conversion_tools.datainterfaces.ophys.cnmfe.cnmfedatainterface
+.. automodule:: nwb_conversion_tools.datainterfaces.ophys.cnmfe.cnmfedatainterface
 
 Extract Segmentation
 --------------------
-..automodule:: nwb_conversion_tools.datainterfaces.ophys.extract.extractdatainterface
+.. automodule:: nwb_conversion_tools.datainterfaces.ophys.extract.extractdatainterface
 
 Sima Segmentation
 -----------------
-..automodule:: nwb_conversion_tools.datainterfaces.ophys.sima.simadatainterface
+.. automodule:: nwb_conversion_tools.datainterfaces.ophys.sima.simadatainterface
 
 Suite2p Segmentation
 --------------------
-..automodule:: nwb_conversion_tools.datainterfaces.ophys.suite2p.suite2pdatainterface
+.. automodule:: nwb_conversion_tools.datainterfaces.ophys.suite2p.suite2pdatainterface
 
 
 
