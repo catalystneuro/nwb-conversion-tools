@@ -3,12 +3,10 @@ Segmentation
 
 Base Segmentation
 -----------------
-
 .. automodule:: nwb_conversion_tools.datainterfaces.ophys.basesegmentationextractorinterface
 
 Caiman Segmentation
 -------------------
-
 ..automodule:: nwb_conversion_tools.datainterfaces.ophys.caiman.caimandatainterface
 
 Cnmfe Segmentation
@@ -17,7 +15,7 @@ Cnmfe Segmentation
 
 Extract Segmentation
 --------------------
-..automodule:: nwb_conversion_tools.datainterfaces.ophys.extractr.extractdatainterface
+..automodule:: nwb_conversion_tools.datainterfaces.ophys.extract.extractdatainterface
 
 Sima Segmentation
 -----------------
