@@ -261,20 +261,6 @@ def add_electrode_groups(
             electrode_group_kwargs.update(device=nwbfile.devices[device_name])
             nwbfile.create_electrode_group(**electrode_group_kwargs)
 
-    if not nwbfile.electrode_groups:
-        device_name = list(nwbfile.devices.keys())[0]
-        device = nwbfile.devices[device_name]
-        if len(nwbfile.devices) > 1:
-            warnings.warn("More than one device found when adding electrode group "
-                          f"via channel properties: using device \'{device_name}\'. To use a "
-                          "different device, indicate it the metadata argument.")
-
-        electrode_group_kwargs = dict(defaults[0])
-        electrode_group_kwargs.update(device=device)
-        for grp_name in np.unique(recording.get_channel_groups()).tolist():
-            electrode_group_kwargs.update(name=str(grp_name))
-            nwbfile.create_electrode_group(**electrode_group_kwargs)
-
 
 def add_electrodes(
     recording: se.RecordingExtractor, 

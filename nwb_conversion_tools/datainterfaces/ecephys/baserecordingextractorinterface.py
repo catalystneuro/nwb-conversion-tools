@@ -92,16 +92,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
                     name='Device_ecephys',
                     description='no description'
                 )
-            ],
-            ElectrodeGroup=[
-                dict(
-                    name=str(group_id),
-                    description="no description",
-                    location="unknown",
-                    device='Device_ecephys'
-                )
-                for group_id in np.unique(self.recording_extractor.get_channel_groups())
-            ],
+            ]
         )
         return metadata
 
