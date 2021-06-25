@@ -10,4 +10,6 @@ python:
    install:
        - path: myst_parser
    install:
+       - path: psutil
+   install:
        - path: .
