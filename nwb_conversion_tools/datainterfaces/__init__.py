@@ -31,7 +31,7 @@ from .ophys.sbx.sbxdatainterface import SbxImagingInterface
 from .ophys.tiff.tiffdatainterface import TiffImagingInterface
 from .ophys.hdf5.hdf5datainterface import Hdf5ImagingInterface
 
-from .behavior.movie.moviedatainterface import MovieInterface
+#from .behavior.movie.moviedatainterface import MovieInterface
 
 
 interface_list = [
