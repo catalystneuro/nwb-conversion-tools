@@ -16,10 +16,10 @@ from .ecephys.ced.ceddatainterface import CEDRecordingInterface
 from .ecephys.cellexplorer.cellexplorerdatainterface import CellExplorerSortingInterface
 from .ecephys.blackrock.blackrockdatainterface import BlackrockRecordingExtractorInterface, BlackrockSortingExtractorInterface
 from .ecephys.openephys.openephysdatainterface import OpenEphysRecordingExtractorInterface, OpenEphysSortingExtractorInterface
-from .ecephys.axona.axonadatainterface import (
-    AxonaRecordingExtractorInterface,
-    AxonaPositionDataInterface
-)
+# from .ecephys.axona.axonadatainterface import (
+#     AxonaRecordingExtractorInterface,
+#     AxonaPositionDataInterface
+# )
 
 from .ophys.caiman.caimandatainterface import CaimanSegmentationInterface
 from .ophys.cnmfe.cnmfedatainterface import CnmfeSegmentationInterface
