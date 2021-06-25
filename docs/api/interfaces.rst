@@ -1,7 +1,7 @@
 Interfaces
 ============
 
-.. automodule::
+.. automodule:: nwb-conversion-tools.datainterfaces
     :members:
     :no-undoc-members:
 
