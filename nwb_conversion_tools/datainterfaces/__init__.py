@@ -52,8 +52,8 @@ interface_list = [
     BlackrockSortingExtractorInterface,
     OpenEphysRecordingExtractorInterface,
     OpenEphysSortingExtractorInterface,
-    AxonaRecordingExtractorInterface,
-    AxonaPositionDataInterface,
+    # AxonaRecordingExtractorInterface,
+    # AxonaPositionDataInterface,
     CaimanSegmentationInterface,
     CnmfeSegmentationInterface,
     Suite2pSegmentationInterface,
@@ -62,5 +62,5 @@ interface_list = [
     SbxImagingInterface,
     TiffImagingInterface,
     Hdf5ImagingInterface,
-    MovieInterface
+    # MovieInterface
 ]
