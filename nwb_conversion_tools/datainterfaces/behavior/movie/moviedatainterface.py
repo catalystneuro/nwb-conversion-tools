@@ -1,7 +1,6 @@
 """Authors: Cody Baker and Ben Dichter."""
 from pathlib import Path
 import numpy as np
-import psutil
 from typing import Optional
 from tqdm import tqdm
 from warnings import warn
@@ -17,6 +16,7 @@ from ....utils.conversion_tools import check_regular_timestamps
 
 try:
     import cv2
+    import psutil
 except ImportError:
     raise ImportError("Please install opencv to use this extractor (pip install opencv-python)!")
 
