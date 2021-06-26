@@ -10,3 +10,4 @@ Interfaces
 
     interfaces.ecephys
     interfaces.ophys
+    interfaces.behavior
