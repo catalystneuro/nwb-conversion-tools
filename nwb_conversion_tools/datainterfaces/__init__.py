@@ -14,8 +14,14 @@ from .ecephys.spikeinterface.sipickledatainterfaces import (
 from .ecephys.intan.intandatainterface import IntanRecordingInterface
 from .ecephys.ced.ceddatainterface import CEDRecordingInterface
 from .ecephys.cellexplorer.cellexplorerdatainterface import CellExplorerSortingInterface
-from .ecephys.blackrock.blackrockdatainterface import BlackrockRecordingExtractorInterface, BlackrockSortingExtractorInterface
-from .ecephys.openephys.openephysdatainterface import OpenEphysRecordingExtractorInterface, OpenEphysSortingExtractorInterface
+from .ecephys.blackrock.blackrockdatainterface import (
+    BlackrockRecordingExtractorInterface,
+    BlackrockSortingExtractorInterface
+)
+from .ecephys.openephys.openephysdatainterface import (
+    OpenEphysRecordingExtractorInterface,
+    OpenEphysSortingExtractorInterface
+)
 # from .ecephys.axona.axonadatainterface import (
 #     AxonaRecordingExtractorInterface,
 #     AxonaPositionDataInterface
@@ -31,7 +37,7 @@ from .ophys.sbx.sbxdatainterface import SbxImagingInterface
 from .ophys.tiff.tiffdatainterface import TiffImagingInterface
 from .ophys.hdf5.hdf5datainterface import Hdf5ImagingInterface
 
-#from .behavior.movie.moviedatainterface import MovieInterface
+from .behavior.movie.moviedatainterface import MovieInterface
 
 
 interface_list = [
@@ -62,5 +68,5 @@ interface_list = [
     SbxImagingInterface,
     TiffImagingInterface,
     Hdf5ImagingInterface,
-    # MovieInterface
+    MovieInterface
 ]
