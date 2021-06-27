@@ -5,6 +5,7 @@ from typing import Optional
 from tqdm import tqdm
 from warnings import warn
 
+import psutil
 from pynwb import NWBFile
 from pynwb.image import ImageSeries
 from hdmf.backends.hdf5.h5_utils import H5DataIO
@@ -16,7 +17,6 @@ from ....utils.conversion_tools import check_regular_timestamps
 
 try:
     import cv2
-    import psutil
 except ImportError:
     raise ImportError("Please install opencv to use this extractor (pip install opencv-python)!")
 
