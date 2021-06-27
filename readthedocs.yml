@@ -2,4 +2,5 @@ requirements_file:
   requirements-dev.txt
 
 conda:
-    environment: docs/readthedocs_env.yml
+    file: docs/readthedocs_env.yml
+    activate: modular_api_docstrings_8
