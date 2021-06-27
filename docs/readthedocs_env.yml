@@ -1,6 +1,5 @@
 ﻿channels:
 - conda-forge
-- pip
 - bioconda
 - r
 - jkroes
