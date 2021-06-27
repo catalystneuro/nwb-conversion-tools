@@ -2,4 +2,4 @@ requirements_file:
   requirements-dev.txt
 
 conda:
-    file: docs/readthedocs_env.yml
+    environment: docs/readthedocs_env.yml
