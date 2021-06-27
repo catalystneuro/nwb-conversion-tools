@@ -1,5 +1,6 @@
 ﻿channels:
 - conda-forge
+- pip
 - bioconda
 - r
 - jkroes
@@ -20,4 +21,4 @@ dependencies:
     - spiketoolkit==0.7.4
     - numpy==1.18.2
     - spikesorters==0.4.4
-    - ../../../../.
+    - git+https://github.com/catalystneuro/nwb-conversion-tools@modular_api_docstrings_8
