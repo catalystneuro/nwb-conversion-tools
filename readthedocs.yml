@@ -1,14 +1,5 @@
-version: 2
+requirements_file:
+  requirements-dev.txt
 
-sphinx:
-   configuration: docs/conf.py
-
-python:
-  version: 3.7
-  install:
-    - requirements: docs/requirements.txt
-    - method: pip
-      path: myst_parser==0.15.1
-    - method: pip
-      path: opencv-python==4.5.1.48
-  system_packages: true
+conda:
+    file: docs/readtherocs_env.yml
