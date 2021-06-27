@@ -8,11 +8,9 @@ python:
   install:
     - requirements: docs/requirements.txt
     - method: pip
-      path: .
-      extra_requirements:
-        - docs
-    - method: pip
+      path: . -e
+    - method: setuptools
       path: myst_parser==0.15.1
-    - method: pip
+    - method: setuptools
       path: opencv-python==4.5.1.48
   system_packages: true
