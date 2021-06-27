@@ -7,8 +7,8 @@ python:
   version: 3.7
   install:
     - requirements: docs/requirements.txt
-    - method: setuptools
+    - method: pip
       path: myst_parser==0.15.1
-    - method: setuptools
+    - method: pip
       path: opencv-python==4.5.1.48
   system_packages: true
