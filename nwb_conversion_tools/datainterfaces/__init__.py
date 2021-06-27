@@ -22,10 +22,10 @@ from .ecephys.openephys.openephysdatainterface import (
     OpenEphysRecordingExtractorInterface,
     OpenEphysSortingExtractorInterface
 )
-# from .ecephys.axona.axonadatainterface import (
-#     AxonaRecordingExtractorInterface,
-#     AxonaPositionDataInterface
-# )
+from .ecephys.axona.axonadatainterface import (
+    AxonaRecordingExtractorInterface,
+    AxonaPositionDataInterface
+)
 
 from .ophys.caiman.caimandatainterface import CaimanSegmentationInterface
 from .ophys.cnmfe.cnmfedatainterface import CnmfeSegmentationInterface
@@ -58,8 +58,8 @@ interface_list = [
     BlackrockSortingExtractorInterface,
     OpenEphysRecordingExtractorInterface,
     OpenEphysSortingExtractorInterface,
-    # AxonaRecordingExtractorInterface,
-    # AxonaPositionDataInterface,
+    AxonaRecordingExtractorInterface,
+    AxonaPositionDataInterface,
     CaimanSegmentationInterface,
     CnmfeSegmentationInterface,
     Suite2pSegmentationInterface,

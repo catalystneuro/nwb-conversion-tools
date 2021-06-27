@@ -5,6 +5,10 @@ Base Recording
 --------------
 .. automodule:: nwb_conversion_tools.datainterfaces.ecephys.baserecordingextractorinterface
 
+Axona Recording
+-------------------
+.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.axona.axonadatainterface
+
 Blackrock Recording
 -------------------
 .. automodule:: nwb_conversion_tools.datainterfaces.ecephys.blackrock.blackrockdatainterface
