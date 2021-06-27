@@ -6,10 +6,8 @@ sphinx:
 python:
    version: 3.7
    install:
-       - requirements: docs/requirements.txt -r
-   install:
        - path: myst_parser
    install:
-       - path: psutil
+       - requirements: docs/requirements.txt -r
    install:
        - path: .
