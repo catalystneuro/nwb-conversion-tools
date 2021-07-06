@@ -17,12 +17,12 @@ def set_spikeglx_metadata(file_path: str, recording: RecordingExtractor, metadat
     session_id = file_path.parent.stem
 
     if isinstance(recording, SubRecordingExtractor):
-        n_shanks = int(recording._parent_recording._meta.get('snsShankMap', [1, 1])[1])
+        n_shanks = int(recording._parent_recording._meta.get("snsShankMap", [1, 1])[1])
         session_start_time = datetime.fromisoformat(
-            recording._parent_recording._meta['fileCreateTime']
+            recording._parent_recording._meta["fileCreateTime"]
         ).astimezone()
     else:
-        n_shanks = int(recording._meta.get('snsShankMap', [1, 1])[1])
+        n_shanks = int(recording._meta.get("snsShankMap", [1, 1])[1])
         session_start_time = datetime.fromisoformat(recording._meta['fileCreateTime']).astimezone()
     if n_shanks > 1:
         raise NotImplementedError("SpikeGLX metadata for more than a single shank is not yet supported.")
@@ -38,7 +38,7 @@ def set_spikeglx_metadata(file_path: str, recording: RecordingExtractor, metadat
     ):
         recording.set_channel_property(
             channel_id=channel_id,
-            property_name="group_name",
+            property_name="shank_group_name",
             value=shank_group_name
         )
         recording.set_channel_property(
@@ -47,31 +47,31 @@ def set_spikeglx_metadata(file_path: str, recording: RecordingExtractor, metadat
             value=shank_electrode_number
         )
 
-    metadata['NWBFile'] = dict(session_start_time=session_start_time.strftime('%Y-%m-%dT%H:%M:%S'))
+    metadata["NWBFile"] = dict(session_start_time=session_start_time.strftime("%Y-%m-%dT%H:%M:%S"))
 
-    metadata['Ecephys'] = dict(
+    metadata["Ecephys"] = dict(
         Device=[
             dict(
-                name='Device_ecephys',
+                name="Device_ecephys",
                 description=f"More details for the high-pass (ap) data found in {session_id}.ap.meta!"
             )
         ],
         ElectrodeGroup=[
             dict(
-                name='Shank1',
-                description="Shank1 electrodes.",
-                location='no description',
-                device='Device_ecephys'
+                name="0",
+                description="SpikeGLX electrodes.",
+                location="unknown",
+                device="Device_ecephys"
             )
         ],
         Electrodes=[
             dict(
-                name='shank_electrode_number',
+                name="shank_electrode_number",
                 description="0-indexed channel within a shank."
             ),
             dict(
-                name='group_name',
-                description="The name of the ElectrodeGroup this electrode is a part of."
+                name="shank_group_name",
+                description="The name of the shank this electrode is a part of."
             )
         ]
     )
@@ -89,8 +89,8 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
             class_method=cls.RX.__init__,
             exclude=["x_pitch", "y_pitch"]
         )
-        source_schema['properties']['file_path']['format'] = 'file'
-        source_schema['properties']['file_path']['description'] = 'Path to SpikeGLX file.'
+        source_schema["properties"]["file_path"]["format"] = "file"
+        source_schema["properties"]["file_path"]["description"] = "Path to SpikeGLX file."
         return source_schema
 
     def __init__(self, file_path: PathType, stub_test: Optional[bool] = False):
@@ -139,8 +139,8 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
             class_method=cls.RX.__init__,
             exclude=["x_pitch", "y_pitch"]
         )
-        source_schema['properties']['file_path']['format'] = 'file'
-        source_schema['properties']['file_path']['description'] = 'Path to SpikeGLX file.'
+        source_schema["properties"]["file_path"]["format"] = "file"
+        source_schema["properties"]["file_path"]["description"] = "Path to SpikeGLX file."
         return source_schema
 
     def __init__(self, file_path: PathType, stub_test: Optional[bool] = False):
