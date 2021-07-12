@@ -1,8 +1,11 @@
 """Authors: Luiz Tauffer"""
 import spikeextractors as se
+from typing import Union
+from pathlib import Path
 
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
-from ....utils.json_schema import get_schema_from_method_signature
+
+PathType = Union[str, Path]
 
 
 class CEDRecordingInterface(BaseRecordingExtractorInterface):
@@ -10,23 +13,8 @@ class CEDRecordingInterface(BaseRecordingExtractorInterface):
 
     RX = se.CEDRecordingExtractor
 
-    @classmethod
-    def get_source_schema(cls):
-        """Compile input schema for the RecordingExtractor."""
-        source_schema = get_schema_from_method_signature(
-            class_method=cls.RX.__init__,
-            exclude=['smrx_channel_ids']
-        )
-        source_schema.update(additionalProperties=True)
-        source_schema['properties'].update(
-            file_path=dict(
-                type=source_schema['properties']['file_path']['type'],
-                format="file",
-                description="path to data file"
-            )
-        )
-
-        return source_schema
+    def __init__(self, file_path: PathType):
+        super().__init__(file_path=file_path)
 
     @classmethod
     def get_all_channels_info(cls, file_path):

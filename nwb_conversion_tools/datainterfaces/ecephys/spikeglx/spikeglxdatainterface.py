@@ -50,13 +50,10 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
     @classmethod
     def get_source_schema(cls):
         """Compile input schema for the RecordingExtractor."""
-        source_schema = get_schema_from_method_signature(
-            class_method=cls.RX.__init__,
-            exclude=["x_pitch", "y_pitch"]
+        return get_schema_from_method_signature(
+            class_method=cls.__init__,
+            exclude=["stub_test"]
         )
-        source_schema['properties']['file_path']['format'] = 'file'
-        source_schema['properties']['file_path']['description'] = 'Path to SpikeGLX file.'
-        return source_schema
 
     def __init__(self, file_path: PathType, stub_test: Optional[bool] = False):
         super().__init__(file_path=str(file_path))

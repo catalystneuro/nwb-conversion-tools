@@ -3,7 +3,7 @@ import spikeextractors as se
 
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ..basesortingextractorinterface import BaseSortingExtractorInterface
-from ....utils.json_schema import get_base_schema
+from ....utils.json_schema import get_schema_from_method_signature
 
 
 class SIPickleRecordingExtractorInterface(BaseRecordingExtractorInterface):
@@ -11,18 +11,12 @@ class SIPickleRecordingExtractorInterface(BaseRecordingExtractorInterface):
 
     @classmethod
     def get_source_schema(cls):
-        """Return partial json schema for expected input arguments."""
-        return get_base_schema(
-            required=['pkl_file'],
-            properties=dict(
-                pkl_file=dict(type='string')
-            )
-        )
+        return get_schema_from_method_signature(cls.__init__)
 
-    def __init__(self, **source_data):
-        self.source_data = source_data
+    def __init__(self, pkl_file: str):
+        super().__init__(pkl_file=pkl_file)
         self.subset_channels = None
-        self.recording_extractor = se.load_extractor_from_pickle(**source_data)
+        self.recording_extractor = se.load_extractor_from_pickle(pkl_file=pkl_file)
 
 
 class SIPickleSortingExtractorInterface(BaseSortingExtractorInterface):
@@ -30,14 +24,8 @@ class SIPickleSortingExtractorInterface(BaseSortingExtractorInterface):
 
     @classmethod
     def get_source_schema(cls):
-        """Return partial json schema for expected input arguments."""
-        return get_base_schema(
-            required=['pkl_file'],
-            properties=dict(
-                pkl_file=dict(type='string')
-            )
-        )
+        return get_schema_from_method_signature(cls.__init__)
 
-    def __init__(self, **source_data):
-        self.source_data = source_data
-        self.sorting_extractor = se.load_extractor_from_pickle(**source_data)
+    def __init__(self, pkl_file: str):
+        super().__init__(pkl_file=pkl_file)
+        self.sorting_extractor = se.load_extractor_from_pickle(pkl_file=pkl_file)

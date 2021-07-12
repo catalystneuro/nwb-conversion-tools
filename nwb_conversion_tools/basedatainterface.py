@@ -10,7 +10,7 @@ class BaseDataInterface(ABC):
 
     @classmethod
     def get_source_schema(cls):
-        return get_base_schema()
+        return get_schema_from_method_signature(cls.__init__)
 
     @classmethod
     def get_conversion_options_schema(cls):

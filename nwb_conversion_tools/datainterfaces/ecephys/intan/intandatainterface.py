@@ -15,9 +15,9 @@ class IntanRecordingInterface(BaseRecordingExtractorInterface):
 
     RX = se.IntanRecordingExtractor
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, file_path: str, verbose: bool = False):
         assert HAVE_PYINTAN, INSTALL_MESSAGE
-        super().__init__(*args, **kwargs)
+        super().__init__(file_path=file_path, verbose=verbose)
 
     def get_metadata(self):
         """Retrieve Ecephys metadata specific to the Intan format."""

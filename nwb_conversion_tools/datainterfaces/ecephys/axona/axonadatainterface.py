@@ -4,16 +4,20 @@ import dateutil
 import contextlib
 import mmap
 import numpy as np
+from pathlib import Path
+from typing import Union
 
 import spikeextractors as se
 from pynwb import NWBFile
 from pynwb.behavior import Position, SpatialSeries
 from pynwb.ecephys import ElectricalSeries
 
-from ....utils.json_schema import get_schema_from_hdmf_class
+from ....utils.json_schema import get_schema_from_hdmf_class, get_schema_from_method_signature
 from ....basedatainterface import BaseDataInterface
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ....utils.conversion_tools import get_module
+
+PathType = Union[str, Path]
 
 
 # Helper functions for AxonaRecordingExtractorInterface
@@ -71,20 +75,10 @@ class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
 
     @classmethod
     def get_source_schema(cls):
+        return get_schema_from_method_signature(cls.__init__)
 
-        source_schema = dict(
-            required=['filename'],
-            properties=dict(
-                filename=dict(
-                    type='string',
-                    format='file',
-                    description='Full path to Axona .set file.'
-                )
-            ),
-            type='object',
-            additionalProperties=True
-        )
-        return source_schema
+    def __init__(self, filename: PathType):
+        super().__init__(filename=filename)
 
     def get_metadata_schema(self):
         """Compile metadata schema for the RecordingExtractor."""
@@ -282,24 +276,8 @@ def generate_position_data(filename):
 class AxonaPositionDataInterface(BaseDataInterface):
     """Primary data interface class for converting Axona position data"""
 
-    @classmethod
-    def get_source_schema(cls):
-
-        source_schema = super().get_source_schema()
-        source_schema.update(
-            required=['filename'],
-            properties=dict(
-                filename=dict(
-                    type='string',
-                    format='file',
-                    description='Full filename of Axona .bin or .pos file'
-                )
-            ),
-            type='object',
-            additionalProperties=True
-        )
-
-        return source_schema
+    def __init__(self, filename: str):
+        super().__init__(filename=filename)
 
     def run_conversion(self, nwbfile: NWBFile, metadata: dict):
         """
