@@ -22,7 +22,6 @@ def test_interface_source_schema(data_interface):
 
 @pytest.mark.parametrize("data_interface", interface_list)
 def test_interface_conversion_options_schema(data_interface):
-    # check validity of conversion options schema
     schema = data_interface.get_conversion_options_schema()
     Draft7Validator.check_schema(schema)
 
