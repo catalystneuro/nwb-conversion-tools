@@ -16,7 +16,6 @@ from nwb_conversion_tools import MovieInterface
 
 @pytest.mark.parametrize("data_interface", interface_list)
 def test_interface_source_schema(data_interface):
-    # check validity of source schema
     schema = data_interface.get_source_schema()
     Draft7Validator.check_schema(schema)
 
