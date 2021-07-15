@@ -53,10 +53,9 @@ class IntanRecordingInterface(BaseRecordingExtractorInterface):
                         data=[f"Group{x}" for x in group_names]
                     )
                 ],
-                ElectricalSeries=dict(
-                    name='ElectricalSeries',
-                    description="Raw acquisition traces."
-                )
+                ElectricalSeries_raw=dict(
+                    name="ElectricalSeries_raw", description="Raw acquisition traces."
+                ),
             )
         )
 

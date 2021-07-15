@@ -132,7 +132,6 @@ class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
                     name="group_name",
                     description="""The name of the ElectrodeGroup this electrode
                                 is a part of.""",
-                    data=[f"Group{x}" for x in elec_group_names],
                 )
             ],
             ElectricalSeries_raw=dict(
