@@ -36,6 +36,13 @@ class IntanRecordingInterface(BaseRecordingExtractorInterface):
             ]
         ]
 
+        for channel_id, channel_group in zip(self.recording_extractor.get_channel_ids(), group_names):
+            self.recording_extractor.set_channel_property(
+                channel_id=channel_id,
+                property_name="group_name",
+                value=f"Group{channel_group}"
+            )
+
         ecephys_metadata = dict(
             Ecephys=dict(
                 Device=[dict()],
@@ -49,8 +56,7 @@ class IntanRecordingInterface(BaseRecordingExtractorInterface):
                 Electrodes=[
                     dict(
                         name='group_name',
-                        description="The name of the ElectrodeGroup this electrode is a part of.",
-                        data=[f"Group{x}" for x in group_names]
+                        description="The name of the ElectrodeGroup this electrode is a part of."
                     )
                 ],
                 ElectricalSeries_raw=dict(

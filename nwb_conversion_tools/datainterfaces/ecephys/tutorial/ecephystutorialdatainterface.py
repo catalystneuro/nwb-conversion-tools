@@ -27,6 +27,22 @@ class TutorialRecordingInterface(BaseRecordingExtractorInterface):
 
     def get_metadata(self):
         """Auto-populate extracellular electrophysiology metadata."""
+
+        # Electrode data should be added as channel properties to the recording extractor object.
+        # Optional descriptions of the properties can then be added to the metadata structure.
+        custom_col = [x for x in range(self.recording_extractor.get_num_channels())]
+        for channel_id, custom_data in zip(self.recording_extractor.get_channel_ids(), custom_col):
+            self.recording_extractor.set_channel_property(
+                channel_id=channel_id,
+                property_name="group_name",
+                value="ElectrodeGroup"
+            )
+            self.recording_extractor.set_channel_property(
+                channel_id=channel_id,
+                property_name="custom_electrode_column",
+                value=custom_data
+            )
+
         metadata = dict(
             Ecephys=dict(
                 Device=[
@@ -43,13 +59,11 @@ class TutorialRecordingInterface(BaseRecordingExtractorInterface):
                 Electrodes=[
                     dict(
                         name="group_name",
-                        description="Custom ElectrodeGroup name for these electrodes.",
-                        data=["ElectrodeGroup" for x in range(self.recording_extractor.get_num_channels())]
+                        description="Custom ElectrodeGroup name for these electrodes."
                     ),
                     dict(
                         name="custom_electrodes_column",
-                        description="Custom column in the electrodes table for the NWB Conversion Tools tutorial.",
-                        data=[x for x in range(self.recording_extractor.get_num_channels())]
+                        description="Custom column in the electrodes table for the NWB Conversion Tools tutorial."
                     )
                 ],
                 ElectricalSeries=dict(
