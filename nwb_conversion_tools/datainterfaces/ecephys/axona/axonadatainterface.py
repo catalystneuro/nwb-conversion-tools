@@ -38,7 +38,8 @@ def parse_generic_header(filename, params):
     parse_generic_header('myset_file.set', ['experimenter', 'trial_time'])
     """
     header = dict()
-    params = set(params)
+    if params is not None:
+        params = set(params)
     with open(filename, "rb") as f:
         for bin_line in f:
             if b"data_start" in bin_line:
@@ -48,7 +49,9 @@ def parse_generic_header(filename, params):
             )
             parts = line.split(" ")
             key = parts[0]
-            if key in params:
+            if params is None:
+                header[key] = " ".join(parts[1:])
+            elif key in params:
                 header[key] = " ".join(parts[1:])
 
     return header
@@ -207,12 +210,16 @@ def read_bin_file_position_data(filename):
 
     Parameters:
     -------
-    filename: path-like
+    filename : path-like
         Full filename of Axona file with any extension.
 
     Returns:
     -------
-    pos (np.array)
+    pos : np.array
+
+    Notes:
+    ------
+    Only supports two-spot mode at the moment.
     """
 
     bin_file = filename.split(".")[0] + ".bin"
@@ -235,6 +242,7 @@ def read_bin_file_position_data(filename):
     pos = np.hstack((ADU2_idx[0].reshape((-1, 1)), pos)).astype(float)
 
     # The timestamp from the recording is dubious, create our own
+    # TODO: Make recalculation of timestamps optional
     packets_per_ms = sr_ecephys / 3000
     pos[:, 0] = pos[:, 0] / packets_per_ms
     pos = np.delete(pos, 1, 1)
