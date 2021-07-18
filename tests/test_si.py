@@ -196,8 +196,8 @@ class TestExtractors(unittest.TestCase):
             geom=geom,
             times=times
         )
+        return RX, RX2, RX3, SX, SX2, SX3, example_info
 
-        return (RX, RX2, RX3, SX, SX2, SX3, example_info)
 
     def test_write_recording(self):
         path = self.test_dir + '/test.nwb'
@@ -215,7 +215,7 @@ class TestExtractors(unittest.TestCase):
         check_recordings_equal(self.RX, RX_nwb)
         check_dumping(RX_nwb)
 
-        # Writting multiple recordings using metadata
+        # Writing multiple recordings using metadata
         metadata = get_default_nwbfile_metadata()
         path_multi = self.test_dir + '/test_multiple.nwb'
         write_recording(
@@ -505,6 +505,10 @@ class TestWriteElectrodes(unittest.TestCase):
         for no, (chan_id1, chan_id2) in enumerate(zip(self.RX.get_channel_ids(), self.RX2.get_channel_ids())):
             self.RX2.set_channel_property(chan_id2, 'prop1', '10Hz')
             self.RX.set_channel_property(chan_id1, 'prop1', '10Hz')
+            self.RX2.set_channel_property(chan_id2, 'brain_area', 'M1')
+            self.RX.set_channel_property(chan_id1, 'brain_area', 'PMd')
+            self.RX2.set_channel_property(chan_id2, 'group_name', 'M1')
+            self.RX.set_channel_property(chan_id1, 'group_name', 'PMd')
             if no%2 == 0:
                 self.RX2.set_channel_property(chan_id2, 'prop2', chan_id2)
                 self.RX.set_channel_property(chan_id1, 'prop2', chan_id1)
@@ -522,6 +526,14 @@ class TestWriteElectrodes(unittest.TestCase):
             assert all([i in nwb.electrodes.colnames for i in ['prop1', 'prop2', 'prop3']])
             for i, chan_id in enumerate(nwb.electrodes.id.data):
                 assert nwb.electrodes['prop1'][i] == '10Hz'
+                if chan_id in self.RX.get_channel_ids():
+                    assert nwb.electrodes['location'][i] == 'PMd'
+                    assert nwb.electrodes['group_name'][i] == 'PMd'
+                    assert nwb.electrodes['group'][i].name == 'PMd'
+                else:
+                    assert nwb.electrodes['location'][i] == 'M1'
+                    assert nwb.electrodes['group_name'][i] == 'M1'
+                    assert nwb.electrodes['group'][i].name == 'M1'
                 if i%2 == 0:
                     assert nwb.electrodes['prop2'][i] == chan_id
                     assert nwb.electrodes['prop3'][i] == str(chan_id)
@@ -549,6 +561,24 @@ class TestWriteElectrodes(unittest.TestCase):
                 else:
                     assert np.isnan(nwb.electrodes['prop2'][i])
                     assert nwb.electrodes['prop_new'][i]==chan_id
+
+    def test_group_set_custom_description(self):
+        for i,grp_name in enumerate(['PMd','M1']):
+            self.metadata_list[i]['Ecephys'].update(ElectrodeGroup=[dict(name=grp_name,
+                                                                     description=grp_name+' description')])
+        write_recording(recording=self.RX, nwbfile=self.nwbfile1, metadata=self.metadata_list[0], es_key='es1')
+        write_recording(recording=self.RX2, nwbfile=self.nwbfile1, metadata=self.metadata_list[1], es_key='es2')
+        with NWBHDF5IO(str(self.path1), 'w') as io:
+            io.write(self.nwbfile1)
+        with NWBHDF5IO(str(self.path1), 'r') as io:
+            nwb = io.read()
+            for i, chan_id in enumerate(nwb.electrodes.id.data):
+                if i<len(nwb.electrodes.id.data)/2:
+                    assert nwb.electrodes['group_name'][i]=='PMd'
+                    assert nwb.electrodes['group'][i].description == 'PMd description'
+                else:
+                    assert nwb.electrodes['group_name'][i] == 'M1'
+                    assert nwb.electrodes['group'][i].description == 'M1 description'
 
 if __name__ == '__main__':
     unittest.main()

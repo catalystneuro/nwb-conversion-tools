@@ -364,10 +364,8 @@ def add_electrodes(
         for i in recording.get_channel_property_names(channel_id=chan_id):
             property_names.add(i)
 
-    # property 'gain' should not be in the NWB electrodes_table
     # property 'brain_area' of RX channels corresponds to 'location' of NWB electrodes
-    # property 'offset' should not be in the NWB electrodes_table as not officially supported by schema v2.2.5
-    exclude_names = set(['gain', 'offset', 'location', 'name'] + list(exclude))
+    exclude_names = set(['location','group'] + list(exclude))
 
     channel_property_defaults = {
         list: [],
@@ -408,7 +406,6 @@ def add_electrodes(
             if not prop_skip:
                 index = found_property_types[prop] == ArrayType
                 prop_name_new = 'location' if prop == 'brain_area' else prop
-                prop_name_new = 'group_name' if prop == 'group' else prop
                 found_property_types[prop_name_new] = found_property_types.pop(prop)
                 elec_columns[prop_name_new].update(description=prop_name_new, data=data, index=index)
 
@@ -459,7 +456,7 @@ def add_electrodes(
 
             for name, desc in elec_columns.items():
                 if name == 'group_name':
-                    group_name = str(int(desc['data'][j]))
+                    group_name = str(desc['data'][j])
                     if group_name!='' and group_name not in nwbfile.electrode_groups:
                         warnings.warn(f"Electrode group {group_name} for electrode {channel_id} was not "
                                       "found in the nwbfile! Automatically adding.")
@@ -467,9 +464,6 @@ def add_electrodes(
                             Ecephys=dict(
                                 ElectrodeGroup=[dict(
                                     name=group_name,
-                                    description="no description",
-                                    location="unknown",
-                                    device="Device"
                                 )]
                             )
                         )
@@ -703,7 +697,7 @@ def add_electrical_series(
     eseries_kwargs.update(data=H5DataIO(ephys_data, compression=compression, compression_opts=compression_opts))
     if not use_times:
         eseries_kwargs.update(
-            starting_time=recording.frame_to_time(0),
+            starting_time=float(recording.frame_to_time(0)),
             rate=float(recording.get_sampling_frequency())
         )
     else:
