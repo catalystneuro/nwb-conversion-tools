@@ -1,9 +1,13 @@
-Recording
-=========
+Recording & Sorting
+===================
 
 Base Recording
 --------------
 .. automodule:: nwb_conversion_tools.datainterfaces.ecephys.baserecordingextractorinterface
+
+Base Sorting
+--------------
+.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.basesortingingextractorinterface
 
 Axona Recording
 -------------------
@@ -17,47 +21,30 @@ CED Recording
 -------------
 .. automodule:: nwb_conversion_tools.datainterfaces.ecephys.ced.ceddatainterface
 
+CellExplorer Sorting
+--------------------
+.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.cellexplorer.cellexplorerdatainterface
+
 Intan Recording
 ---------------
 .. automodule:: nwb_conversion_tools.datainterfaces.ecephys.intan.intandatainterface
 
-Neuroscope Recording
---------------------
+Neuroscope Recording & Sorting
+------------------------------
 .. automodule:: nwb_conversion_tools.datainterfaces.ecephys.neuroscope.neuroscopedatainterface
 
 OpenEphys Recording
 -------------------
 .. automodule:: nwb_conversion_tools.datainterfaces.ecephys.openephys.openephysdatainterface
 
-Tutorial Recording
-------------------
+Phy Sorting
+-----------
+.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.phy.phydatainterface
+
+Tutorial Recording & Sorting
+----------------------------
 .. automodule:: nwb_conversion_tools.datainterfaces.ecephys.tutorial.recordingtutorialdatainterface
 
 SpikeGLX Recording
 ------------------
 .. automodule:: nwb_conversion_tools.datainterfaces.ecephys.spikeglx.spikeglxdatainterface
-
-
-
-Sorting
-=======
-
-Base Sorting
-------------
-.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.basesortingextractorinterface
-
-CellExplorer Sorting
---------------------
-.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.cellexplorer.cellexplorerdatainterface
-
-Neuroscope Sorting
-------------------
-.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.neuroscope.neuroscopedatainterface
-
-Phy Sorting
------------
-.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.phy.phydatainterface
-
-Tutorial Sorting
-----------------
-.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.tutorial.sortingtutorialdatainterface
