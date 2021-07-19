@@ -6,11 +6,11 @@ Base Recording
 .. automodule:: nwb_conversion_tools.datainterfaces.ecephys.baserecordingextractorinterface
 
 Base Sorting
---------------
+------------
 .. automodule:: nwb_conversion_tools.datainterfaces.ecephys.basesortingingextractorinterface
 
 Axona Recording
--------------------
+---------------
 .. automodule:: nwb_conversion_tools.datainterfaces.ecephys.axona.axonadatainterface
 
 Blackrock Recording
