@@ -152,5 +152,5 @@ class BlackrockSortingExtractorInterface(BaseSortingExtractorInterface):
         metadata_schema['properties']['filename']['description'] = 'Path to Blackrock file.'
         return metadata_schema
 
-    def __init__(self, filename: PathType, nsx_to_load: Optional[int] = None):
-        super().__init__(filename=filename, nsx_to_load=nsx_to_load)
+    def __init__(self, filename: PathType, nsx_to_load: Optional[int] = None, nev_override: PathType = None):
+        super().__init__(filename=filename, nsx_to_load=nsx_to_load, nev_override=nev_override)
