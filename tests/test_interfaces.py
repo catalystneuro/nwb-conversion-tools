@@ -5,20 +5,23 @@ from shutil import rmtree
 from pathlib import Path
 from itertools import product
 
+import pytest
+
 import cv2
 
 from nwb_conversion_tools import NWBConverter, MovieInterface, interface_list
 
 
-def test_interface_schemas():
-    for data_interface in interface_list:
-        # check validity of source schema
-        schema = data_interface.get_source_schema()
-        Draft7Validator.check_schema(schema)
+@pytest.mark.parametrize("data_interface", interface_list)
+def test_interface_source_schema(data_interface):
+    schema = data_interface.get_source_schema()
+    Draft7Validator.check_schema(schema)
 
-        # check validity of conversion options schema
-        schema = data_interface.get_conversion_options_schema()
-        Draft7Validator.check_schema(schema)
+
+@pytest.mark.parametrize("data_interface", interface_list)
+def test_interface_conversion_options_schema(data_interface):
+    schema = data_interface.get_conversion_options_schema()
+    Draft7Validator.check_schema(schema)
 
 
 def test_movie_interface():
@@ -66,4 +69,25 @@ def test_movie_interface():
             overwrite=True,
             conversion_options=conversion_options
         )
+
+    module_name = "TestModule"
+    module_description = "This is a test module."
+    nwbfile = converter.run_conversion(
+        metadata=metadata,
+        save_to_file=False
+    )
+    assert f"Video: {Path(movie_file).stem}" in nwbfile.acquisition
+    nwbfile = converter.run_conversion(
+        metadata=metadata,
+        save_to_file=False,
+        nwbfile=nwbfile,
+        conversion_options=dict(Movie=dict(module_name=module_name)),
+    )
+    assert module_name in nwbfile.modules
+    nwbfile = converter.run_conversion(
+        metadata=metadata,
+        save_to_file=False,
+        conversion_options=dict(Movie=dict(module_name=module_name, module_description=module_description)),
+    )
+    assert module_name in nwbfile.modules and nwbfile.modules[module_name].description == module_description
     rmtree(test_dir)
