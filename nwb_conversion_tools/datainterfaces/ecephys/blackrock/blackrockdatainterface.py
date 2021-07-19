@@ -33,8 +33,12 @@ class BlackrockRecordingExtractorInterface(BaseRecordingExtractorInterface):
         source_schema['properties']['filename']['description'] = 'Path to Blackrock file.'
         return source_schema
     
-    def __init__(self, filename: PathType, nsx_override: PathType=None, nev_override: PathType=None):
-        super().__init__(filename=filename, nev_override=nev_override,nsx_override=nsx_override)
+    def __init__(self, filename: PathType, nsx_override: PathType=None):
+        super().__init__(filename=filename,nsx_override=nsx_override)
+        if self.source_data['nsx_override'] is not None:
+            self.data_filename = self.source_data['nsx_override']
+        else:
+            self.data_filename = self.source_data['filename']
 
     def get_metadata_schema(self):
         """Compile metadata schema for the RecordingExtractor."""
@@ -50,7 +54,8 @@ class BlackrockRecordingExtractorInterface(BaseRecordingExtractorInterface):
         metadata = super().get_metadata()
 
         # Open file and extract headers
-        nsx_file = NsxFile(datafile=self.source_data['filename'])
+
+        nsx_file = NsxFile(datafile=self.data_filename)
         session_start_time = nsx_file.basic_header['TimeOrigin']
         session_start_time_tzaware = pytz.timezone('EST').localize(session_start_time)
         comment = nsx_file.basic_header['Comment']
@@ -62,7 +67,7 @@ class BlackrockRecordingExtractorInterface(BaseRecordingExtractorInterface):
         )
 
         # Checks if data is raw or processed
-        if self.source_data['filename'].split('.')[-1][-1] == '6':
+        if self.data_filename.split('.')[-1][-1] == '6':
             metadata['Ecephys']['ElectricalSeries_raw'] = dict(
                 name='ElectricalSeries_raw'
             )
@@ -110,7 +115,7 @@ class BlackrockRecordingExtractorInterface(BaseRecordingExtractorInterface):
         stub_test: bool, optional (default False)
             If True, will truncate the data to run the conversion faster and take up less memory.
         """
-        if self.source_data['filename'].split('.')[-1][-1] == '6':
+        if self.data_filename.split('.')[-1][-1] == '6':
             write_as = 'raw'
         elif write_as not in ['processed', 'lfp']:
             write_as = 'processed'
