@@ -7,7 +7,7 @@ Base Recording
 
 Base Sorting
 ------------
-.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.basesortingingextractorinterface
+.. automodule:: nwb_conversion_tools.datainterfaces.ecephys.basesortingextractorinterface
 
 Axona Recording
 ---------------
