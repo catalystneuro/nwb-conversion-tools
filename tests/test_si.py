@@ -303,7 +303,6 @@ class TestExtractors(unittest.TestCase):
             compression,
             f"Intended compression type does not match what was written! (Out: {compression_out}, should be: {compression})"
         )
-        self.assertN
         RX_nwb = se.NwbRecordingExtractor(path)
         check_recording_return_types(RX_nwb)
         check_recordings_equal(self.RX, RX_nwb)
