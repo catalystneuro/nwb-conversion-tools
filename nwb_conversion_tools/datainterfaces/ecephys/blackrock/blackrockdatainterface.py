@@ -36,6 +36,8 @@ class BlackrockRecordingExtractorInterface(BaseRecordingExtractorInterface):
     def __init__(self, filename: PathType, nsx_override: PathType=None):
         super().__init__(filename=filename,nsx_override=nsx_override)
         if self.source_data['nsx_override'] is not None:
+            # storing the .nsx file name as an attribute. This will be used to extract the version
+            # of nsx: ns3/4/5/6 from the filepath
             self.data_filename = self.source_data['nsx_override']
         else:
             self.data_filename = self.source_data['filename']
