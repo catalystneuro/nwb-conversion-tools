@@ -1,9 +1,8 @@
 """Authors: Steffen Buergers"""
 import os
 import dateutil
-import contextlib
-import mmap
 import numpy as np
+from pathlib import Path
 
 import spikeextractors as se
 from pynwb import NWBFile
@@ -151,112 +150,166 @@ class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
 
 
 # Helper functions for AxonaPositionDataInterface
-def establish_mmap_to_position_data(filename):
+def get_header_bstring(file):
     """
-    Generates a memory map (mmap) object connected to an Axona .bin
-    file, referencing only the animal position data (if present).
+    Scan file for the occurrence of 'data_start' and return the header
+    as byte string
 
-    When no .bin file is available or no position data is included,
-    returns None.
+    Parameters
+    ----------
+    file (str or path): file to be loaded
 
-    TODO: Also allow using .pos file (currently only support .bin)
+    Returns
+    -------
+    str: header byte content
+    """
+    header = b''
+    with open(file, 'rb') as f:
+        for bin_line in f:
+            if b'data_start' in bin_line:
+                header += b'data_start'
+                break
+            else:
+                header += bin_line
+    return header
+
+
+def read_bin_file_position_data(bin_filename):
+    """
+    Read position data from Axona `.bin` file (if present).
 
     Parameters:
     -------
-    filename (Path or Str): Full filename of Axona file with any
-        extension.
-
-    Returns:
-    -------
-    mm (mmap or None): Memory map to .bin file position data
-    """
-    mmpos = None
-
-    bin_file = filename.split(".")[0] + ".bin"
-    set_file = filename.split(".")[0] + ".set"
-    par = parse_generic_header(set_file, ["rawRate", "duration"])
-    sr_ecephys = int(par["rawRate"])
-    sr_pos = 100
-    bytes_packet = 432
-
-    num_packets = int(os.path.getsize(bin_file) / bytes_packet)
-    num_ecephys_samples = num_packets * 3
-    dur_ecephys = num_ecephys_samples / sr_ecephys
-    assert dur_ecephys == float(par["duration"])
-
-    # Check if position data exists in .bin file
-    with open(bin_file, "rb") as f:
-        with contextlib.closing(
-            mmap.mmap(
-                f.fileno(),
-                sr_ecephys // 3 // sr_pos * bytes_packet,
-                access=mmap.ACCESS_READ,
-            )
-        ) as mmap_obj:
-            contains_pos_tracking = mmap_obj.find(b"ADU2") > -1
-
-    # Establish memory map to .bin file, considering only position data
-    if contains_pos_tracking:
-        fbin = open(bin_file, "rb")
-        mmpos = mmap.mmap(fbin.fileno(), 0, access=mmap.ACCESS_READ)
-
-    return mmpos
-
-
-def read_bin_file_position_data(filename):
-    """
-    Reads position data from Axona .bin file (if present in
-    recording) and returns it as a numpy.array.
-
-    Parameters:
-    -------
-    filename : path-like
+    bin_filename (Path or Str):
         Full filename of Axona file with any extension.
 
     Returns:
     -------
-    pos : np.array
+    np.array
+        Columns are time (ms), X, Y, x, y, PX, px, tot_px, unused
 
     Notes:
     ------
-    Only supports two-spot mode at the moment.
+    To obtain the correct column order we pairwise flip the 8 int16 columns
+    described in the file format manual. In addition, note that `.bin` data is
+    little endian (read right to left), as opposed to `.pos` file data, which is
+    big endian.
+    """
+    pos_dt_se = np.dtype([
+        ('t', "<i4"), ('X', "<i2"), ('Y', "<i2"), ('x', "<i2"), ('y', "<i2"),
+        ('PX', "<i2"), ('px', "<i2"), ('tot_px', "<i2"), ('unused', "<i2")
+    ])
+
+    bin_dt = np.dtype([
+        ('id', "S4"), ('packet', "<i4"), ('di', "<i2"), ('si', "<i2"),
+        ('pos', pos_dt_se),
+        ('ephys', np.byte, 384),
+        ('trailer', np.byte, 16)
+    ])
+
+    np_bin = np.memmap(
+        filename=bin_filename,
+        dtype=bin_dt,
+        mode='r',
+        offset=0,
+    )
+
+    # Only packets with the ADU2 flag contain position data
+    pos_mask = np.where([np_bin['id'] == b'ADU2'])[1]
+    pos_data = np_bin['pos'][pos_mask]
+
+    # Rearrange columns of coordinates and pixels to conform with pos data
+    # description in file format manual
+    pos_data = np.vstack((
+        pos_data['Y'], pos_data['X'],
+        pos_data['y'], pos_data['x'],
+        pos_data['px'], pos_data['PX'],
+        pos_data['unused'], pos_data['tot_px']
+    )).T
+
+    # Add timestamp as first column
+    pos_data = np.hstack((pos_mask.reshape((-1, 1)), pos_data))
+
+    # Create timestamps from position of samples in `.bin` file to ensure
+    # alignment with ecephys data
+    set_file = bin_filename.split(".")[0] + ".set"
+    sr_ecephys = int(parse_generic_header(set_file, ["rawRate"])['rawRate'])
+
+    packets_per_ms = sr_ecephys / 3000
+    pos_data[:, 0] = pos_data[:, 0] / packets_per_ms
+
+    # Select only every second sample
+    # Note that we do not lowpass filter, since other processing steps done by
+    # TINT would no longer work properly.
+    pos_data = pos_data[::2, :]
+
+    return pos_data
+
+
+def read_pos_file_position_data(pos_filename):
+    """
+    Read position data from Axona `.pos` file (if present).
+
+    Parameters:
+    -------
+    pos_filename (Path or Str):
+        Full filename of Axona file with any extension.
+
+    Returns:
+    -------
+    np.array
+        Columns are time (ms), X, Y, x, y, PX, px, tot_px, unused
     """
 
-    bin_file = filename.split(".")[0] + ".bin"
-    mm = establish_mmap_to_position_data(bin_file)
+    bytes_packet = 20
+    footer_size = len('\r\ndata_end\r\n')
+    header_size = len(get_header_bstring(pos_filename))
+    num_bytes = os.path.getsize(pos_filename) - header_size - footer_size
+    num_packets = num_bytes // bytes_packet
 
-    bytes_packet = 432
-    num_packets = int(os.path.getsize(bin_file) / bytes_packet)
+    pos_dt = np.dtype([
+        ('t', ">i4"), ('X', ">i2"), ('Y', ">i2"), ('x', ">i2"), ('y', ">i2"),
+        ('PX', ">i2"), ('px', ">i2"), ('tot_px', ">i2"), ('unused', ">i2")
+    ])
 
-    set_file = filename.split(".")[0] + ".set"
-    par = parse_generic_header(set_file, ["rawRate", "duration"])
-    sr_ecephys = int(par["rawRate"])
+    pos_data = np.memmap(
+        filename=pos_filename,
+        dtype=pos_dt,
+        mode='r',
+        offset=len(get_header_bstring(pos_filename)),
+        shape=(num_packets, ),
+    )
 
-    flags = np.ndarray((num_packets,), "S4", mm, 0, bytes_packet)
-    ADU2_idx = np.where(flags == b"ADU2")
+    # Convert structured memory mapped array to np array
+    pos_data = np.vstack((
+        pos_data['X'], pos_data['Y'],
+        pos_data['x'], pos_data['Y'],
+        pos_data['PX'], pos_data['px'],
+        pos_data['tot_px'], pos_data['unused']
+    )).T
 
-    pos = np.ndarray(
-        (num_packets,), (np.int16, (1, 8)), mm, 16, (bytes_packet,)
-    ).reshape((-1, 8))[ADU2_idx][:]
+    # Create time column in ms assuming regularly sampled data starting from 0
+    set_file = pos_filename.split(".")[0] + ".set"
+    dur_ecephys = float(parse_generic_header(set_file, ["duration"])["duration"])
 
-    pos = np.hstack((ADU2_idx[0].reshape((-1, 1)), pos)).astype(float)
+    pos_data = np.hstack((
+        np.linspace(start=0, stop=dur_ecephys * 1000, num=pos_data.shape[0])
+          .astype(int).reshape((-1, 1)),
+        pos_data
+    ))
 
-    # The timestamp from the recording is dubious, create our own
-    # TODO: Make recalculation of timestamps optional
-    packets_per_ms = sr_ecephys / 3000
-    pos[:, 0] = pos[:, 0] / packets_per_ms
-    pos = np.delete(pos, 1, 1)
-
-    return pos
+    return pos_data
 
 
 def get_position_object(filename):
     """
     Read position data from .bin or .pos file and convert to
-    pynwb.behavior.SpatialSeries objects.
+    pynwb.behavior.SpatialSeries objects. If possible it should always
+    be preferred to read position data from the `.bin` file to ensure
+    samples are locked to ecephys time courses.
 
     Parameters:
-    -------
+    ----------
     filename (Path or Str): Full filename of Axona file with any
         extension.
 
@@ -267,16 +320,20 @@ def get_position_object(filename):
     position = Position()
 
     position_channel_names = [
-        "t",
-        "x1",
-        "y1",
-        "x2",
-        "y2",
-        "numpix1",
-        "numpix2",
+        "time(ms)",
+        "X",
+        "Y",
+        "x",
+        "y",
+        "PX",
+        "px",
         "unused",
     ]
-    position_data = read_bin_file_position_data(filename)
+
+    if Path(filename).suffix == '.bin':
+        position_data = read_bin_file_position_data(filename)
+    else:
+        position_data = read_pos_file_position_data(filename)
     position_timestamps = position_data[:, 0]
 
     for ichan in range(0, position_data.shape[1]):
