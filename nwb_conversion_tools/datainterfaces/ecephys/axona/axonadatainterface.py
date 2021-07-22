@@ -40,15 +40,17 @@ def parse_generic_header(filename, params):
     """
     header = dict()
     params = set(params)
-    with open(filename, 'rb') as f:
+    with open(filename, "rb") as f:
         for bin_line in f:
-            if b'data_start' in bin_line:
+            if b"data_start" in bin_line:
                 break
-            line = bin_line.decode('cp1252').replace('\r\n', '').replace('\r', '').strip()
-            parts = line.split(' ')
+            line = (
+                bin_line.decode("cp1252").replace("\r\n", "").replace("\r", "").strip()
+            )
+            parts = line.split(" ")
             key = parts[0]
             if key in params:
-                header[key] = ' '.join(parts[1:])
+                header[key] = " ".join(parts[1:])
 
     return header
 
@@ -58,14 +60,14 @@ def read_axona_iso_datetime(set_file):
     Creates datetime object (y, m, d, h, m, s) from .set file header
     and converts it to ISO 8601 format
     """
-    with open(set_file, 'r', encoding='cp1252') as f:
+    with open(set_file, "r", encoding="cp1252") as f:
         for line in f:
-            if line.startswith('trial_date'):
-                date_string = line[len('trial_date')+1::].replace('\n', '')
-            if line.startswith('trial_time'):
-                time_string = line[len('trial_time')+1::].replace('\n', '')
+            if line.startswith("trial_date"):
+                date_string = line[len("trial_date") + 1:].replace("\n", "")
+            if line.startswith("trial_time"):
+                time_string = line[len("trial_time") + 1:].replace("\n", "")
 
-    return dateutil.parser.parse(date_string + ' ' + time_string).isoformat()
+    return dateutil.parser.parse(date_string + " " + time_string).isoformat()
 
 
 class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
@@ -83,7 +85,7 @@ class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
     def get_metadata_schema(self):
         """Compile metadata schema for the RecordingExtractor."""
         metadata_schema = super().get_metadata_schema()
-        metadata_schema['properties']['Ecephys']['properties'].update(
+        metadata_schema["properties"]["Ecephys"]["properties"].update(
             ElectricalSeries_raw=get_schema_from_hdmf_class(ElectricalSeries)
         )
         return metadata_schema
@@ -91,13 +93,8 @@ class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
     def get_metadata(self):
 
         # Extract information for specific parameters from .set file
-        params_of_interest = [
-            'experimenter',
-            'comments',
-            'duration',
-            'sw_version'
-        ]
-        set_file = self.source_data['filename'].split('.')[0]+'.set'
+        params_of_interest = ["experimenter", "comments", "duration", "sw_version"]
+        set_file = self.source_data["filename"].split(".")[0] + ".set"
         par = parse_generic_header(set_file, params_of_interest)
 
         # Extract information from AxonaRecordingExtractor
@@ -106,42 +103,42 @@ class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
 
         # Add available metadata
         metadata = super().get_metadata()
-        metadata['NWBFile'] = dict(
+        metadata["NWBFile"] = dict(
             session_start_time=read_axona_iso_datetime(set_file),
-            session_description=par['comments'],
-            experimenter=[par['experimenter']]
+            session_description=par["comments"],
+            experimenter=[par["experimenter"]],
         )
 
-        metadata['Ecephys'] = dict(
+        metadata["Ecephys"] = dict(
             Device=[
                 dict(
                     name="Axona",
-                    description="Axona DacqUSB, sw_version={}"
-                                .format(par['sw_version']),
-                    manufacturer="Axona"
+                    description="Axona DacqUSB, sw_version={}".format(
+                        par["sw_version"]
+                    ),
+                    manufacturer="Axona",
                 ),
             ],
             ElectrodeGroup=[
                 dict(
-                    name=f'Group{group_name}',
-                    location='',
-                    device='Axona',
+                    name=f"Group{group_name}",
+                    location="",
+                    device="Axona",
                     description=f"Group {group_name} electrodes.",
                 )
                 for group_name in unique_elec_group_names
             ],
             Electrodes=[
                 dict(
-                    name='group_name',
+                    name="group_name",
                     description="""The name of the ElectrodeGroup this electrode
                                 is a part of.""",
-                    data=[f"Group{x}" for x in elec_group_names]
+                    data=[f"Group{x}" for x in elec_group_names],
                 )
             ],
             ElectricalSeries_raw=dict(
-                name='ElectricalSeries_raw',
-                description="Raw acquisition traces."
-            )
+                name="ElectricalSeries_raw", description="Raw acquisition traces."
+            ),
         )
 
         return metadata
@@ -149,7 +146,7 @@ class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
 
 # Helper functions for AxonaPositionDataInterface
 def establish_mmap_to_position_data(filename):
-    '''
+    """
     Generates a memory map (mmap) object connected to an Axona .bin
     file, referencing only the animal position data (if present).
 
@@ -166,65 +163,67 @@ def establish_mmap_to_position_data(filename):
     Returns:
     -------
     mm (mmap or None): Memory map to .bin file position data
-    '''
+    """
     mmpos = None
 
-    bin_file = filename.split('.')[0]+'.bin'
-    set_file = filename.split('.')[0]+'.set'
-    par = parse_generic_header(set_file, ['rawRate', 'duration'])
-    sr_ecephys = int(par['rawRate'])
+    bin_file = filename.split(".")[0] + ".bin"
+    set_file = filename.split(".")[0] + ".set"
+    par = parse_generic_header(set_file, ["rawRate", "duration"])
+    sr_ecephys = int(par["rawRate"])
     sr_pos = 100
     bytes_packet = 432
 
     num_packets = int(os.path.getsize(bin_file) / bytes_packet)
     num_ecephys_samples = num_packets * 3
     dur_ecephys = num_ecephys_samples / sr_ecephys
-    assert dur_ecephys == float(par['duration'])
+    assert dur_ecephys == float(par["duration"])
 
     # Check if position data exists in .bin file
-    with open(bin_file, 'rb') as f:
+    with open(bin_file, "rb") as f:
         with contextlib.closing(
-            mmap.mmap(f.fileno(), sr_ecephys // 3 // sr_pos
-                      * bytes_packet, access=mmap.ACCESS_READ)
+            mmap.mmap(
+                f.fileno(),
+                sr_ecephys // 3 // sr_pos * bytes_packet,
+                access=mmap.ACCESS_READ,
+            )
         ) as mmap_obj:
-            contains_pos_tracking = mmap_obj.find(b'ADU2') > -1
+            contains_pos_tracking = mmap_obj.find(b"ADU2") > -1
 
     # Establish memory map to .bin file, considering only position data
     if contains_pos_tracking:
-        fbin = open(bin_file, 'rb')
+        fbin = open(bin_file, "rb")
         mmpos = mmap.mmap(fbin.fileno(), 0, access=mmap.ACCESS_READ)
 
     return mmpos
 
 
 def read_bin_file_position_data(filename):
-    '''
+    """
     Reads position data from Axona .bin file (if present in
     recording) and returns it as a numpy.array.
 
     Parameters:
     -------
-    filename (Path or Str): Full filename of Axona file with any
-        extension.
+    filename: path-like
+        Full filename of Axona file with any extension.
 
     Returns:
     -------
     pos (np.array)
-    '''
-    bin_file = filename.split('.')[0]+'.bin'
+    """
+
+    bin_file = filename.split(".")[0] + ".bin"
     mm = establish_mmap_to_position_data(bin_file)
 
     bytes_packet = 432
     num_packets = int(os.path.getsize(bin_file) / bytes_packet)
 
-    set_file = filename.split('.')[0]+'.set'
-    par = parse_generic_header(set_file, ['rawRate', 'duration'])
-    sr_ecephys = int(par['rawRate'])
+    set_file = filename.split(".")[0] + ".set"
+    par = parse_generic_header(set_file, ["rawRate", "duration"])
+    sr_ecephys = int(par["rawRate"])
 
-    pos = np.array([]).astype(float)
-
-    flags = np.ndarray((num_packets,), 'S4', mm, 0, bytes_packet)
-    ADU2_idx = np.where(flags == b'ADU2')
+    flags = np.ndarray((num_packets,), "S4", mm, 0, bytes_packet)
+    ADU2_idx = np.where(flags == b"ADU2")
 
     pos = np.ndarray(
         (num_packets,), (np.int16, (1, 8)), mm, 16, (bytes_packet,)
@@ -240,8 +239,8 @@ def read_bin_file_position_data(filename):
     return pos
 
 
-def generate_position_data(filename):
-    '''
+def get_position_object(filename):
+    """
     Read position data from .bin or .pos file and convert to
     pynwb.behavior.SpatialSeries objects.
 
@@ -253,10 +252,19 @@ def generate_position_data(filename):
     Returns:
     -------
     position (pynwb.behavior.Position)
-    '''
+    """
     position = Position()
 
-    position_channel_names = 't,x1,y1,x2,y2,numpix1,numpix2,unused'.split(',')
+    position_channel_names = [
+        "t",
+        "x1",
+        "y1",
+        "x2",
+        "y2",
+        "numpix1",
+        "numpix2",
+        "unused",
+    ]
     position_data = read_bin_file_position_data(filename)
     position_timestamps = position_data[:, 0]
 
@@ -266,7 +274,7 @@ def generate_position_data(filename):
             name=position_channel_names[ichan],
             timestamps=position_timestamps,
             data=position_data[:, ichan],
-            reference_frame='start of raw aquisition (.bin file)'
+            reference_frame="start of raw acquisition (.bin file)",
         )
         position.add_spatial_series(spatial_series)
 
@@ -274,7 +282,11 @@ def generate_position_data(filename):
 
 
 class AxonaPositionDataInterface(BaseDataInterface):
-    """Primary data interface class for converting Axona position data"""
+    """Primary data interface class for converting Axona position data."""
+
+    @classmethod
+    def get_source_schema(cls):
+        return get_schema_from_method_signature(cls.__init__)
 
     def __init__(self, filename: str):
         super().__init__(filename=filename)
@@ -288,9 +300,10 @@ class AxonaPositionDataInterface(BaseDataInterface):
         nwbfile : NWBFile
         metadata : dict
         """
-        filename = self.source_data['filename']
-        position = generate_position_data(filename)
+        filename = self.source_data["filename"]
 
         # Create or update processing module for behavioral data
-        get_module(nwbfile=nwbfile, name='behavior', description='behavioral data')
-        nwbfile.processing['behavior'].add(position)
+        behavior_module = get_module(
+            nwbfile=nwbfile, name="behavior", description="behavioral data"
+        )
+        behavior_module.add(get_position_object(filename))
