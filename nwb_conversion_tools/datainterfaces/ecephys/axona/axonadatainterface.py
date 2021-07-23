@@ -248,7 +248,7 @@ def read_bin_file_position_data(bin_filename):
 
 def read_pos_file_position_data(pos_filename):
     """
-    Read position data from Axona `.pos` file (if present).
+    Read position data from Axona `.pos` file.
 
     Parameters:
     -------
@@ -260,6 +260,8 @@ def read_pos_file_position_data(pos_filename):
     np.array
         Columns are time (ms), X, Y, x, y, PX, px, tot_px, unused
     """
+
+    pos_filename = pos_filename.split(".")[0] + ".pos"
 
     bytes_packet = 20
     footer_size = len('\r\ndata_end\r\n')
