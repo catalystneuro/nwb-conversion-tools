@@ -310,8 +310,8 @@ def get_position_object(filename):
 
     Parameters:
     ----------
-    filename (Path or Str): Full filename of Axona file with any
-        extension.
+    filename (Path or Str):
+        Full filename of Axona file with any extension.
 
     Returns:
     -------
@@ -327,6 +327,7 @@ def get_position_object(filename):
         "y",
         "PX",
         "px",
+        "px_total",
         "unused",
     ]
 
