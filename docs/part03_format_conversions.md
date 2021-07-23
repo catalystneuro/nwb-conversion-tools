@@ -8,11 +8,11 @@ Conversion to NWB presents some challenges that come up again and again:
    Converting to NWB requires understanding how data is stored in that format,
    what metadata is present in the file, and where that metadata is within the proprietary
    files, as well as where they should go within NWB.
-1. **Volume**. Neurophysiology data is large and the volume of individual session data
+1. **Volume**. Neurophysiology data is large and the typical volume of individual session data
    is growing every year. HDF5 is designed to handle data at this scale, and has several
    tools that can help, including iterative read/write, chunking of large datasets,
    and streamlined compression/decompression. To dig into these tools yourself,
-   see the PyNWB and MatNWB tutorials on advanced data I/O listed in the table above.
+   see the PyNWB and MatNWB tutorials on advanced data I/O listed in the [previous section](part02_nwb_apis.rst).
 
 In order to make converting to NWB faster and less laborious (for our own team and for others),
 we have developed an ecosystem of conversion tools that provide support for converting a
