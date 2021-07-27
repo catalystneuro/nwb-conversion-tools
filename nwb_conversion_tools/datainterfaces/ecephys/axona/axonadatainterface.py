@@ -337,6 +337,7 @@ def get_position_object(filename):
         position_data = read_bin_file_position_data(filename)
     else:
         position_data = read_pos_file_position_data(filename)
+
     position_timestamps = position_data[:, 0]
 
     for ichan in range(0, position_data.shape[1]):
