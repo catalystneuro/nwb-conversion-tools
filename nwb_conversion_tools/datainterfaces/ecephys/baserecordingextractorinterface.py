@@ -133,7 +133,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         es_key: str = None,
     ):
         """
-        Primary function for converting raw (unprocessed) recording extractor data to nwb.
+        Primary function for converting raw (unprocessed) RecordingExtractor data to the NWB standard.
 
         Parameters
         ----------
