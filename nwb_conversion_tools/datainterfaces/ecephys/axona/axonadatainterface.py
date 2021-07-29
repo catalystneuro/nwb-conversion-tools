@@ -84,7 +84,6 @@ class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
         super().__init__(filename=filename)
 
     def get_metadata_schema(self):
-        """Compile metadata schema for the RecordingExtractor."""
         metadata_schema = super().get_metadata_schema()
         metadata_schema["properties"]["Ecephys"]["properties"].update(
             ElectricalSeries_raw=get_schema_from_hdmf_class(ElectricalSeries)
