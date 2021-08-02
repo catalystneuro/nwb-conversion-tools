@@ -378,3 +378,44 @@ class AxonaPositionDataInterface(BaseDataInterface):
             nwbfile=nwbfile, name="behavior", description="behavioral data"
         )
         behavior_module.add(get_position_object(filename))
+
+
+# Helper functions for AxonaLFPDataInterface
+def read_eeg_file_lfp_data(filename):
+    """
+    Read LFP data from Axona `.eegX` or `.egfX` file.
+
+    Parameters:
+    -------
+    filename (Path or Str):
+        Full filename of Axona `.eegX` or `.egfX` file.
+
+    Returns:
+    -------
+    np.array
+        Columns are time (ms), X, Y, x, y, PX, px, tot_px, unused
+    """
+
+    # .eeg files are int8, .egf files are int16
+    lfp_dtype = '>i1'
+    if str(filename).split('.')[1][0:2] == 'egf':
+        lfp_dtype = '>i2'
+
+    footer_size = len('\r\ndata_end\r\n')
+    header_size = len(get_header_bstring(filename))
+    num_bytes = os.path.getsize(filename) - header_size - footer_size
+
+    eeg_data = np.memmap(
+        filename=filename,
+        dtype=lfp_dtype,
+        mode='r',
+        offset=len(get_header_bstring(filename)),
+        shape=(num_bytes, ),
+    )
+
+    return eeg_data
+
+
+class AxonaEEGDataInterface():
+    
+
