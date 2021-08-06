@@ -238,8 +238,6 @@ def add_electrode_groups(recording: se.RecordingExtractor, nwbfile=None, metadat
             electrode_group_kwargs.update(device=nwbfile.devices[device_name])
             nwbfile.create_electrode_group(**electrode_group_kwargs)
 
-<<<<<<< HEAD
-=======
     if not nwbfile.electrode_groups:
         device_name = list(nwbfile.devices.keys())[0]
         device = nwbfile.devices[device_name]
@@ -256,7 +254,6 @@ def add_electrode_groups(recording: se.RecordingExtractor, nwbfile=None, metadat
             electrode_group_kwargs.update(name=str(grp_name))
             nwbfile.create_electrode_group(**electrode_group_kwargs)
 
->>>>>>> master
 
 def add_electrodes(recording: se.RecordingExtractor, nwbfile=None, metadata: dict = None, exclude: tuple = ()):
     """

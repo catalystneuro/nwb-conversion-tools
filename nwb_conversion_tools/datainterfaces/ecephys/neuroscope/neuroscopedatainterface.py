@@ -94,28 +94,11 @@ class NeuroscopeRecordingInterface(BaseRecordingExtractorInterface):
             Ecephys=dict(
                 Device=[dict(description=session_id + ".xml")],
                 ElectrodeGroup=[
-<<<<<<< HEAD
-                    dict(
-                        name=f'Shank{n + 1}',
-                        description=f"Shank{n + 1} electrodes"
-                    )
-=======
                     dict(name=f"shank{n + 1}", description=f"shank{n + 1} electrodes")
->>>>>>> master
                     for n, _ in enumerate(shank_channels)
                 ],
                 Electrodes=[
                     dict(
-<<<<<<< HEAD
-                        name='shank_electrode_number',
-                        description="0-indexed channel within a shank."
-                    ),
-                    dict(
-                        name='group_name',
-                        description="The name of the ElectrodeGroup this electrode is a part of."
-                    )
-                ]
-=======
                         name="shank_electrode_number",
                         description="0-indexed channel within a shank.",
                         data=[x for channels in shank_channels for x, _ in enumerate(channels)],
@@ -126,7 +109,6 @@ class NeuroscopeRecordingInterface(BaseRecordingExtractorInterface):
                         data=[f"shank{n + 1}" for n, channels in enumerate(shank_channels) for _ in channels],
                     ),
                 ],
->>>>>>> master
             )
         )
 
@@ -141,12 +123,7 @@ class NeuroscopeRecordingInterface(BaseRecordingExtractorInterface):
     def get_metadata(self):
         """Retrieve Ecephys metadata specific to the Neuroscope format."""
         metadata = NeuroscopeRecordingInterface.get_ecephys_metadata(
-<<<<<<< HEAD
-            xml_file_path=get_xml_file_path(data_file_path=self.source_data['file_path']),
-            recording=self.recording_extractor
-=======
             xml_file_path=get_xml_file_path(data_file_path=self.source_data["file_path"])
->>>>>>> master
         )
         metadata["Ecephys"].update(
             ElectricalSeries=dict(name="ElectricalSeries", description="Raw acquisition traces.")
@@ -192,18 +169,7 @@ class NeuroscopeLFPInterface(BaseLFPExtractorInterface):
     def get_metadata(self):
         """Retrieve Ecephys metadata specific to the Neuroscope format."""
         metadata = NeuroscopeRecordingInterface.get_ecephys_metadata(
-<<<<<<< HEAD
-            xml_file_path=get_xml_file_path(data_file_path=self.source_data['file_path']),
-            recording=self.recording_extractor
-        )
-        metadata['Ecephys'].update(
-            ElectricalSeries_lfp=dict(
-                name="LFP",
-                description="Local field potential signal."
-            )
-=======
             xml_file_path=get_xml_file_path(data_file_path=self.source_data["file_path"])
->>>>>>> master
         )
         metadata["Ecephys"].update(ElectricalSeries_lfp=dict(name="LFP", description="Local field potential signal."))
 

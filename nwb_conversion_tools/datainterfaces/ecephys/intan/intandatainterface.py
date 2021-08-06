@@ -61,22 +61,12 @@ class IntanRecordingInterface(BaseRecordingExtractorInterface):
                 ],
                 Electrodes=[
                     dict(
-<<<<<<< HEAD
-                        name='group_name',
-                        description="The name of the ElectrodeGroup this electrode is a part of."
-                    )
-                ],
-                ElectricalSeries_raw=dict(
-                    name="ElectricalSeries_raw", description="Raw acquisition traces."
-                ),
-=======
                         name="group_name",
                         description="The name of the ElectrodeGroup this electrode is a part of.",
                         data=[f"Group{x}" for x in group_names],
                     )
                 ],
                 ElectricalSeries=dict(name="ElectricalSeries", description="Raw acquisition traces."),
->>>>>>> master
             )
         )
 
