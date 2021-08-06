@@ -416,6 +416,6 @@ def read_eeg_file_lfp_data(filename):
     return eeg_data
 
 
-class AxonaEEGDataInterface():
+#class AxonaEEGDataInterface():
     
 
