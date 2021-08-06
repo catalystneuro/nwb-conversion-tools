@@ -112,6 +112,7 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
             ElectricalSeries_lfp=get_schema_from_hdmf_class(ElectricalSeries)
         )
         return metadata_schema
+
     def get_metadata(self):
         metadata = super().get_metadata()
         fetch_spikeglx_metadata(
