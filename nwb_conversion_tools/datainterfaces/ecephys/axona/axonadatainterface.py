@@ -148,6 +148,29 @@ class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
         return metadata
 
 
+class AxonaUnitRecordingExtractorInterface(AxonaRecordingExtractorInterface):
+    """Primary data interface class for converting a AxonaRecordingExtractor"""
+
+    RX = se.AxonaUnitRecordingExtractor
+
+    @classmethod
+    def get_source_schema(cls):
+        return dict(
+            required=['filename'],
+            properties=dict(
+                filename=dict(
+                    type='string'
+                ),
+            ),
+            type='object',
+            additionalProperties=True
+        )
+
+    def __init__(self, filename, noise_std=3.5):
+        super().__init__(filename=filename)
+        self.recording_extractor = se.AxonaUnitRecordingExtractor(filename=filename, noise_std=noise_std)
+
+
 # Helper functions for AxonaPositionDataInterface
 def get_header_bstring(file):
     """
