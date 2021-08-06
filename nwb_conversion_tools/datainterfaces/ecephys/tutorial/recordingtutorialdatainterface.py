@@ -31,14 +31,6 @@ class RecordingTutorialInterface(BaseRecordingExtractorInterface):
                 Electrodes=[
                     dict(
                         name="group_name",
-<<<<<<< HEAD
-                        description="Custom ElectrodeGroup name for these electrodes."
-                    ),
-                    dict(
-                        name="custom_electrodes_column",
-                        description="Custom column in the electrodes table for the NWB Conversion Tools tutorial."
-                    )
-=======
                         description="Custom ElectrodeGroup name for these electrodes.",
                         data=["ElectrodeGroup" for x in range(self.recording_extractor.get_num_channels())],
                     ),
@@ -47,7 +39,6 @@ class RecordingTutorialInterface(BaseRecordingExtractorInterface):
                         description="Custom column in the electrodes table for the NWB Conversion Tools tutorial.",
                         data=[x for x in range(self.recording_extractor.get_num_channels())],
                     ),
->>>>>>> master
                 ],
                 ElectricalSeries=dict(
                     name="ElectricalSeries", description="Raw acquisition traces for the NWB Conversion Tools tutorial."
