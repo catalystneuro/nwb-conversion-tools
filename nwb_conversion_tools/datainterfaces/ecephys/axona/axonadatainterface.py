@@ -43,9 +43,7 @@ def parse_generic_header(filename, params):
         for bin_line in f:
             if b"data_start" in bin_line:
                 break
-            line = (
-                bin_line.decode("cp1252").replace("\r\n", "").replace("\r", "").strip()
-            )
+            line = bin_line.decode("cp1252").replace("\r\n", "").replace("\r", "").strip()
             parts = line.split(" ")
             key = parts[0]
             if params is None:
@@ -64,9 +62,9 @@ def read_axona_iso_datetime(set_file):
     with open(set_file, "r", encoding="cp1252") as f:
         for line in f:
             if line.startswith("trial_date"):
-                date_string = line[len("trial_date") + 1:].replace("\n", "")
+                date_string = line[len("trial_date") + 1 :].replace("\n", "")
             if line.startswith("trial_time"):
-                time_string = line[len("trial_time") + 1:].replace("\n", "")
+                time_string = line[len("trial_time") + 1 :].replace("\n", "")
 
     return dateutil.parser.parse(date_string + " " + time_string).isoformat()
 
@@ -119,9 +117,7 @@ class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
             Device=[
                 dict(
                     name="Axona",
-                    description="Axona DacqUSB, sw_version={}".format(
-                        par["sw_version"]
-                    ),
+                    description="Axona DacqUSB, sw_version={}".format(par["sw_version"]),
                     manufacturer="Axona",
                 ),
             ],
@@ -140,9 +136,7 @@ class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
                     description="The name of the ElectrodeGroup this electrode is a part of."
                 )
             ],
-            ElectricalSeries_raw=dict(
-                name="ElectricalSeries_raw", description="Raw acquisition traces."
-            ),
+            ElectricalSeries_raw=dict(name="ElectricalSeries_raw", description="Raw acquisition traces."),
         )
 
         return metadata
@@ -374,9 +368,7 @@ class AxonaPositionDataInterface(BaseDataInterface):
         filename = self.source_data["filename"]
 
         # Create or update processing module for behavioral data
-        behavior_module = get_module(
-            nwbfile=nwbfile, name="behavior", description="behavioral data"
-        )
+        behavior_module = get_module(nwbfile=nwbfile, name="behavior", description="behavioral data")
         behavior_module.add(get_position_object(filename))
 
 
