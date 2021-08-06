@@ -15,7 +15,9 @@ from ....utils.json_schema import (
 )
 from ....basedatainterface import BaseDataInterface
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
+from ..baselfpextractorinterface import BaseLFPExtractorInterface
 from ....utils.conversion_tools import get_module
+from ....utils.spike_interface import write_recording
 
 
 # Helper functions for AxonaRecordingExtractorInterface
@@ -373,6 +375,25 @@ class AxonaPositionDataInterface(BaseDataInterface):
 
 
 # Helper functions for AxonaLFPDataInterface
+def get_eeg_sampling_frequency(filename):
+    """
+    Read sampling frequency from .eegX or .egfX file header.
+
+    Parameters:
+    -----------
+    filename : Path or str
+        Full filename of Axona `.eegX` or `.egfX` file.
+
+    Returns:
+    --------
+    Fs : int
+        Sampling frequency
+    """
+    Fs_entry = parse_generic_header(filename, ['sample_rate'])
+    Fs = int(float(Fs_entry.get('sample_rate').split(' ')[0]))
+
+    return Fs
+
 def read_eeg_file_lfp_data(filename):
     """
     Read LFP data from Axona `.eegX` or `.egfX` file.
@@ -384,8 +405,7 @@ def read_eeg_file_lfp_data(filename):
 
     Returns:
     -------
-    np.array
-        Columns are time (ms), X, Y, x, y, PX, px, tot_px, unused
+    np.memmap (nobs x 1)
     """
 
     # .eeg files are int8, .egf files are int16
@@ -402,12 +422,165 @@ def read_eeg_file_lfp_data(filename):
         dtype=lfp_dtype,
         mode='r',
         offset=len(get_header_bstring(filename)),
-        shape=(num_bytes, ),
+        shape=(1, num_bytes),
     )
 
     return eeg_data
 
+def get_all_filenames(filename):
+    """
+    Read LFP filenames of `.eeg` or `.egf` files in filename's directory.
+    E.g. if filename='/my/directory/my_file.eeg', all .eeg channels will be
+    appended to the output.
 
-#class AxonaEEGDataInterface():
-    
+    Parameters:
+    -----------
+    filename : path-like
+        Full filename of either .egg or .egf file
 
+    Returns:
+    --------
+    path_list : list
+        List of filenames
+    """
+
+    suffix = Path(filename).suffix[0:4]
+    current_path = Path(filename).parent
+
+    path_list = [cur_path.name for cur_path in Path(filename).parent.rglob('*' + suffix + '*')]
+
+    return path_list
+
+def AxonaLFPNumpyExtractorWrapper(filename):
+    """
+    Wrapper for instantiating a NumpyRecordingExtractor given an `.eeg` or `.egf` filename.
+    """
+    return se.NumpyRecordingExtractor(
+        timeseries=read_all_eeg_file_lfp_data(filename),
+        sampling_frequency=get_eeg_sampling_frequency(filename)
+    )
+
+class AxonaLFPDataInterface(AxonaRecordingExtractorInterface):
+    """ ... """
+
+    @classmethod
+    def get_source_schema(cls):
+        return dict(
+            required=['filename'],
+            properties=dict(
+                filename=dict(
+                    type='string'
+                )
+            ),
+            type='object',
+            additionalProperties=False
+        )
+
+    def __init__(self, **source_data):
+        self.recording_extractor = AxonaLFPNumpyExtractorWrapper(**source_data)
+        self.subset_channels = None
+        self.source_data = source_data
+
+    def get_metadata_schema(self):
+        metadata_schema = super().get_metadata_schema()
+        metadata_schema["properties"]["Ecephys"]["properties"].update(
+            ElectricalSeries_lfp=get_schema_from_hdmf_class(ElectricalSeries)
+        )
+        return metadata_schema
+
+    def get_metadata(self):
+        """Retrieve Ecephys metadata specific to the Axona format."""
+        metadata = super().get_metadata()
+        metadata['Ecephys'].pop('ElectricalSeries_raw', None)
+        metadata['Ecephys'].update(
+            ElectricalSeries_lfp=dict(
+                name="LFP",
+                description="Local field potential signal."
+            )
+        )
+
+        return metadata
+
+def read_all_eeg_file_lfp_data(filename):
+    """
+    Read LFP data from all Axona `.eeg` or `.egf` files in filename's directory.
+    E.g. if filename='/my/directory/my_file.eeg', all .eeg channels will be conactenated
+    to a single np.array (chans x nobs). For .egf files substitude the file suffix.
+
+    Parameters:
+    -------
+    filename (Path or Str):
+        Full filename of Axona `.eeg` or `.egf` file.
+
+    Returns:
+    -------
+    np.array (chans x obs)
+    """
+
+    filename_list = get_all_filenames(filename)
+    parent_path = Path(filename).parent
+
+    eeg_memmaps = list()
+    sampling_rates = set()
+    for fname in filename_list:
+
+        sampling_rates.add(get_eeg_sampling_frequency(parent_path / fname))
+        
+        eeg_memmaps.append(read_eeg_file_lfp_data(parent_path / fname))
+
+    assert len(sampling_rates) < 2, 'File headers specify different sampling rates. Cannot combine EEG data.'
+
+    eeg_data = np.concatenate(eeg_memmaps, axis=0)
+
+    return eeg_data
+
+    def run_conversion(
+        self,
+        nwbfile: NWBFile,
+        metadata: dict = None,
+        stub_test: bool = False,
+        use_times: bool = False,
+        save_path: OptionalPathType = None,
+        overwrite: bool = False,
+        buffer_mb: int = 500
+    ):
+        """
+        Primary function for converting low-pass recording extractor data to nwb.
+
+        Parameters
+        ----------
+        nwbfile: NWBFile
+            nwb file to which the recording information is to be added
+        metadata: dict
+            metadata info for constructing the nwb file (optional).
+            Should be of the format
+                metadata['Ecephys']['ElectricalSeries'] = dict(name=my_name, description=my_description)
+        use_times: bool
+            If True, the times are saved to the nwb file using recording.frame_to_time(). If False (default),
+            the sampling rate is used.
+        save_path: PathType
+            Required if an nwbfile is not passed. Must be the path to the nwbfile
+            being appended, otherwise one is created and written.
+        overwrite: bool
+            If using save_path, whether or not to overwrite the NWBFile if it already exists.
+        stub_test: bool, optional (default False)
+            If True, will truncate the data to run the conversion faster and take up less memory.
+        buffer_mb: int (optional, defaults to 500MB)
+            Maximum amount of memory (in MB) to use per iteration of the internal DataChunkIterator.
+            Requires trace data in the RecordingExtractor to be a memmap object.
+        """
+        if stub_test or self.subset_channels is not None:
+            recording = self.subset_recording(stub_test=stub_test)
+        else:
+            recording = self.recording_extractor
+        write_recording(
+            recording=recording,
+            nwbfile=nwbfile,
+            metadata=metadata,
+            use_times=use_times,
+            write_as="lfp",
+            es_key="ElectricalSeries_lfp",
+            save_path=save_path,
+            overwrite=overwrite,
+            buffer_mb=buffer_mb
+        )
