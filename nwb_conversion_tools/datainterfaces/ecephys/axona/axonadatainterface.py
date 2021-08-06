@@ -3,6 +3,7 @@ import os
 import dateutil
 import numpy as np
 from pathlib import Path
+from typing import Union, Optional
 
 import spikeextractors as se
 from pynwb import NWBFile
@@ -18,6 +19,9 @@ from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ..baselfpextractorinterface import BaseLFPExtractorInterface
 from ....utils.conversion_tools import get_module
 from ....utils.spike_interface import write_recording
+
+
+OptionalPathType = Optional[Union[str, Path]]
 
 
 # Helper functions for AxonaRecordingExtractorInterface
@@ -525,7 +529,7 @@ def read_all_eeg_file_lfp_data(filename):
     for fname in filename_list:
 
         sampling_rates.add(get_eeg_sampling_frequency(parent_path / fname))
-        
+
         eeg_memmaps.append(read_eeg_file_lfp_data(parent_path / fname))
 
     assert len(sampling_rates) < 2, 'File headers specify different sampling rates. Cannot combine EEG data.'
