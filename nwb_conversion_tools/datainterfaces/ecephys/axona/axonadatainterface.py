@@ -478,56 +478,6 @@ def get_all_filenames(filename):
 
     return path_list
 
-def AxonaLFPNumpyExtractorWrapper(filename):
-    """
-    Wrapper for instantiating a NumpyRecordingExtractor given an `.eeg` or `.egf` filename.
-    """
-    return se.NumpyRecordingExtractor(
-        timeseries=read_all_eeg_file_lfp_data(filename),
-        sampling_frequency=get_eeg_sampling_frequency(filename)
-    )
-
-class AxonaLFPDataInterface(AxonaRecordingExtractorInterface):
-    """ ... """
-
-    @classmethod
-    def get_source_schema(cls):
-        return dict(
-            required=['filename'],
-            properties=dict(
-                filename=dict(
-                    type='string'
-                )
-            ),
-            type='object',
-            additionalProperties=False
-        )
-
-    def __init__(self, **source_data):
-        self.recording_extractor = AxonaLFPNumpyExtractorWrapper(**source_data)
-        self.subset_channels = None
-        self.source_data = source_data
-
-    def get_metadata_schema(self):
-        metadata_schema = super().get_metadata_schema()
-        metadata_schema["properties"]["Ecephys"]["properties"].update(
-            ElectricalSeries_lfp=get_schema_from_hdmf_class(ElectricalSeries)
-        )
-        return metadata_schema
-
-    def get_metadata(self):
-        """Retrieve Ecephys metadata specific to the Axona format."""
-        metadata = super().get_metadata()
-        metadata['Ecephys'].pop('ElectricalSeries_raw', None)
-        metadata['Ecephys'].update(
-            ElectricalSeries_lfp=dict(
-                name="LFP",
-                description="Local field potential signal."
-            )
-        )
-
-        return metadata
-
 def read_all_eeg_file_lfp_data(filename):
     """
     Read LFP data from all Axona `.eeg` or `.egf` files in filename's directory.
@@ -611,3 +561,53 @@ def read_all_eeg_file_lfp_data(filename):
             overwrite=overwrite,
             buffer_mb=buffer_mb
         )
+
+def AxonaLFPNumpyExtractorWrapper(filename):
+    """
+    Wrapper for instantiating a NumpyRecordingExtractor given an `.eeg` or `.egf` filename.
+    """
+    return se.NumpyRecordingExtractor(
+        timeseries=read_all_eeg_file_lfp_data(filename),
+        sampling_frequency=get_eeg_sampling_frequency(filename)
+    )
+
+class AxonaLFPDataInterface(AxonaRecordingExtractorInterface):
+    """ ... """
+
+    @classmethod
+    def get_source_schema(cls):
+        return dict(
+            required=['filename'],
+            properties=dict(
+                filename=dict(
+                    type='string'
+                )
+            ),
+            type='object',
+            additionalProperties=False
+        )
+
+    def __init__(self, **source_data):
+        self.recording_extractor = AxonaLFPNumpyExtractorWrapper(**source_data)
+        self.subset_channels = None
+        self.source_data = source_data
+
+    def get_metadata_schema(self):
+        metadata_schema = super().get_metadata_schema()
+        metadata_schema["properties"]["Ecephys"]["properties"].update(
+            ElectricalSeries_lfp=get_schema_from_hdmf_class(ElectricalSeries)
+        )
+        return metadata_schema
+
+    def get_metadata(self):
+        """Retrieve Ecephys metadata specific to the Axona format."""
+        metadata = super().get_metadata()
+        metadata['Ecephys'].pop('ElectricalSeries_raw', None)
+        metadata['Ecephys'].update(
+            ElectricalSeries_lfp=dict(
+                name="LFP",
+                description="Local field potential signal."
+            )
+        )
+
+        return metadata
