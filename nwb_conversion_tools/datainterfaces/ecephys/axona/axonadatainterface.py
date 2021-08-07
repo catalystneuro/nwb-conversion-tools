@@ -435,14 +435,15 @@ def read_eeg_file_lfp_data(filename):
     np.memmap (nobs x 1)
     """
 
-    # .eeg files are int8, .egf files are int16
     lfp_dtype = '>i1'
-    if str(filename).split('.')[1][0:3] == 'egf':
-        lfp_dtype = '>i2'
-
     footer_size = len('\r\ndata_end\r\n')
     header_size = len(get_header_bstring(filename))
     num_bytes = os.path.getsize(filename) - header_size - footer_size
+
+    # .eeg files are int8, .egf files are int16
+    if str(filename).split('.')[1][0:3] == 'egf':
+        lfp_dtype = '>i2'
+        num_bytes = num_bytes // 2
 
     eeg_data = np.memmap(
         filename=filename,
