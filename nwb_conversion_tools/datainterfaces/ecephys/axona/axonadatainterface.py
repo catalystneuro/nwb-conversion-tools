@@ -105,9 +105,7 @@ class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
         elec_group_names = self.recording_extractor.get_channel_groups()
         for channel_id, channel_group in zip(self.recording_extractor.get_channel_ids(), elec_group_names):
             self.recording_extractor.set_channel_property(
-                channel_id=channel_id,
-                property_name="group_name",
-                value=f"Group{channel_group}"
+                channel_id=channel_id, property_name="group_name", value=f"Group{channel_group}"
             )
         unique_elec_group_names = set(elec_group_names)
 
@@ -137,10 +135,7 @@ class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
                 for group_name in unique_elec_group_names
             ],
             Electrodes=[
-                dict(
-                    name='group_name',
-                    description="The name of the ElectrodeGroup this electrode is a part of."
-                )
+                dict(name="group_name", description="The name of the ElectrodeGroup this electrode is a part of.")
             ],
             ElectricalSeries_raw=dict(name="ElectricalSeries_raw", description="Raw acquisition traces."),
         )
@@ -156,14 +151,12 @@ class AxonaUnitRecordingExtractorInterface(AxonaRecordingExtractorInterface):
     @classmethod
     def get_source_schema(cls):
         return dict(
-            required=['filename'],
+            required=["filename"],
             properties=dict(
-                filename=dict(
-                    type='string'
-                ),
+                filename=dict(type="string"),
             ),
-            type='object',
-            additionalProperties=True
+            type="object",
+            additionalProperties=True,
         )
 
     def __init__(self, filename, noise_std=3.5):
@@ -185,11 +178,11 @@ def get_header_bstring(file):
     -------
     str: header byte content
     """
-    header = b''
-    with open(file, 'rb') as f:
+    header = b""
+    with open(file, "rb") as f:
         for bin_line in f:
-            if b'data_start' in bin_line:
-                header += b'data_start'
+            if b"data_start" in bin_line:
+                header += b"data_start"
                 break
             else:
                 header += bin_line
@@ -217,37 +210,57 @@ def read_bin_file_position_data(bin_filename):
     little endian (read right to left), as opposed to `.pos` file data, which is
     big endian.
     """
-    pos_dt_se = np.dtype([
-        ('t', "<i4"), ('X', "<i2"), ('Y', "<i2"), ('x', "<i2"), ('y', "<i2"),
-        ('PX', "<i2"), ('px', "<i2"), ('tot_px', "<i2"), ('unused', "<i2")
-    ])
+    pos_dt_se = np.dtype(
+        [
+            ("t", "<i4"),
+            ("X", "<i2"),
+            ("Y", "<i2"),
+            ("x", "<i2"),
+            ("y", "<i2"),
+            ("PX", "<i2"),
+            ("px", "<i2"),
+            ("tot_px", "<i2"),
+            ("unused", "<i2"),
+        ]
+    )
 
-    bin_dt = np.dtype([
-        ('id', "S4"), ('packet', "<i4"), ('di', "<i2"), ('si', "<i2"),
-        ('pos', pos_dt_se),
-        ('ephys', np.byte, 384),
-        ('trailer', np.byte, 16)
-    ])
+    bin_dt = np.dtype(
+        [
+            ("id", "S4"),
+            ("packet", "<i4"),
+            ("di", "<i2"),
+            ("si", "<i2"),
+            ("pos", pos_dt_se),
+            ("ephys", np.byte, 384),
+            ("trailer", np.byte, 16),
+        ]
+    )
 
     np_bin = np.memmap(
         filename=bin_filename,
         dtype=bin_dt,
-        mode='r',
+        mode="r",
         offset=0,
     )
 
     # Only packets with the ADU2 flag contain position data
-    pos_mask = np.where([np_bin['id'] == b'ADU2'])[1]
-    pos_data = np_bin['pos'][pos_mask]
+    pos_mask = np.where([np_bin["id"] == b"ADU2"])[1]
+    pos_data = np_bin["pos"][pos_mask]
 
     # Rearrange columns of coordinates and pixels to conform with pos data
     # description in file format manual
-    pos_data = np.vstack((
-        pos_data['Y'], pos_data['X'],
-        pos_data['y'], pos_data['x'],
-        pos_data['px'], pos_data['PX'],
-        pos_data['unused'], pos_data['tot_px']
-    )).T
+    pos_data = np.vstack(
+        (
+            pos_data["Y"],
+            pos_data["X"],
+            pos_data["y"],
+            pos_data["x"],
+            pos_data["px"],
+            pos_data["PX"],
+            pos_data["unused"],
+            pos_data["tot_px"],
+        )
+    ).T
 
     # Add timestamp as first column
     pos_data = np.hstack((pos_mask.reshape((-1, 1)), pos_data))
@@ -255,7 +268,7 @@ def read_bin_file_position_data(bin_filename):
     # Create timestamps from position of samples in `.bin` file to ensure
     # alignment with ecephys data
     set_file = bin_filename.split(".")[0] + ".set"
-    sr_ecephys = int(parse_generic_header(set_file, ["rawRate"])['rawRate'])
+    sr_ecephys = int(parse_generic_header(set_file, ["rawRate"])["rawRate"])
 
     packets_per_ms = sr_ecephys / 3000
     pos_data[:, 0] = pos_data[:, 0] / packets_per_ms
@@ -286,41 +299,54 @@ def read_pos_file_position_data(pos_filename):
     pos_filename = pos_filename.split(".")[0] + ".pos"
 
     bytes_packet = 20
-    footer_size = len('\r\ndata_end\r\n')
+    footer_size = len("\r\ndata_end\r\n")
     header_size = len(get_header_bstring(pos_filename))
     num_bytes = os.path.getsize(pos_filename) - header_size - footer_size
     num_packets = num_bytes // bytes_packet
 
-    pos_dt = np.dtype([
-        ('t', ">i4"), ('X', ">i2"), ('Y', ">i2"), ('x', ">i2"), ('y', ">i2"),
-        ('PX', ">i2"), ('px', ">i2"), ('tot_px', ">i2"), ('unused', ">i2")
-    ])
+    pos_dt = np.dtype(
+        [
+            ("t", ">i4"),
+            ("X", ">i2"),
+            ("Y", ">i2"),
+            ("x", ">i2"),
+            ("y", ">i2"),
+            ("PX", ">i2"),
+            ("px", ">i2"),
+            ("tot_px", ">i2"),
+            ("unused", ">i2"),
+        ]
+    )
 
     pos_data = np.memmap(
         filename=pos_filename,
         dtype=pos_dt,
-        mode='r',
+        mode="r",
         offset=len(get_header_bstring(pos_filename)),
-        shape=(num_packets, ),
+        shape=(num_packets,),
     )
 
     # Convert structured memory mapped array to np array
-    pos_data = np.vstack((
-        pos_data['X'], pos_data['Y'],
-        pos_data['x'], pos_data['Y'],
-        pos_data['PX'], pos_data['px'],
-        pos_data['tot_px'], pos_data['unused']
-    )).T
+    pos_data = np.vstack(
+        (
+            pos_data["X"],
+            pos_data["Y"],
+            pos_data["x"],
+            pos_data["Y"],
+            pos_data["PX"],
+            pos_data["px"],
+            pos_data["tot_px"],
+            pos_data["unused"],
+        )
+    ).T
 
     # Create time column in ms assuming regularly sampled data starting from 0
     set_file = pos_filename.split(".")[0] + ".set"
     dur_ecephys = float(parse_generic_header(set_file, ["duration"])["duration"])
 
-    pos_data = np.hstack((
-        np.linspace(start=0, stop=dur_ecephys * 1000, num=pos_data.shape[0])
-          .astype(int).reshape((-1, 1)),
-        pos_data
-    ))
+    pos_data = np.hstack(
+        (np.linspace(start=0, stop=dur_ecephys * 1000, num=pos_data.shape[0]).astype(int).reshape((-1, 1)), pos_data)
+    )
 
     return pos_data
 
@@ -355,7 +381,7 @@ def get_position_object(filename):
         "unused",
     ]
 
-    if Path(filename).suffix == '.bin':
+    if Path(filename).suffix == ".bin":
         position_data = read_bin_file_position_data(filename)
     else:
         position_data = read_pos_file_position_data(filename)
@@ -416,10 +442,11 @@ def get_eeg_sampling_frequency(filename):
     Fs : int
         Sampling frequency
     """
-    Fs_entry = parse_generic_header(filename, ['sample_rate'])
-    Fs = int(float(Fs_entry.get('sample_rate').split(' ')[0]))
+    Fs_entry = parse_generic_header(filename, ["sample_rate"])
+    Fs = int(float(Fs_entry.get("sample_rate").split(" ")[0]))
 
     return Fs
+
 
 def read_eeg_file_lfp_data(filename):
     """
@@ -435,25 +462,26 @@ def read_eeg_file_lfp_data(filename):
     np.memmap (nobs x 1)
     """
 
-    lfp_dtype = '>i1'
-    footer_size = len('\r\ndata_end\r\n')
+    lfp_dtype = ">i1"
+    footer_size = len("\r\ndata_end\r\n")
     header_size = len(get_header_bstring(filename))
     num_bytes = os.path.getsize(filename) - header_size - footer_size
 
     # .eeg files are int8, .egf files are int16
-    if str(filename).split('.')[1][0:3] == 'egf':
-        lfp_dtype = '>i2'
+    if str(filename).split(".")[1][0:3] == "egf":
+        lfp_dtype = ">i2"
         num_bytes = num_bytes // 2
 
     eeg_data = np.memmap(
         filename=filename,
         dtype=lfp_dtype,
-        mode='r',
+        mode="r",
         offset=len(get_header_bstring(filename)),
         shape=(1, num_bytes),
     )
 
     return eeg_data
+
 
 def get_all_filenames(filename):
     """
@@ -475,9 +503,10 @@ def get_all_filenames(filename):
     suffix = Path(filename).suffix[0:4]
     current_path = Path(filename).parent
 
-    path_list = [cur_path.name for cur_path in Path(filename).parent.rglob('*' + suffix + '*')]
+    path_list = [cur_path.name for cur_path in Path(filename).parent.rglob("*" + suffix + "*")]
 
     return path_list
+
 
 def read_all_eeg_file_lfp_data(filename):
     """
@@ -506,7 +535,7 @@ def read_all_eeg_file_lfp_data(filename):
 
         eeg_memmaps.append(read_eeg_file_lfp_data(parent_path / fname))
 
-    assert len(sampling_rates) < 2, 'File headers specify different sampling rates. Cannot combine EEG data.'
+    assert len(sampling_rates) < 2, "File headers specify different sampling rates. Cannot combine EEG data."
 
     eeg_data = np.concatenate(eeg_memmaps, axis=0)
 
@@ -518,24 +547,20 @@ def AxonaLFPNumpyExtractorWrapper(filename):
     Wrapper for instantiating a NumpyRecordingExtractor given an `.eeg` or `.egf` filename.
     """
     return se.NumpyRecordingExtractor(
-        timeseries=read_all_eeg_file_lfp_data(filename),
-        sampling_frequency=get_eeg_sampling_frequency(filename)
+        timeseries=read_all_eeg_file_lfp_data(filename), sampling_frequency=get_eeg_sampling_frequency(filename)
     )
 
+
 class AxonaLFPDataInterface(AxonaRecordingExtractorInterface):
-    """ ... """
+    """..."""
 
     @classmethod
     def get_source_schema(cls):
         return dict(
-            required=['filename'],
-            properties=dict(
-                filename=dict(
-                    type='string'
-                )
-            ),
-            type='object',
-            additionalProperties=False
+            required=["filename"],
+            properties=dict(filename=dict(type="string")),
+            type="object",
+            additionalProperties=False,
         )
 
     def __init__(self, **source_data):
@@ -553,13 +578,8 @@ class AxonaLFPDataInterface(AxonaRecordingExtractorInterface):
     def get_metadata(self):
         """Retrieve Ecephys metadata specific to the Axona format."""
         metadata = super().get_metadata()
-        metadata['Ecephys'].pop('ElectricalSeries_raw', None)
-        metadata['Ecephys'].update(
-            ElectricalSeries_lfp=dict(
-                name="LFP",
-                description="Local field potential signal."
-            )
-        )
+        metadata["Ecephys"].pop("ElectricalSeries_raw", None)
+        metadata["Ecephys"].update(ElectricalSeries_lfp=dict(name="LFP", description="Local field potential signal."))
 
         return metadata
 
@@ -571,7 +591,7 @@ class AxonaLFPDataInterface(AxonaRecordingExtractorInterface):
         use_times: bool = False,
         save_path: OptionalPathType = None,
         overwrite: bool = False,
-        buffer_mb: int = 500
+        buffer_mb: int = 500,
     ):
         """
         Primary function for converting low-pass recording extractor data to nwb.
@@ -611,5 +631,5 @@ class AxonaLFPDataInterface(AxonaRecordingExtractorInterface):
             es_key="ElectricalSeries_lfp",
             save_path=save_path,
             overwrite=overwrite,
-            buffer_mb=buffer_mb
+            buffer_mb=buffer_mb,
         )

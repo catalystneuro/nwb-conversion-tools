@@ -27,7 +27,7 @@ from .ecephys.axona.axonadatainterface import (
     AxonaRecordingExtractorInterface,
     AxonaPositionDataInterface,
     AxonaLFPDataInterface,
-    AxonaUnitRecordingExtractorInterface
+    AxonaUnitRecordingExtractorInterface,
 )
 
 from .ophys.caiman.caimandatainterface import CaimanSegmentationInterface

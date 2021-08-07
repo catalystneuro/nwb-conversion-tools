@@ -75,19 +75,13 @@ class NeuroscopeRecordingInterface(BaseRecordingExtractorInterface):
         elec_group_names = [f"Shank{n + 1}" for n, channels in enumerate(shank_channels) for _ in channels]
         shank_electrode_numbers = [x for channels in shank_channels for x, _ in enumerate(channels)]
         for channel_id, channel_group, shank_electrode_number in zip(
-                self.recording_extractor.get_channel_ids(),
-                elec_group_names,
-                shank_electrode_numbers
+            self.recording_extractor.get_channel_ids(), elec_group_names, shank_electrode_numbers
         ):
             self.recording_extractor.set_channel_property(
-                channel_id=channel_id,
-                property_name="group_name",
-                value=f"Group{channel_group}"
+                channel_id=channel_id, property_name="group_name", value=f"Group{channel_group}"
             )
             self.recording_extractor.set_channel_property(
-                channel_id=channel_id,
-                property_name="shank_electrode_number",
-                value=shank_electrode_number
+                channel_id=channel_id, property_name="shank_electrode_number", value=shank_electrode_number
             )
 
         ecephys_metadata = dict(
@@ -188,8 +182,7 @@ class NeuroscopeSortingInterface(BaseSortingExtractorInterface):
         metadata = NeuroscopeRecordingInterface.get_ecephys_metadata(
             xml_file_path=str(session_path / f"{session_id}.xml"),
             recording=NumpyRecordingExtractor(
-                timeseries=np.array([]),
-                sampling_frequency=self.sorting_extractor.get_sampling_frequency
+                timeseries=np.array([]), sampling_frequency=self.sorting_extractor.get_sampling_frequency
             )
             # TODO, with new recording channel property format for heavy metadata, need to call add_electrodes
             # on the data contained in this dummy RecordingExtractor
