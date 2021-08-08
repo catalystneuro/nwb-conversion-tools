@@ -152,12 +152,12 @@ class AxonaUnitRecordingExtractorInterface(AxonaRecordingExtractorInterface):
             required=["filename"],
             properties=dict(
                 filename=dict(type="string"),
+                noise_std=dict(type='number')
             ),
-            type="object",
-            additionalProperties=True,
+            type="object"
         )
 
-    def __init__(self, filename, noise_std=3.5):
+    def __init__(self, filename: OptionalPathType, noise_std: float = 3.5):
         super().__init__(filename=filename)
         self.recording_extractor = se.AxonaUnitRecordingExtractor(filename=filename, noise_std=noise_std)
 
