@@ -271,7 +271,7 @@ def read_bin_file_position_data(bin_filename: PathType):
     # Select only every second sample
     # Note that we do not lowpass filter, since other processing steps done by
     # TINT would no longer work properly.
-    pos_data = pos_data[::2, :]
+    pos_data = pos_data[::2]
 
     return pos_data
 
