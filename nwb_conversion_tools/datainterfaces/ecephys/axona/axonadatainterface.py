@@ -562,7 +562,10 @@ class AxonaLFPDataInterface(AxonaRecordingExtractorInterface):
         )
 
     def __init__(self, **source_data):
-        self.recording_extractor = AxonaLFPNumpyExtractorWrapper(**source_data)
+        self.recording_extractor = se.NumpyRecordingExtractor(
+            timeseries=read_all_eeg_file_lfp_data(source_data.get('filename')),
+            sampling_frequency=get_eeg_sampling_frequency(source_data.get('filename'))
+        )
         self.subset_channels = None
         self.source_data = source_data
 
