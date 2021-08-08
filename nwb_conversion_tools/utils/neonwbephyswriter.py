@@ -21,7 +21,7 @@ from .common_writer_tools import ArrayType, PathType, set_dynamic_table_property
 try:
     import neo
 
-    if StrictVersion(neo.__version__) >= StrictVersion('0.10'):
+    if StrictVersion(neo.__version__) >= StrictVersion("0.10"):
         HAVE_NEO = True
     else:
         HAVE_NEO = False
@@ -41,16 +41,20 @@ class NEONwbEphysWriter(BaseNwbEphysWriter):
     metadata: dict or None
     **kwargs: list kwargs and meaning
     """
-    def __init__(self,
-                 object_to_write: Union[neo.BaseRawIO, neo.BaseIO],
-                 nwb_file_path: PathType = None,
-                 nwbfile: pynwb.NWBFile = None,
-                 metadata: dict = None,
-                 **kwargs):
+
+    def __init__(
+        self,
+        object_to_write: Union[neo.BaseRawIO, neo.BaseIO],
+        nwb_file_path: PathType = None,
+        nwbfile: pynwb.NWBFile = None,
+        metadata: dict = None,
+        **kwargs,
+    ):
         assert HAVE_NEO
         self.recording, self.sorting, self.event = None, None, None
-        BaseNwbEphysWriter.__init__(self, object_to_write, nwb_file_path=nwb_file_path, nwbfile=nwbfile,
-                                    metadata=metadata, **kwargs)
+        BaseNwbEphysWriter.__init__(
+            self, object_to_write, nwb_file_path=nwb_file_path, nwbfile=nwbfile, metadata=metadata, **kwargs
+        )
 
     @property
     def supported_types(self):

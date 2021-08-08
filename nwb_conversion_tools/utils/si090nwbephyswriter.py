@@ -21,7 +21,7 @@ from .common_writer_tools import ArrayType, PathType, set_dynamic_table_property
 try:
     import spikeinterface as si
 
-    if StrictVersion(si.__version__) >= StrictVersion('0.90'):
+    if StrictVersion(si.__version__) >= StrictVersion("0.90"):
         HAVE_SI_090 = True
     else:
         HAVE_SI_090 = False
@@ -41,16 +41,20 @@ class SI090NwbEphysWriter(BaseNwbEphysWriter):
     metadata: dict or None
     **kwargs: list kwargs and meaning
     """
-    def __init__(self,
-                 object_to_write: Union[si.BaseRecording, si.BaseSorting, si.BaseEvent, si.WaveformExtractor],
-                 nwb_file_path: PathType = None,
-                 nwbfile: pynwb.NWBFile = None,
-                 metadata: dict = None,
-                 **kwargs):
+
+    def __init__(
+        self,
+        object_to_write: Union[si.BaseRecording, si.BaseSorting, si.BaseEvent, si.WaveformExtractor],
+        nwb_file_path: PathType = None,
+        nwbfile: pynwb.NWBFile = None,
+        metadata: dict = None,
+        **kwargs,
+    ):
         assert HAVE_SI_090
         self.recording, self.sorting, self.waveforms, self.event = None, None, None, None
-        BaseNwbEphysWriter.__init__(self, object_to_write, nwb_file_path=nwb_file_path, nwbfile=nwbfile,
-                                    metadata=metadata, **kwargs)
+        BaseNwbEphysWriter.__init__(
+            self, object_to_write, nwb_file_path=nwb_file_path, nwbfile=nwbfile, metadata=metadata, **kwargs
+        )
 
     @property
     def supported_types(self):
