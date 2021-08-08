@@ -21,11 +21,12 @@ from ....utils.conversion_tools import get_module
 from ....utils.spike_interface import write_recording
 
 
-OptionalPathType = Optional[Union[str, Path]]
+PathType = Union[str, Path]
+OptionalPathType = Optional[PathType]
 
 
 # Helper functions for AxonaRecordingExtractorInterface
-def parse_generic_header(filename, params):
+def parse_generic_header(filename: PathType, params: Union[list, set]):
     """
     Given a binary file with phrases and line breaks, enters the
     first word of a phrase as dictionary key and the following
@@ -60,7 +61,7 @@ def parse_generic_header(filename, params):
     return header
 
 
-def read_axona_iso_datetime(set_file):
+def read_axona_iso_datetime(set_file: PathType):
     """
     Creates datetime object (y, m, d, h, m, s) from .set file header
     and converts it to ISO 8601 format
@@ -157,13 +158,13 @@ class AxonaUnitRecordingExtractorInterface(AxonaRecordingExtractorInterface):
             type="object"
         )
 
-    def __init__(self, filename: OptionalPathType, noise_std: float = 3.5):
+    def __init__(self, filename: PathType, noise_std: float = 3.5):
         super().__init__(filename=filename)
         self.recording_extractor = se.AxonaUnitRecordingExtractor(filename=filename, noise_std=noise_std)
 
 
 # Helper functions for AxonaPositionDataInterface
-def get_header_bstring(file):
+def get_header_bstring(file: PathType):
     """
     Scan file for the occurrence of 'data_start' and return the header
     as byte string
@@ -187,7 +188,7 @@ def get_header_bstring(file):
     return header
 
 
-def read_bin_file_position_data(bin_filename):
+def read_bin_file_position_data(bin_filename: PathType):
     """
     Read position data from Axona `.bin` file (if present).
 
@@ -278,7 +279,7 @@ def read_bin_file_position_data(bin_filename):
     return pos_data
 
 
-def read_pos_file_position_data(pos_filename):
+def read_pos_file_position_data(pos_filename: PathType):
     """
     Read position data from Axona `.pos` file.
 
@@ -348,7 +349,7 @@ def read_pos_file_position_data(pos_filename):
     return pos_data
 
 
-def get_position_object(filename):
+def get_position_object(filename: PathType):
     """
     Read position data from .bin or .pos file and convert to
     pynwb.behavior.SpatialSeries objects. If possible it should always
@@ -425,7 +426,7 @@ class AxonaPositionDataInterface(BaseDataInterface):
 
 
 # Helper functions for AxonaLFPDataInterface
-def get_eeg_sampling_frequency(filename):
+def get_eeg_sampling_frequency(filename: PathType):
     """
     Read sampling frequency from .eegX or .egfX file header.
 
@@ -445,7 +446,7 @@ def get_eeg_sampling_frequency(filename):
     return Fs
 
 
-def read_eeg_file_lfp_data(filename):
+def read_eeg_file_lfp_data(filename: PathType):
     """
     Read LFP data from Axona `.eegX` or `.egfX` file.
 
@@ -480,7 +481,7 @@ def read_eeg_file_lfp_data(filename):
     return eeg_data
 
 
-def get_all_filenames(filename):
+def get_all_filenames(filename: PathType):
     """
     Read LFP filenames of `.eeg` or `.egf` files in filename's directory.
     E.g. if filename='/my/directory/my_file.eeg', all .eeg channels will be
@@ -505,7 +506,7 @@ def get_all_filenames(filename):
     return path_list
 
 
-def read_all_eeg_file_lfp_data(filename):
+def read_all_eeg_file_lfp_data(filename: PathType):
     """
     Read LFP data from all Axona `.eeg` or `.egf` files in filename's directory.
     E.g. if filename='/my/directory/my_file.eeg', all .eeg channels will be conactenated
@@ -539,7 +540,7 @@ def read_all_eeg_file_lfp_data(filename):
     return eeg_data
 
 
-def AxonaLFPNumpyExtractorWrapper(filename):
+def AxonaLFPNumpyExtractorWrapper(filename: PathType):
     """
     Wrapper for instantiating a NumpyRecordingExtractor given an `.eeg` or `.egf` filename.
     """
