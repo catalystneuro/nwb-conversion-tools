@@ -238,7 +238,6 @@ def read_bin_file_position_data(bin_filename):
         filename=bin_filename,
         dtype=bin_dt,
         mode="r",
-        offset=0,
     )
 
     # Only packets with the ADU2 flag contain position data
