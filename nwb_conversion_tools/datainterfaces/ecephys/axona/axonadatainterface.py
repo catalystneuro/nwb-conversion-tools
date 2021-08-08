@@ -134,9 +134,7 @@ class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
                 )
                 for group_name in unique_elec_group_names
             ],
-            Electrodes=[
-                dict(name="group_name", description="The name of the ElectrodeGroup this electrode is a part of.")
-            ],
+            Electrodes=[],
             ElectricalSeries_raw=dict(name="ElectricalSeries_raw", description="Raw acquisition traces."),
         )
 
