@@ -151,11 +151,8 @@ class AxonaUnitRecordingExtractorInterface(AxonaRecordingExtractorInterface):
     def get_source_schema(cls):
         return dict(
             required=["filename"],
-            properties=dict(
-                filename=dict(type="string"),
-                noise_std=dict(type='number')
-            ),
-            type="object"
+            properties=dict(filename=dict(type="string"), noise_std=dict(type="number")),
+            type="object",
         )
 
     def __init__(self, filename: PathType, noise_std: float = 3.5):
@@ -563,8 +560,8 @@ class AxonaLFPDataInterface(AxonaRecordingExtractorInterface):
 
     def __init__(self, **source_data):
         self.recording_extractor = se.NumpyRecordingExtractor(
-            timeseries=read_all_eeg_file_lfp_data(source_data.get('filename')),
-            sampling_frequency=get_eeg_sampling_frequency(source_data.get('filename'))
+            timeseries=read_all_eeg_file_lfp_data(source_data.get("filename")),
+            sampling_frequency=get_eeg_sampling_frequency(source_data.get("filename")),
         )
         self.subset_channels = None
         self.source_data = source_data
