@@ -150,7 +150,14 @@ class AxonaUnitRecordingExtractorInterface(AxonaRecordingExtractorInterface):
     def get_source_schema(cls):
         return dict(
             required=["filename"],
-            properties=dict(filename=dict(type="string"), noise_std=dict(type="number")),
+            properties=dict(
+                filename=dict(
+                    type="string",
+                    format="file",
+                    description="Path to Axona file",
+                ),
+                noise_std=dict(type="number")
+            ),
             type="object",
         )
 
