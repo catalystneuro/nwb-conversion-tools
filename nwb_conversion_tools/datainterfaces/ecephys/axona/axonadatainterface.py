@@ -558,10 +558,10 @@ class AxonaLFPDataInterface(AxonaRecordingExtractorInterface):
             additionalProperties=False,
         )
 
-    def __init__(self, **source_data):
+    def __init__(self, filename: PathType):
         self.recording_extractor = se.NumpyRecordingExtractor(
-            timeseries=read_all_eeg_file_lfp_data(source_data.get("filename")),
-            sampling_frequency=get_eeg_sampling_frequency(source_data.get("filename")),
+            timeseries=read_all_eeg_file_lfp_data(filename),
+            sampling_frequency=get_eeg_sampling_frequency(filename),
         )
         self.subset_channels = None
         self.source_data = source_data
