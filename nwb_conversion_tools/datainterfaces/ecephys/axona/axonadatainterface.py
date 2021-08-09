@@ -536,13 +536,6 @@ def read_all_eeg_file_lfp_data(filename: PathType):
     return eeg_data
 
 
-def AxonaLFPNumpyExtractorWrapper(filename: PathType):
-    """
-    Wrapper for instantiating a NumpyRecordingExtractor given an `.eeg` or `.egf` filename.
-    """
-    return se.NumpyRecordingExtractor(
-        timeseries=read_all_eeg_file_lfp_data(filename), sampling_frequency=get_eeg_sampling_frequency(filename)
-    )
 
 
 class AxonaLFPDataInterface(AxonaRecordingExtractorInterface):
