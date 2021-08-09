@@ -12,7 +12,7 @@ from ....utils.json_schema import get_schema_from_method_signature, get_schema_f
 PathType = Union[str, Path, None]
 
 
-def set_spikeglx_metadata(file_path: str, recording: RecordingExtractor, metadata: dict):
+def fetch_spikeglx_metadata(file_path: str, recording: RecordingExtractor, metadata: dict):
     file_path = Path(file_path)
     session_id = file_path.parent.stem
 
@@ -104,6 +104,9 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
         for ch in self.recording_extractor.get_channel_ids():
             self.recording_extractor.set_channel_property(
                 channel_id=ch, property_name="shank_electrode_number", value=ch
+            )
+            self.recording_extractor.set_channel_property(
+                channel_id=ch, property_name="shank_group_name", value="Shank1"
             )
 
     def get_metadata_schema(self):

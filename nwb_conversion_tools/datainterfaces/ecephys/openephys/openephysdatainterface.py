@@ -52,6 +52,7 @@ class OpenEphysRecordingExtractorInterface(BaseRecordingExtractorInterface):
         metadata["NWBFile"] = dict(
             session_start_time=session_start_time_tzaware.strftime("%Y-%m-%dT%H:%M:%S"),
         )
+
         return metadata
 
 
