@@ -27,17 +27,17 @@ except ImportError:
 
 
 _default_sorting_property_descriptions = dict(
-            isi_violation="Quality metric that measures the ISI violation ratio as a proxy for the purity of the unit.",
-            firing_rate="Number of spikes per unit of time.",
-            template="The extracellular average waveform.",
-            max_channel="The recording channel id with the largest amplitude.",
-            halfwidth="The full-width half maximum of the negative peak computed on the maximum channel.",
-            peak_to_valley="The duration between the negative and the positive peaks computed on the maximum channel.",
-            snr="The signal-to-noise ratio of the unit.",
-            quality="Quality of the unit as defined by phy (good, mua, noise).",
-            spike_amplitude="Average amplitude of peaks detected on the channel.",
-            spike_rate="Average rate of peaks detected on the channel.",
-        )
+    isi_violation="Quality metric that measures the ISI violation ratio as a proxy for the purity of the unit.",
+    firing_rate="Number of spikes per unit of time.",
+    template="The extracellular average waveform.",
+    max_channel="The recording channel id with the largest amplitude.",
+    halfwidth="The full-width half maximum of the negative peak computed on the maximum channel.",
+    peak_to_valley="The duration between the negative and the positive peaks computed on the maximum channel.",
+    snr="The signal-to-noise ratio of the unit.",
+    quality="Quality of the unit as defined by phy (good, mua, noise).",
+    spike_amplitude="Average amplitude of peaks detected on the channel.",
+    spike_rate="Average rate of peaks detected on the channel.",
+)
 
 
 class SI013NwbEphysWriter(BaseNwbEphysWriter):
@@ -52,12 +52,15 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
     metadata: dict or None
     **kwargs: list kwargs and meaning
     """
-    def __init__(self,
-                 object_to_write: Union[se.RecordingExtractor, se.SortingExtractor],
-                 nwb_file_path: PathType = None,
-                 nwbfile: pynwb.NWBFile = None,
-                 metadata: dict = None,
-                 **kwargs):
+
+    def __init__(
+        self,
+        object_to_write: Union[se.RecordingExtractor, se.SortingExtractor],
+        nwb_file_path: PathType = None,
+        nwbfile: pynwb.NWBFile = None,
+        metadata: dict = None,
+        **kwargs,
+    ):
         assert HAVE_SI013
         # exclude properties
         if "exclude_properties" in kwargs:
@@ -68,8 +71,11 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
             self._exclude_features = kwargs["exclude_features"]
         else:
             self._exclude_features = []
-        BaseNwbEphysWriter.__init__(self, object_to_write, nwb_file_path=nwb_file_path, nwbfile=nwbfile,
-                                    metadata=metadata, **kwargs)
+
+        self.recording, self.sorting = None, None
+        BaseNwbEphysWriter.__init__(
+            self, object_to_write, nwb_file_path=nwb_file_path, nwbfile=nwbfile, metadata=metadata, **kwargs
+        )
         self.recording, self.sorting = None, None
         if isinstance(self.object_to_write, se.RecordingExtractor):
             self.recording = self.object_to_write
@@ -102,11 +108,12 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
             assert isinstance(self.nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
 
         assert (
-                distutils.version.LooseVersion(pynwb.__version__) >= "1.3.3"
+            distutils.version.LooseVersion(pynwb.__version__) >= "1.3.3"
         ), "'write_recording' not supported for version < 1.3.3. Run pip install --upgrade pynwb"
 
-        assert self.nwb_file_path is None or self.nwbfile is None, "Either pass a nwb_file_path location, " \
-                                                                   "or nwbfile object, but not both!"
+        assert self.nwb_file_path is None or self.nwbfile is None, (
+            "Either pass a nwb_file_path location, " "or nwbfile object, but not both!"
+        )
 
         # Update any previous metadata with user passed dictionary
         if hasattr(self.recording, "nwb_metadata"):
@@ -182,8 +189,9 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
         else:
             overwrite = False
 
-        assert self.nwb_file_path is None or self.nwbfile is None, "Either pass a save_path location, " \
-                                                                   "or nwbfile object, but not both!"
+        assert self.nwb_file_path is None or self.nwbfile is None, (
+            "Either pass a save_path location, " "or nwbfile object, but not both!"
+        )
         if self.nwbfile is not None:
             assert isinstance(self.nwbfile, pynwb.NWBFile), "'nwbfile' should be a pynwb.NWBFile object!"
 
@@ -284,8 +292,10 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
                 isinstance(x, dict) and set(x.keys()) == set(["name", "description"])
                 for x in self.metadata["Ecephys"]["Electrodes"]
             ]
-        ), "Expected metadata['Ecephys']['Electrodes'] to be a list of dictionaries, " \
-           "containing the keys 'name' and 'description'"
+        ), (
+            "Expected metadata['Ecephys']['Electrodes'] to be a list of dictionaries, "
+            "containing the keys 'name' and 'description'"
+        )
         assert all(
             [x["name"] != "group" for x in self.metadata["Ecephys"]["Electrodes"]]
         ), "Passing metadata field 'group' is deprecated; pass group_name instead!"
@@ -365,12 +375,14 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
             des_args = dict(des_dict)
             if name not in default_updated:
                 if self.nwbfile.electrodes is None:
-                    self.nwbfile.add_electrode_column(name=name, description=des_args["description"],
-                                                      index=des_args["index"])
+                    self.nwbfile.add_electrode_column(
+                        name=name, description=des_args["description"], index=des_args["index"]
+                    )
                 else:
                     # build default junk values for data to force add columns later:
                     combine_data = [channel_property_defaults[found_property_types[name]]] * len(
-                        self.nwbfile.electrodes.id)
+                        self.nwbfile.electrodes.id
+                    )
                     des_args["data"] = combine_data + des_args["data"]
                     elec_columns_append[name] = des_args
 
@@ -405,23 +417,25 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
                                     ]
                                 )
                             )
-                            self.add_electrode_groups(metadata=missing_group_metadata)
-                        electrode_kwargs.update(dict(group=self.nwbfile.electrode_groups[group_name],
-                                                     group_name=group_name))
+                            self.add_electrode_groups(missing_group_metadata=missing_group_metadata)
+                        electrode_kwargs.update(
+                            dict(group=self.nwbfile.electrode_groups[group_name], group_name=group_name)
+                        )
                     elif "data" in desc:
                         electrode_kwargs[name] = desc["data"][j]
 
                 if "group_name" not in elec_columns:
                     group_id = self.recording.get_channel_groups(channel_ids=channel_id)[0]
                     electrode_kwargs.update(
-                        dict(group=self.nwbfile.electrode_groups[str(group_id)], group_name=str(group_id)))
+                        dict(group=self.nwbfile.electrode_groups[str(group_id)], group_name=str(group_id))
+                    )
 
                 self.nwbfile.add_electrode(**electrode_kwargs)
         # add columns for existing electrodes:
         for col_name, cols_args in elec_columns_append.items():
             self.nwbfile.add_electrode_column(col_name, **cols_args)
         assert (
-                self.nwbfile.electrodes is not None
+            self.nwbfile.electrodes is not None
         ), "Unable to form electrode table! Check device, electrode group, and electrode metadata."
 
     def add_electrode_groups(self, metadata=None):
@@ -646,17 +660,17 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
         # Check for existing names in nwbfile
         if write_as == "raw":
             assert (
-                    eseries_kwargs["name"] not in self.nwbfile.acquisition
+                eseries_kwargs["name"] not in self.nwbfile.acquisition
             ), f"Raw ElectricalSeries '{eseries_kwargs['name']}' is already written in the NWBFile!"
         elif write_as == "processed":
             assert (
-                    eseries_kwargs["name"] not in self.nwbfile.processing["ecephys"].data_interfaces[
-                "Processed"].electrical_series
+                eseries_kwargs["name"]
+                not in self.nwbfile.processing["ecephys"].data_interfaces["Processed"].electrical_series
             ), f"Processed ElectricalSeries '{eseries_kwargs['name']}' is already written in the NWBFile!"
         elif write_as == "lfp":
             assert (
-                    eseries_kwargs["name"] not in self.nwbfile.processing["ecephys"].data_interfaces[
-                "LFP"].electrical_series
+                eseries_kwargs["name"]
+                not in self.nwbfile.processing["ecephys"].data_interfaces["LFP"].electrical_series
             ), f"LFP ElectricalSeries '{eseries_kwargs['name']}' is already written in the NWBFile!"
 
         # Electrodes table region
@@ -699,9 +713,8 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
             warn("iteration was disabled, but not enough memory to load traces! Forcing iterate=True.")
             iterate = True
         if iterate:
-            if isinstance(self.recording.get_traces(end_frame=5, return_scaled=write_scaled),
-                          np.memmap) and np.all(
-                    channel_offset == 0
+            if isinstance(self.recording.get_traces(end_frame=5, return_scaled=write_scaled), np.memmap) and np.all(
+                channel_offset == 0
             ):
                 n_bytes = np.dtype(self.recording.get_dtype()).itemsize
                 buffer_size = int(buffer_mb * 1e6) // (self.recording.get_num_channels() * n_bytes)
@@ -711,6 +724,7 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
                     buffer_size=buffer_size,
                 )
             else:
+
                 def data_generator(recording, channels_ids, unsigned_coercion, write_scaled):
                     for i, ch in enumerate(channels_ids):
                         data = recording.get_traces(channel_ids=[ch], return_scaled=write_scaled)
@@ -739,7 +753,7 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
         if not use_times:
             eseries_kwargs.update(
                 starting_time=float(self.recording.frame_to_time(0)),
-                rate=float(self.recording.get_sampling_frequency())
+                rate=float(self.recording.get_sampling_frequency()),
             )
         else:
             eseries_kwargs.update(
@@ -845,11 +859,9 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
             for unit_id in unit_ids:
                 unit_kwargs = dict()
                 if use_times:
-                    spkt = self.sorting.frame_to_time(
-                        self.sorting.get_unit_spike_train(unit_id=unit_id))
+                    spkt = self.sorting.frame_to_time(self.sorting.get_unit_spike_train(unit_id=unit_id))
                 else:
-                    spkt = self.sorting.get_unit_spike_train(
-                        unit_id=unit_id) / self.sorting.get_sampling_frequency()
+                    spkt = self.sorting.get_unit_spike_train(unit_id=unit_id) / self.sorting.get_sampling_frequency()
                 for pr in write_properties:
                     if pr in self.sorting.get_unit_property_names(unit_id):
                         prop_value = self.sorting.get_unit_property(unit_id, pr)
@@ -944,8 +956,7 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
             else:
                 if [epoch_name] in self.nwbfile.epochs["tags"][:]:
                     ind = self.nwbfile.epochs["tags"][:].index([epoch_name])
-                    self.nwbfile.epochs["start_time"].data[ind] = self.recording.frame_to_time(
-                        epoch["start_frame"])
+                    self.nwbfile.epochs["start_time"].data[ind] = self.recording.frame_to_time(epoch["start_frame"])
                     self.nwbfile.epochs["stop_time"].data[ind] = self.recording.frame_to_time(epoch["end_frame"])
                 else:
                     self.nwbfile.add_epoch(
@@ -966,6 +977,7 @@ def get_num_spikes(units_table, unit_id):
         return units_table["spike_times_index"].data[index]
     else:
         return units_table["spike_times_index"].data[index] - units_table["spike_times_index"].data[index - 1]
+
 
 #
 # def get_nwb_metadata(recording: se.RecordingExtractor, metadata: dict = None):
