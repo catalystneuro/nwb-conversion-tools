@@ -564,7 +564,7 @@ class AxonaLFPDataInterface(AxonaRecordingExtractorInterface):
             sampling_frequency=get_eeg_sampling_frequency(filename),
         )
         self.subset_channels = None
-        self.source_data = source_data
+        self.source_data = dict(filename=filename)
 
     def get_metadata_schema(self):
         metadata_schema = super().get_metadata_schema()
