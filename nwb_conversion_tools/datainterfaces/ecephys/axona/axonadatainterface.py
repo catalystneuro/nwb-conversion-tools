@@ -536,8 +536,6 @@ def read_all_eeg_file_lfp_data(filename: PathType):
     return eeg_data
 
 
-
-
 class AxonaLFPDataInterface(AxonaRecordingExtractorInterface):
     """..."""
 
