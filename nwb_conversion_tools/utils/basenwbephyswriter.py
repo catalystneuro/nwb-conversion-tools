@@ -64,6 +64,8 @@ class BaseNwbEphysWriter:
         # Default Device metadata
         defaults = dict(name="Device", description="Ecephys probe. Automatically generated.")
 
+        print("add devices", self.metadata)
+
         if self.metadata is None:
             self.metadata = dict()
 
@@ -79,6 +81,8 @@ class BaseNwbEphysWriter:
         for dev in metadata["Ecephys"]["Device"]:
             if dev.get("name", defaults["name"]) not in self.nwbfile.devices:
                 self.nwbfile.create_device(**dict(defaults, **dev))
+
+        print(self.nwbfile.devices)
 
     def add_electrodes(self):
         raise NotImplementedError

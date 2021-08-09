@@ -426,6 +426,7 @@ class TestExtractors(unittest.TestCase):
         self.check_metadata_write(metadata=metadata, nwbfile_path=path, recording=self.RX)
 
         # Manually adjusted device name - must properly adjust electrode_group reference
+        writer = SI013NwbEphysWriter(self.RX, nwb_file_path=path)
         metadata2 = writer.get_nwb_metadata()
         metadata2["Ecephys"]["Device"] = [dict(name="TestDevice", description="A test device.", manufacturer="unknown")]
         metadata2["Ecephys"]["ElectrodeGroup"][0]["device"] = "TestDevice"
@@ -433,6 +434,7 @@ class TestExtractors(unittest.TestCase):
         self.check_metadata_write(metadata=metadata2, nwbfile_path=path, recording=self.RX)
 
         # Two devices in metadata
+        writer = SI013NwbEphysWriter(self.RX, nwb_file_path=path)
         metadata3 = writer.get_nwb_metadata()
         metadata3["Ecephys"]["Device"].append(
             dict(name="Device2", description="A second device.", manufacturer="unknown")
@@ -441,6 +443,7 @@ class TestExtractors(unittest.TestCase):
         self.check_metadata_write(metadata=metadata3, nwbfile_path=path, recording=self.RX)
 
         # Forcing default auto-population from add_electrode_groups, and not get_nwb_metdata
+        writer = SI013NwbEphysWriter(self.RX, nwb_file_path=path)
         metadata4 = writer.get_nwb_metadata()
         metadata4["Ecephys"]["Device"] = [dict(name="TestDevice", description="A test device.", manufacturer="unknown")]
         metadata4["Ecephys"].pop("ElectrodeGroup")

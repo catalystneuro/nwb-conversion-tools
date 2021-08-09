@@ -44,7 +44,7 @@ class NEONwbEphysWriter(BaseNwbEphysWriter):
 
     def __init__(
         self,
-        object_to_write: Union[neo.BaseRawIO, neo.BaseIO],
+        object_to_write: Union[neo.rawio.baserawio.BaseRawIO, neo.io.baseio.BaseIO],
         nwb_file_path: PathType = None,
         nwbfile: pynwb.NWBFile = None,
         metadata: dict = None,
