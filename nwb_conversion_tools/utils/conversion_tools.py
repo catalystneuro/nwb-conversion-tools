@@ -14,6 +14,7 @@ from pynwb.file import Subject
 from spikeextractors import RecordingExtractor, SubRecordingExtractor
 
 from .json_schema import dict_deep_update
+
 # from .spike_interface import write_recording
 
 
@@ -74,7 +75,7 @@ def check_regular_timestamps(ts):
     return len(uniq_diff_ts) == 1
 
 
-#TODO update this to handle with different types
+# TODO update this to handle with different types
 # def estimate_recording_conversion_time(
 #     recording: RecordingExtractor, mb_threshold: float = 100.0, write_kwargs: Optional[dict] = None
 # ) -> (float, float):

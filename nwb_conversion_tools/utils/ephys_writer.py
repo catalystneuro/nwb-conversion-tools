@@ -53,6 +53,7 @@ def export_to_nwb(objects_to_write, nwb_file_path=None, nwbfile=None, metadata=N
         if writer_class is None:
             raise Exception(f"Could not write object of typo {type(object_to_write)}")
         else:
-            writer = writer_class(object_to_write, nwbfile=nwbfile, nwb_file_path=nwb_file_path,
-                                  metadata=metadata, **kwargs)
+            writer = writer_class(
+                object_to_write, nwbfile=nwbfile, nwb_file_path=nwb_file_path, metadata=metadata, **kwargs
+            )
             writer.write_to_nwb()

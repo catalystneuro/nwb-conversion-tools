@@ -306,8 +306,9 @@ class TestExtractors(unittest.TestCase):
         check_dumping(RX_nwb)
         del RX_nwb
 
-        export_to_nwb(objects_to_write=self.RX, nwb_file_path=path, overwrite=True, compression=compression,
-                      iterate=False)
+        export_to_nwb(
+            objects_to_write=self.RX, nwb_file_path=path, overwrite=True, compression=compression, iterate=False
+        )
         with NWBHDF5IO(path=path, mode="r") as io:
             nwbfile = io.read()
             compression_out = nwbfile.acquisition["ElectricalSeries_raw"].data.compression
@@ -335,8 +336,9 @@ class TestExtractors(unittest.TestCase):
 
         # Test for handling unit property descriptions argument
         property_descriptions = dict(stability="This is a description of stability.")
-        export_to_nwb(objects_to_write=self.SX, nwb_file_path=path, property_descriptions=property_descriptions,
-                      overwrite=True)
+        export_to_nwb(
+            objects_to_write=self.SX, nwb_file_path=path, property_descriptions=property_descriptions, overwrite=True
+        )
         SX_nwb = se.NwbSortingExtractor(path, sampling_frequency=sf)
         check_sortings_equal(self.SX, SX_nwb)
         check_dumping(SX_nwb)
@@ -350,8 +352,9 @@ class TestExtractors(unittest.TestCase):
 
         # Test for handling skip_features argument
         # SX2 has timestamps, so loading it back from Nwb will not recover the same spike frames. Set use_times=False
-        export_to_nwb(objects_to_write=self.SX2, nwb_file_path=path, skip_features=["widths"], use_times=False,
-                      overwrite=True)
+        export_to_nwb(
+            objects_to_write=self.SX2, nwb_file_path=path, skip_features=["widths"], use_times=False, overwrite=True
+        )
         SX_nwb = se.NwbSortingExtractor(path, sampling_frequency=sf)
         assert "widths" not in SX_nwb.get_shared_unit_spike_feature_names()
         check_sortings_equal(self.SX2, SX_nwb)
@@ -412,8 +415,8 @@ class TestExtractors(unittest.TestCase):
                         self.assertTrue(
                             column["data"][j] == getattr(nwbfile.electrodes[j], column_name).values[0]
                             or (
-                                    np.isnan(column["data"][j])
-                                    and np.isnan(getattr(nwbfile.electrodes[j], column_name).values[0])
+                                np.isnan(column["data"][j])
+                                and np.isnan(getattr(nwbfile.electrodes[j], column_name).values[0])
                             )
                         )
 
