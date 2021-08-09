@@ -156,7 +156,7 @@ class AxonaUnitRecordingExtractorInterface(AxonaRecordingExtractorInterface):
                     format="file",
                     description="Path to Axona file",
                 ),
-                noise_std=dict(type="number")
+                noise_std=dict(type="number"),
             ),
             type="object",
         )
