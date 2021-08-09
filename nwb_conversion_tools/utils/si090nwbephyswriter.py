@@ -52,10 +52,10 @@ class SI090NwbEphysWriter(BaseNwbEphysWriter):
         BaseNwbEphysWriter.__init__(self, object_to_write, nwb_file_path=nwb_file_path, nwbfile=nwbfile,
                                     metadata=metadata, **kwargs)
 
-    @property
-    def supported_types(self):
+    @staticmethod
+    def supported_types():
         assert HAVE_SI_090
-        return [si.BaseRecording, si.BaseSorting, si.BaseEvent, si.WaveformExtractor]
+        return (si.BaseRecording, si.BaseSorting, si.BaseEvent, si.WaveformExtractor)
 
     def write_to_nwb(self):
         if isinstance(self.object_to_write, si.BaseRecording):

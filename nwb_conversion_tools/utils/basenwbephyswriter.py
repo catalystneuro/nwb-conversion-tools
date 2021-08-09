@@ -2,11 +2,13 @@ import pynwb
 import numpy as np
 import uuid
 from datetime import datetime
+from copy import deepcopy
 
 
 class BaseNwbEphysWriter:
     def __init__(self, object_to_write, nwb_file_path=None, nwbfile=None, metadata=None, **kwargs):
         self.object_to_write = object_to_write
+        assert nwb_file_path is not None or nwbfile is not None, "Use either 'nwbfile' or 'nwb_file_path' arguments!"
         self.nwb_file_path = nwb_file_path
         self.metadata = metadata
         self.nwb_file_path = nwb_file_path
@@ -46,7 +48,7 @@ class BaseNwbEphysWriter:
     def get_nwb_metadata(self):
         raise NotImplementedError
 
-    def add_devices(self):
+    def add_devices(self, metadata=None):
         """
         Auxiliary static method for nwbextractor.
 
@@ -65,13 +67,16 @@ class BaseNwbEphysWriter:
         if self.metadata is None:
             self.metadata = dict()
 
-        if "Ecephys" not in self.metadata:
-            self.metadata["Ecephys"] = dict()
+        if metadata is None:
+            metadata = deepcopy(self.metadata)
 
-        if "Device" not in self.metadata["Ecephys"]:
-            self.metadata["Ecephys"]["Device"] = [defaults]
+        if "Ecephys" not in metadata:
+            metadata["Ecephys"] = dict()
 
-        for dev in self.metadata["Ecephys"]["Device"]:
+        if "Device" not in metadata["Ecephys"]:
+            metadata["Ecephys"]["Device"] = [defaults]
+
+        for dev in metadata["Ecephys"]["Device"]:
             if dev.get("name", defaults["name"]) not in self.nwbfile.devices:
                 self.nwbfile.create_device(**dict(defaults, **dev))
 

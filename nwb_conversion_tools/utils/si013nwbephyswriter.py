@@ -8,6 +8,7 @@ from typing import Union, Optional, List
 from warnings import warn
 import psutil
 from collections import defaultdict
+from copy import deepcopy
 
 import pynwb
 from numbers import Real
@@ -67,21 +68,23 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
             self._exclude_features = kwargs["exclude_features"]
         else:
             self._exclude_features = []
-        self.recording, self.sorting = None, None
         BaseNwbEphysWriter.__init__(self, object_to_write, nwb_file_path=nwb_file_path, nwbfile=nwbfile,
                                     metadata=metadata, **kwargs)
+        self.recording, self.sorting = None, None
+        if isinstance(self.object_to_write, se.RecordingExtractor):
+            self.recording = self.object_to_write
+        elif isinstance(self.object_to_write, se.SortingExtractor):
+            self.sorting = self.object_to_write
 
-    @property
-    def supported_types(self):
+    @staticmethod
+    def supported_types():
         assert HAVE_SI013
-        return [se.RecordingExtractor, se.SortingExtractor]
+        return (se.RecordingExtractor, se.SortingExtractor)
 
     def write_to_nwb(self):
         if isinstance(self.object_to_write, se.RecordingExtractor):
-            self.recording = self.object_to_write
             self.write_recording()
         elif isinstance(self.object_to_write, se.SortingExtractor):
-            self.sorting = self.object_to_write
             self.write_sorting()
 
     def write_recording(self):
@@ -89,6 +92,11 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
             overwrite = self._kwargs["overwrite"]
         else:
             overwrite = False
+
+        if "write_electrical_series" in self._kwargs:
+            write_electrical_series = self._kwargs["write_electrical_series"]
+        else:
+            write_electrical_series = True
 
         if self.nwbfile is not None:
             assert isinstance(self.nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
@@ -122,8 +130,9 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
                 self.add_devices()
                 self.add_electrode_groups()
                 self.add_electrodes()
-                self.add_electrical_series()
-                self.add_epochs()
+                if write_electrical_series:
+                    self.add_electrical_series()
+                    self.add_epochs()
 
                 # Write to file
                 io.write(self.nwbfile)
@@ -131,8 +140,9 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
             self.add_devices()
             self.add_electrode_groups()
             self.add_electrodes()
-            self.add_electrical_series()
-            self.add_epochs()
+            if write_electrical_series:
+                self.add_electrical_series()
+                self.add_epochs()
 
     def write_sorting(self):
         """
@@ -212,36 +222,6 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
             ),
         )
         return metadata
-
-    def add_devices(self, metadata):
-        """
-        Auxiliary static method for nwbextractor.
-
-        Adds device information to nwbfile object.
-        Will always ensure nwbfile has at least one device, but multiple
-        devices within the metadata list will also be created.
-
-
-        Missing keys in an element of metadata['Ecephys']['Device'] will be auto-populated with defaults.
-        """
-        if self.nwbfile is not None:
-            assert isinstance(self.nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
-
-        # Default Device metadata
-        defaults = dict(name="Device", description="Ecephys probe. Automatically generated.")
-
-        if metadata is None:
-            metadata = dict()
-
-        if "Ecephys" not in metadata:
-            metadata["Ecephys"] = dict()
-
-        if "Device" not in self.metadata["Ecephys"]:
-            self.metadata["Ecephys"]["Device"] = [defaults]
-
-        for dev in self.metadata["Ecephys"]["Device"]:
-            if dev.get("name", defaults["name"]) not in self.nwbfile.devices:
-                self.nwbfile.create_device(**dict(defaults, **dev))
 
     def add_electrodes(self):
         """
@@ -425,7 +405,7 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
                                     ]
                                 )
                             )
-                            self.add_electrode_groups(missing_group_metadata=missing_group_metadata)
+                            self.add_electrode_groups(metadata=missing_group_metadata)
                         electrode_kwargs.update(dict(group=self.nwbfile.electrode_groups[group_name],
                                                      group_name=group_name))
                     elif "data" in desc:
@@ -444,7 +424,7 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
                 self.nwbfile.electrodes is not None
         ), "Unable to form electrode table! Check device, electrode group, and electrode metadata."
 
-    def add_electrode_groups(self, missing_group_metadata=None):
+    def add_electrode_groups(self, metadata=None):
         """
         Auxiliary method to write electrode groups.
 
@@ -464,8 +444,11 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
             warnings.warn("When adding ElectrodeGroup, no Devices were found on nwbfile. Creating a Device now...")
             self.add_devices()
 
-        if missing_group_metadata is None:
-            metadata = dict()
+        if self.metadata is None:
+            self.metadata = dict()
+
+        if metadata is None:
+            metadata = deepcopy(self.metadata)
 
         if "Ecephys" not in metadata:
             metadata["Ecephys"] = dict()

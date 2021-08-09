@@ -42,7 +42,7 @@ class NEONwbEphysWriter(BaseNwbEphysWriter):
     **kwargs: list kwargs and meaning
     """
     def __init__(self,
-                 object_to_write: Union[neo.BaseRawIO, neo.BaseIO],
+                 object_to_write: Union[neo.rawio.baserawio.BaseRawIO, neo.io.baseio.BaseIO],
                  nwb_file_path: PathType = None,
                  nwbfile: pynwb.NWBFile = None,
                  metadata: dict = None,
@@ -52,10 +52,10 @@ class NEONwbEphysWriter(BaseNwbEphysWriter):
         BaseNwbEphysWriter.__init__(self, object_to_write, nwb_file_path=nwb_file_path, nwbfile=nwbfile,
                                     metadata=metadata, **kwargs)
 
-    @property
-    def supported_types(self):
+    @staticmethod
+    def supported_types():
         assert HAVE_NEO
-        return [neo.BaseRawIO, neo.BaseIO]
+        return (neo.rawio.baserawio.BaseRawIO, neo.io.baseio.BaseIO)
 
     def write_to_nwb(self):
         # check what's in the neo object: analogsignals, spike trains, events and
