@@ -53,9 +53,7 @@ def parse_generic_header(filename: PathType, params: Union[list, set]):
             line = bin_line.decode("cp1252").replace("\r\n", "").replace("\r", "").strip()
             parts = line.split(" ")
             key = parts[0]
-            if params is None:
-                header[key] = " ".join(parts[1:])
-            elif key in params:
+            if params is None or key in params:
                 header[key] = " ".join(parts[1:])
 
     return header
