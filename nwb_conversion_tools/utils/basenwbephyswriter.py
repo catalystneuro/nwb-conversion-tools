@@ -117,7 +117,7 @@ class BaseNwbEphysWriter:
         if "Ecephys" not in metadata:
             metadata["Ecephys"] = dict()
         if self.recording.get_channel_groups() is None:
-            channel_groups = np.array([0],dtype='int')
+            channel_groups = np.array([0], dtype="int")
         else:
             channel_groups = np.unique(self.recording.get_channel_groups())
         defaults = [

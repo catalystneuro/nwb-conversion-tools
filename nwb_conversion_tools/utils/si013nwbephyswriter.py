@@ -438,7 +438,6 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
             self.nwbfile.electrodes is not None
         ), "Unable to form electrode table! Check device, electrode group, and electrode metadata."
 
-
     def add_electrical_series(self):
         """
         Auxiliary static method for nwbextractor.
