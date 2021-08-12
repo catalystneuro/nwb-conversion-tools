@@ -86,13 +86,6 @@ class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
     def __init__(self, filename: str):
         super().__init__(filename=filename)
 
-    def get_metadata_schema(self):
-        metadata_schema = super().get_metadata_schema()
-        metadata_schema["properties"]["Ecephys"]["properties"].update(
-            ElectricalSeries_raw=get_schema_from_hdmf_class(ElectricalSeries)
-        )
-        return metadata_schema
-
     def get_metadata(self):
 
         # Extract information for specific parameters from .set file
@@ -129,10 +122,16 @@ class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
                 )
                 for group_name in unique_elec_group_names
             ],
-            ElectricalSeries_raw=dict(name="ElectricalSeries_raw", description="Raw acquisition traces."),
         )
 
         return metadata
+
+    def run_conversion(self, nwbfile: NWBFile, write_as='raw'):
+        super().run_conversion(
+            self,
+            nwbfile=nwbfile,
+            write_as=write_as
+        )
 
 
 class AxonaUnitRecordingExtractorInterface(AxonaRecordingExtractorInterface):
@@ -537,8 +536,10 @@ def read_all_eeg_file_lfp_data(filename: PathType):
     return eeg_data
 
 
-class AxonaLFPDataInterface(AxonaRecordingExtractorInterface):
+class AxonaLFPDataInterface(BaseLFPExtractorInterface):
     """..."""
+
+    RX = se.AxonaRecordingExtractor
 
     @classmethod
     def get_source_schema(cls):
@@ -556,69 +557,3 @@ class AxonaLFPDataInterface(AxonaRecordingExtractorInterface):
         )
         self.subset_channels = None
         self.source_data = dict(filename=filename)
-
-    def get_metadata_schema(self):
-        metadata_schema = super().get_metadata_schema()
-        metadata_schema["properties"]["Ecephys"]["properties"].update(
-            ElectricalSeries_lfp=get_schema_from_hdmf_class(ElectricalSeries)
-        )
-        return metadata_schema
-
-    def get_metadata(self):
-        """Retrieve Ecephys metadata specific to the Axona format."""
-        metadata = super().get_metadata()
-        metadata["Ecephys"].pop("ElectricalSeries_raw", None)
-        metadata["Ecephys"].update(ElectricalSeries_lfp=dict(name="LFP", description="Local field potential signal."))
-
-        return metadata
-
-    def run_conversion(
-        self,
-        nwbfile: NWBFile,
-        metadata: dict = None,
-        stub_test: bool = False,
-        use_times: bool = False,
-        save_path: OptionalPathType = None,
-        overwrite: bool = False,
-        buffer_mb: int = 500,
-    ):
-        """
-        Primary function for converting low-pass recording extractor data to nwb.
-
-        Parameters
-        ----------
-        nwbfile: NWBFile
-            nwb file to which the recording information is to be added
-        metadata: dict
-            metadata info for constructing the nwb file (optional).
-            Should be of the format
-                metadata['Ecephys']['ElectricalSeries'] = dict(name=my_name, description=my_description)
-        use_times: bool
-            If True, the times are saved to the nwb file using recording.frame_to_time(). If False (default),
-            the sampling rate is used.
-        save_path: PathType
-            Required if an nwbfile is not passed. Must be the path to the nwbfile
-            being appended, otherwise one is created and written.
-        overwrite: bool
-            If using save_path, whether or not to overwrite the NWBFile if it already exists.
-        stub_test: bool, optional (default False)
-            If True, will truncate the data to run the conversion faster and take up less memory.
-        buffer_mb: int (optional, defaults to 500MB)
-            Maximum amount of memory (in MB) to use per iteration of the internal DataChunkIterator.
-            Requires trace data in the RecordingExtractor to be a memmap object.
-        """
-        if stub_test or self.subset_channels is not None:
-            recording = self.subset_recording(stub_test=stub_test)
-        else:
-            recording = self.recording_extractor
-        write_recording(
-            recording=recording,
-            nwbfile=nwbfile,
-            metadata=metadata,
-            use_times=use_times,
-            write_as="lfp",
-            es_key="ElectricalSeries_lfp",
-            save_path=save_path,
-            overwrite=overwrite,
-            buffer_mb=buffer_mb,
-        )
