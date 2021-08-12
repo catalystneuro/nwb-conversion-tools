@@ -16,7 +16,7 @@ from ...utils.json_schema import (
     fill_defaults,
     get_base_schema,
 )
-from ...utils import export_to_nwb
+from ...utils import export_ecephys_to_nwb
 
 OptionalPathType = Optional[Union[str, Path]]
 
@@ -150,7 +150,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         else:
             recording = self.recording_extractor
 
-        export_to_nwb(
+        export_ecephys_to_nwb(
             recording=recording,
             nwbfile=nwbfile,
             metadata=metadata,

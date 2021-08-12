@@ -13,7 +13,7 @@ from ...utils.json_schema import (
     get_schema_from_method_signature,
     fill_defaults,
 )
-from ...utils import export_to_nwb
+from ...utils import export_ecephys_to_nwb
 
 
 class BaseSortingExtractorInterface(BaseDataInterface, ABC):
@@ -61,7 +61,7 @@ class BaseSortingExtractorInterface(BaseDataInterface, ABC):
         if write_ecephys_metadata and "Ecephys" in metadata:
             n_channels = max([len(x["data"]) for x in metadata["Ecephys"]["Electrodes"]])
             recording = se.NumpyRecordingExtractor(timeseries=np.array(range(n_channels)), sampling_frequency=1)
-            export_to_nwb(recording, nwbfile=nwbfile, write_electrical_series=False)
+            export_ecephys_to_nwb(recording, nwbfile=nwbfile, write_electrical_series=False)
 
         property_descriptions = dict()
         if stub_test:
@@ -98,6 +98,6 @@ class BaseSortingExtractorInterface(BaseDataInterface, ABC):
                     data = metadata_column["data"][unit_idx]
                     sorting_extractor.set_unit_property(unit_id, metadata_column["name"], data)
 
-        se.NwbSortingExtractor.write_sorting(
+        export_ecephys_to_nwb(
             sorting_extractor, property_descriptions=property_descriptions, nwbfile=nwbfile
         )

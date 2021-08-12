@@ -450,6 +450,7 @@ class TestExtractors(unittest.TestCase):
         metadata4 = writer.get_nwb_metadata()
         metadata4["Ecephys"]["Device"] = [dict(name="TestDevice", description="A test device.", manufacturer="unknown")]
         metadata4["Ecephys"].pop("ElectrodeGroup")
+        print(metadata4)
         export_to_nwb(objects_to_write=self.RX, metadata=metadata4, nwb_file_path=path, overwrite=True)
         self.check_metadata_write(metadata=metadata4, nwbfile_path=path, recording=self.RX)
 

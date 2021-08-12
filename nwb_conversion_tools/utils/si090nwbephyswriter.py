@@ -45,7 +45,6 @@ class SI090NwbEphysWriter(BaseNwbEphysWriter):
     def __init__(
         self,
         object_to_write: Union[si.BaseRecording, si.BaseSorting, si.BaseEvent, si.WaveformExtractor],
-        nwb_file_path: PathType = None,
         nwbfile: pynwb.NWBFile = None,
         metadata: dict = None,
         **kwargs,
@@ -53,7 +52,7 @@ class SI090NwbEphysWriter(BaseNwbEphysWriter):
         assert HAVE_SI_090
         self.recording, self.sorting, self.waveforms, self.event = None, None, None, None
         BaseNwbEphysWriter.__init__(
-            self, object_to_write, nwb_file_path=nwb_file_path, nwbfile=nwbfile, metadata=metadata, **kwargs
+            self, object_to_write, nwbfile=nwbfile, metadata=metadata, **kwargs
         )
 
     @staticmethod
@@ -61,34 +60,34 @@ class SI090NwbEphysWriter(BaseNwbEphysWriter):
         assert HAVE_SI_090
         return (si.BaseRecording, si.BaseSorting, si.BaseEvent, si.WaveformExtractor)
 
-    def write_to_nwb(self):
+    def add_to_nwb(self):
         if isinstance(self.object_to_write, si.BaseRecording):
             self.recording = self.object_to_write
-            self.write_recording()
+            self.add_recording()
         elif isinstance(self.object_to_write, si.BaseRecording):
             self.sorting = self.object_to_write
-            self.write_sorting()
+            self.add_sorting()
         elif isinstance(self.object_to_write, si.BaseEvent):
             self.event = self.object_to_write
-            self.write_epochs()
+            self.add_epochs()
         elif isinstance(self.object_to_write, si.WaveformExtractor):
             self.recording = self.object_to_write.recording
             self.sorting = self.object_to_write.sorting
             self.waveforms = self.object_to_write
-            self.write_recording()
-            self.write_sorting()
-            self.write_waveforms()
+            self.add_recording()
+            self.add_sorting()
+            self.add_waveforms()
 
-    def write_recording(self):
+    def add_recording(self):
         raise NotImplementedError
 
-    def write_sorting(self):
+    def add_sorting(self):
         raise NotImplementedError
 
-    def write_epochs(self):
+    def add_epochs(self):
         raise NotImplementedError
 
-    def write_waveforms(self):
+    def add_waveforms(self):
         raise NotImplementedError
 
     def get_nwb_metadata(self):

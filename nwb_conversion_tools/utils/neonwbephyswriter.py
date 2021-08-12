@@ -45,7 +45,6 @@ class NEONwbEphysWriter(BaseNwbEphysWriter):
     def __init__(
         self,
         object_to_write: Union[neo.rawio.baserawio.BaseRawIO, neo.io.baseio.BaseIO],
-        nwb_file_path: PathType = None,
         nwbfile: pynwb.NWBFile = None,
         metadata: dict = None,
         **kwargs,
@@ -53,7 +52,7 @@ class NEONwbEphysWriter(BaseNwbEphysWriter):
         assert HAVE_NEO
         self.recording, self.sorting, self.event = None, None, None
         BaseNwbEphysWriter.__init__(
-            self, object_to_write, nwb_file_path=nwb_file_path, nwbfile=nwbfile, metadata=metadata, **kwargs
+            self, object_to_write, nwbfile=nwbfile, metadata=metadata, **kwargs
         )
 
     @staticmethod
@@ -61,18 +60,18 @@ class NEONwbEphysWriter(BaseNwbEphysWriter):
         assert HAVE_NEO
         return (neo.rawio.baserawio.BaseRawIO, neo.io.baseio.BaseIO)
 
-    def write_to_nwb(self):
+    def add_to_nwb(self):
         # check what's in the neo object: analogsignals, spike trains, events and
         # write recording, sorting, events accordingly
         pass
 
-    def write_recording(self):
+    def add_recording(self):
         raise NotImplementedError
 
-    def write_sorting(self):
+    def add_sorting(self):
         raise NotImplementedError
 
-    def write_epochs(self):
+    def add_epochs(self):
         raise NotImplementedError
 
     def get_nwb_metadata(self):
