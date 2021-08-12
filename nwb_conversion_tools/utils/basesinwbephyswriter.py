@@ -44,6 +44,13 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter):
             self, object_to_write, nwb_file_path=nwb_file_path, nwbfile=nwbfile, metadata=metadata, **kwargs
         )
 
+    def get_nwb_metadata(self):
+        metadata = super(BaseNwbEphysWriter).get_nwb_metadata()
+        self.metadata['Ecephys'].update(ElectrodeGroup=[
+                    dict(name=str(gn), description="no description", location="unknown", device="Device")
+                    for gn in np.unique(self.recording.get_channel_groups())
+                ])
+
     def add_electrode_groups(self, metadata=None):
         """
         Auxiliary method to write electrode groups.
