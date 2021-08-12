@@ -15,7 +15,7 @@ from numbers import Real
 from hdmf.data_utils import DataChunkIterator
 from hdmf.backends.hdf5.h5_utils import H5DataIO
 from .json_schema import dict_deep_update
-from .basenwbephyswriter import BaseNwbEphysWriter
+from .basesinwbephyswriter import BaseSINwbEphysWriter
 from .common_writer_tools import ArrayType, PathType, set_dynamic_table_property, check_module, list_get
 
 try:
@@ -29,7 +29,7 @@ except ImportError:
     HAVE_SI_090 = False
 
 
-class SI090NwbEphysWriter(BaseNwbEphysWriter):
+class SI090NwbEphysWriter(BaseSINwbEphysWriter):
     """
     Class to write a Recording, Sorting, Event, or WaveformExtractor object from SI>=0.90 to NWB
 
@@ -51,8 +51,7 @@ class SI090NwbEphysWriter(BaseNwbEphysWriter):
         **kwargs,
     ):
         assert HAVE_SI_090
-        self.recording, self.sorting, self.waveforms, self.event = None, None, None, None
-        BaseNwbEphysWriter.__init__(
+        BaseSINwbEphysWriter.__init__(
             self, object_to_write, nwb_file_path=nwb_file_path, nwbfile=nwbfile, metadata=metadata, **kwargs
         )
 
