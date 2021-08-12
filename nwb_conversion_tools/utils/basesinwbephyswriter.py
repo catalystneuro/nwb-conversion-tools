@@ -20,14 +20,13 @@ from .common_writer_tools import ArrayType, PathType, set_dynamic_table_property
 
 
 class BaseSINwbEphysWriter(BaseNwbEphysWriter):
-
     def __init__(
-            self,
-            object_to_write,
-            nwb_file_path: PathType = None,
-            nwbfile: pynwb.NWBFile = None,
-            metadata: dict = None,
-            **kwargs,
+        self,
+        object_to_write,
+        nwb_file_path: PathType = None,
+        nwbfile: pynwb.NWBFile = None,
+        metadata: dict = None,
+        **kwargs,
     ):
         # exclude properties
         if "exclude_properties" in kwargs:
@@ -75,7 +74,7 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter):
 
         channel_groups = self.recording.get_channel_groups()
         if channel_groups is None:
-            channel_groups_unique = np.array([0], dtype='int')
+            channel_groups_unique = np.array([0], dtype="int")
         else:
             channel_groups_unique = np.unique(channel_groups)
 

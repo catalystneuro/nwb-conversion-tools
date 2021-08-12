@@ -62,7 +62,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
         metadata: dict = None,
         **kwargs,
     ):
-        assert HAVE_SI013, 'spikeextractors 0.13 version not installed'
+        assert HAVE_SI013, "spikeextractors 0.13 version not installed"
         BaseSINwbEphysWriter.__init__(
             self, object_to_write, nwb_file_path=nwb_file_path, nwbfile=nwbfile, metadata=metadata, **kwargs
         )
