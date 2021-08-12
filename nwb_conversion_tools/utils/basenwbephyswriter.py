@@ -3,6 +3,7 @@ import numpy as np
 import uuid
 from datetime import datetime
 from copy import deepcopy
+import warnings
 
 
 class BaseNwbEphysWriter:
