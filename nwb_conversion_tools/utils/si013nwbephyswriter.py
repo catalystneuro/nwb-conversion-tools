@@ -438,6 +438,81 @@ class SI013NwbEphysWriter(BaseNwbEphysWriter):
             self.nwbfile.electrodes is not None
         ), "Unable to form electrode table! Check device, electrode group, and electrode metadata."
 
+    def add_electrode_groups(self, metadata=None):
+        """
+        Auxiliary method to write electrode groups.
+
+        Adds electrode group information to nwbfile object.
+        Will always ensure nwbfile has at least one electrode group.
+        Will auto-generate a linked device if the specified name does not exist in the nwbfile.
+
+        Missing keys in an element of metadata['Ecephys']['ElectrodeGroup'] will be auto-populated with defaults.
+
+        Group names set by RecordingExtractor channel properties will also be included with passed metadata,
+        but will only use default description and location.
+        """
+        if self.nwbfile is not None:
+            assert isinstance(self.nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
+
+        if len(self.nwbfile.devices) == 0:
+            warnings.warn("When adding ElectrodeGroup, no Devices were found on nwbfile. Creating a Device now...")
+            self.add_devices()
+
+        if self.metadata is None:
+            self.metadata = dict()
+
+        if metadata is None:
+            metadata = deepcopy(self.metadata)
+
+        if "Ecephys" not in metadata:
+            metadata["Ecephys"] = dict()
+
+        defaults = [
+            dict(
+                name=str(group_id),
+                description="no description",
+                location="unknown",
+                device=[i.name for i in self.nwbfile.devices.values()][0],
+            )
+            for group_id in np.unique(self.recording.get_channel_groups())
+        ]
+
+        if "ElectrodeGroup" not in metadata["Ecephys"]:
+            metadata["Ecephys"]["ElectrodeGroup"] = defaults
+
+        assert all(
+            [isinstance(x, dict) for x in metadata["Ecephys"]["ElectrodeGroup"]]
+        ), "Expected metadata['Ecephys']['ElectrodeGroup'] to be a list of dictionaries!"
+
+        for grp in metadata["Ecephys"]["ElectrodeGroup"]:
+            if grp.get("name", defaults[0]["name"]) not in self.nwbfile.electrode_groups:
+                device_name = grp.get("device", defaults[0]["device"])
+                if device_name not in self.nwbfile.devices:
+                    metadata = dict(Ecephys=dict(Device=[dict(name=device_name)]))
+                    self.add_devices(metadata)
+                    warnings.warn(
+                        f"Device '{device_name}' not detected in "
+                        "attempted link to electrode group! Automatically generating."
+                    )
+                electrode_group_kwargs = dict(defaults[0], **grp)
+                electrode_group_kwargs.update(device=self.nwbfile.devices[device_name])
+                self.nwbfile.create_electrode_group(**electrode_group_kwargs)
+
+        if not self.nwbfile.electrode_groups:
+            device_name = list(self.nwbfile.devices.keys())[0]
+            device = self.nwbfile.devices[device_name]
+            if len(self.nwbfile.devices) > 1:
+                warnings.warn(
+                    "More than one device found when adding electrode group "
+                    f"via channel properties: using device '{device_name}'. To use a "
+                    "different device, indicate it the metadata argument."
+                )
+
+            electrode_group_kwargs = dict(defaults[0])
+            electrode_group_kwargs.update(device=device)
+            for grp_name in np.unique(self.recording.get_channel_groups()).tolist():
+                electrode_group_kwargs.update(name=str(grp_name))
+                self.nwbfile.create_electrode_group(**electrode_group_kwargs)
 
     def add_electrical_series(self):
         """
