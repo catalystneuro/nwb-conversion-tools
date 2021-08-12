@@ -126,14 +126,6 @@ class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
 
         return metadata
 
-    def run_conversion(self, nwbfile: NWBFile, write_as='raw'):
-        super().run_conversion(
-            self,
-            nwbfile=nwbfile,
-            write_as=write_as
-        )
-
-
 class AxonaUnitRecordingExtractorInterface(AxonaRecordingExtractorInterface):
     """Primary data interface class for converting a AxonaRecordingExtractor"""
 
