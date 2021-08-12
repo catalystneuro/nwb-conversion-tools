@@ -45,10 +45,12 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter):
 
     def get_nwb_metadata(self):
         metadata = super(BaseNwbEphysWriter).get_nwb_metadata()
-        self.metadata['Ecephys'].update(ElectrodeGroup=[
-                    dict(name=str(gn), description="no description", location="unknown", device="Device")
-                    for gn in np.unique(self.recording.get_channel_groups())
-                ])
+        self.metadata["Ecephys"].update(
+            ElectrodeGroup=[
+                dict(name=str(gn), description="no description", location="unknown", device="Device")
+                for gn in np.unique(self.recording.get_channel_groups())
+            ]
+        )
 
     def add_electrode_groups(self, metadata=None):
         """

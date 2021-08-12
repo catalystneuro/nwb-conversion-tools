@@ -6,6 +6,7 @@ from copy import deepcopy
 import warnings
 from .json_schema import dict_deep_update
 
+
 class BaseNwbEphysWriter:
     def __init__(self, object_to_write, nwb_file_path=None, nwbfile=None, metadata=None, **kwargs):
         self.object_to_write = object_to_write
@@ -28,13 +29,13 @@ class BaseNwbEphysWriter:
                 identifier=str(uuid.uuid4()),
                 session_start_time=datetime(1970, 1, 1),
             ),
-            Ecephys=dict(
-                Device=[dict(name="Device", description="no description")]))
+            Ecephys=dict(Device=[dict(name="Device", description="no description")]),
+        )
         return metadata
 
     def instantiate_nwbfile(self):
         # Default arguments will be over-written if contained in metadata
-        self.nwbfile = pynwb.NWBFile(**self.metadata['NWBFile'])
+        self.nwbfile = pynwb.NWBFile(**self.metadata["NWBFile"])
 
     @staticmethod
     def get_kwargs_description(self):
