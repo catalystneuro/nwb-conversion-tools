@@ -126,6 +126,7 @@ class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
 
         return metadata
 
+
 class AxonaUnitRecordingExtractorInterface(AxonaRecordingExtractorInterface):
     """Primary data interface class for converting a AxonaRecordingExtractor"""
 
