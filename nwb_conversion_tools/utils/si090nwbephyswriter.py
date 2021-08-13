@@ -96,9 +96,6 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
     def add_electrodes(self):
         raise NotImplementedError
 
-    def add_electrode_groups(self):
-        raise NotImplementedError
-
     def add_electrical_series(self):
         raise NotImplementedError
 

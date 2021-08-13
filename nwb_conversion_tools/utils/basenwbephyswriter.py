@@ -5,6 +5,7 @@ from datetime import datetime
 from copy import deepcopy
 import warnings
 from .json_schema import dict_deep_update
+from collections import Iterable
 
 
 class BaseNwbEphysWriter:
@@ -66,8 +67,59 @@ class BaseNwbEphysWriter:
     def add_electrodes(self):
         raise NotImplementedError
 
-    def add_electrode_groups(self):
-        raise NotImplementedError
+    def add_electrode_groups(self, channel_groups_unique:Iterable=None):
+        """
+        Auxiliary method to write electrode groups.
+
+        Adds electrode group information to nwbfile object.
+        Will always ensure nwbfile has at least one electrode group.
+        Will auto-generate a linked device if the specified name does not exist in the nwbfile.
+
+        Missing keys in an element of metadata['Ecephys']['ElectrodeGroup'] will be auto-populated with defaults.
+
+        Group names set by RecordingExtractor channel properties will also be included with passed metadata,
+        but will only use default description and location.
+        """
+        if len(self.nwbfile.devices) == 0:
+            warnings.warn("When adding ElectrodeGroup, no Devices were found on nwbfile. Creating a Device now...")
+            self.add_devices()
+
+        if "Ecephys" not in self.metadata:
+            self.metadata["Ecephys"] = dict()
+
+        if channel_groups_unique is None:
+            channel_groups_unique = np.array([0], dtype="int")
+
+        defaults = [
+            dict(
+                name=str(group_id),
+                description="no description",
+                location="unknown",
+                device=[i.name for i in self.nwbfile.devices.values()][0],
+            )
+            for group_id in channel_groups_unique
+        ]
+
+        if "ElectrodeGroup" not in self.metadata["Ecephys"]:
+            self.metadata["Ecephys"]["ElectrodeGroup"] = defaults
+
+        assert all(
+            [isinstance(x, dict) for x in self.metadata["Ecephys"]["ElectrodeGroup"]]
+        ), "Expected metadata['Ecephys']['ElectrodeGroup'] to be a list of dictionaries!"
+
+        for grp in self.metadata["Ecephys"]["ElectrodeGroup"]:
+            if grp.get("name", defaults[0]["name"]) not in self.nwbfile.electrode_groups:
+                device_name = grp.get("device", defaults[0]["device"])
+                if device_name not in self.nwbfile.devices:
+                    self.metadata["Ecephys"]["Device"].append(dict(name=device_name))
+                    self.add_devices()
+                    warnings.warn(
+                        f"Device '{device_name}' not detected in "
+                        "attempted link to electrode group! Automatically generating."
+                    )
+                electrode_group_kwargs = dict(defaults[0], **grp)
+                electrode_group_kwargs.update(device=self.nwbfile.devices[device_name])
+                self.nwbfile.create_electrode_group(**electrode_group_kwargs)
 
     def add_electrical_series(self):
         raise NotImplementedError
