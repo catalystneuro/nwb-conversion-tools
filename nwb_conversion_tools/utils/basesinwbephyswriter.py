@@ -38,9 +38,7 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter):
             self._exclude_features = []
 
         self.recording, self.sorting, self.waveforms, self.event = None, None, None, None
-        BaseNwbEphysWriter.__init__(
-            self, object_to_write, nwbfile=nwbfile, metadata=metadata, **kwargs
-        )
+        BaseNwbEphysWriter.__init__(self, object_to_write, nwbfile=nwbfile, metadata=metadata, **kwargs)
 
     def add_electrode_groups(self, channel_groups_unique=None):
         channel_groups = self.recording.get_channel_groups()

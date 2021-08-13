@@ -10,8 +10,7 @@ from .json_schema import dict_deep_update
 class BaseNwbEphysWriter:
     def __init__(self, object_to_write, nwbfile=None, metadata=None, **kwargs):
         self.object_to_write = object_to_write
-        assert (nwbfile is not None and isinstance(nwbfile, pynwb.NWBFile)),\
-                "Instantiate an NWBFile and pass as argument"
+        assert nwbfile is not None and isinstance(nwbfile, pynwb.NWBFile), "Instantiate an NWBFile and pass as argument"
         self.metadata = metadata if metadata is not None else dict()
         self.nwbfile = nwbfile
         self._kwargs = kwargs
