@@ -23,7 +23,6 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter):
     def __init__(
         self,
         object_to_write,
-        nwb_file_path: PathType = None,
         nwbfile: pynwb.NWBFile = None,
         metadata: dict = None,
         **kwargs,
@@ -40,47 +39,10 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter):
 
         self.recording, self.sorting, self.waveforms, self.event = None, None, None, None
         BaseNwbEphysWriter.__init__(
-            self, object_to_write, nwb_file_path=nwb_file_path, nwbfile=nwbfile, metadata=metadata, **kwargs
+            self, object_to_write, nwbfile=nwbfile, metadata=metadata, **kwargs
         )
 
-    def get_nwb_metadata(self):
-        metadata = super(BaseNwbEphysWriter).get_nwb_metadata()
-        self.metadata["Ecephys"].update(
-            ElectrodeGroup=[
-                dict(name=str(gn), description="no description", location="unknown", device="Device")
-                for gn in np.unique(self.recording.get_channel_groups())
-            ]
-        )
-
-    def add_electrode_groups(self, metadata=None):
-        """
-        Auxiliary method to write electrode groups.
-
-        Adds electrode group information to nwbfile object.
-        Will always ensure nwbfile has at least one electrode group.
-        Will auto-generate a linked device if the specified name does not exist in the nwbfile.
-
-        Missing keys in an element of metadata['Ecephys']['ElectrodeGroup'] will be auto-populated with defaults.
-
-        Group names set by RecordingExtractor channel properties will also be included with passed metadata,
-        but will only use default description and location.
-        """
-        if self.nwbfile is not None:
-            assert isinstance(self.nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
-
-        if len(self.nwbfile.devices) == 0:
-            warnings.warn("When adding ElectrodeGroup, no Devices were found on nwbfile. Creating a Device now...")
-            self.add_devices()
-
-        if self.metadata is None:
-            self.metadata = dict()
-
-        if metadata is None:
-            metadata = deepcopy(self.metadata)
-
-        if "Ecephys" not in metadata:
-            metadata["Ecephys"] = dict()
-
+    def add_electrode_groups(self, channel_groups_unique=None):
         channel_groups = self.recording.get_channel_groups()
         if channel_groups is None:
             channel_groups_unique = np.array([0], dtype="int")

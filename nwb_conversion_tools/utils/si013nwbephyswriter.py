@@ -57,14 +57,13 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
     def __init__(
         self,
         object_to_write: Union[se.RecordingExtractor, se.SortingExtractor],
-        nwb_file_path: PathType = None,
         nwbfile: pynwb.NWBFile = None,
         metadata: dict = None,
         **kwargs,
     ):
         assert HAVE_SI013, "spikeextractors 0.13 version not installed"
         BaseSINwbEphysWriter.__init__(
-            self, object_to_write, nwb_file_path=nwb_file_path, nwbfile=nwbfile, metadata=metadata, **kwargs
+            self, object_to_write, nwbfile=nwbfile, metadata=metadata, **kwargs
         )
         if isinstance(self.object_to_write, se.RecordingExtractor):
             self.recording = self.object_to_write
@@ -83,62 +82,21 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
             self.write_sorting()
 
     def write_recording(self):
-        if "overwrite" in self._kwargs:
-            overwrite = self._kwargs["overwrite"]
-        else:
-            overwrite = False
-
         if "write_electrical_series" in self._kwargs:
             write_electrical_series = self._kwargs["write_electrical_series"]
         else:
             write_electrical_series = True
 
-        if self.nwbfile is not None:
-            assert isinstance(self.nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
-
         assert (
             distutils.version.LooseVersion(pynwb.__version__) >= "1.3.3"
         ), "'write_recording' not supported for version < 1.3.3. Run pip install --upgrade pynwb"
 
-        assert self.nwb_file_path is None or self.nwbfile is None, (
-            "Either pass a nwb_file_path location, " "or nwbfile object, but not both!"
-        )
-
-        # Update any previous metadata with user passed dictionary
-        if hasattr(self.recording, "nwb_metadata"):
-            metadata = dict_deep_update(self.recording.nwb_metadata, self.metadata)
-        elif self.metadata is None:
-            # If not NWBRecording, make metadata from information available on Recording
-            self.metadata = self.get_nwb_metadata()
-
-        if self.nwbfile is None:
-            if Path(self.nwb_file_path).is_file() and not overwrite:
-                read_mode = "r+"
-            else:
-                read_mode = "w"
-
-            with pynwb.NWBHDF5IO(str(self.nwb_file_path), mode=read_mode) as io:
-                if read_mode == "r+":
-                    self.nwbfile = io.read()
-                else:
-                    self.instantiate_nwbfile()
-
-                self.add_devices()
-                self.add_electrode_groups()
-                self.add_electrodes()
-                if write_electrical_series:
-                    self.add_electrical_series()
-                    self.add_epochs()
-
-                # Write to file
-                io.write(self.nwbfile)
-        else:
-            self.add_devices()
-            self.add_electrode_groups()
-            self.add_electrodes()
-            if write_electrical_series:
-                self.add_electrical_series()
-                self.add_epochs()
+        self.add_devices()
+        self.add_electrode_groups()
+        self.add_electrodes()
+        if write_electrical_series:
+            self.add_electrical_series()
+            self.add_epochs()
 
     def write_sorting(self):
         """
@@ -173,32 +131,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
             Information for constructing the nwb file (optional).
             Only used if no nwbfile exists at the save_path, and no nwbfile was directly passed.
         """
-        if "overwrite" in self._kwargs:
-            overwrite = self._kwargs["overwrite"]
-        else:
-            overwrite = False
-
-        assert self.nwb_file_path is None or self.nwbfile is None, (
-            "Either pass a save_path location, " "or nwbfile object, but not both!"
-        )
-        if self.nwbfile is not None:
-            assert isinstance(self.nwbfile, pynwb.NWBFile), "'nwbfile' should be a pynwb.NWBFile object!"
-
-        if self.nwbfile is None:
-            if Path(self.nwb_file_path).is_file() and not overwrite:
-                read_mode = "r+"
-            else:
-                read_mode = "w"
-
-            with pynwb.NWBHDF5IO(str(self.nwb_file_path), mode=read_mode) as io:
-                if read_mode == "r+":
-                    self.nwbfile = io.read()
-                else:
-                    self.instantiate_nwbfile()
-                self.add_units()
-                io.write(self.nwbfile)
-        else:
-            self.add_units()
+        self.add_units()
 
     def add_electrodes(self):
         """
