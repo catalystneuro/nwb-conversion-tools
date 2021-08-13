@@ -1,6 +1,7 @@
 from distutils.version import StrictVersion
 import pynwb
 from pathlib import Path
+
 # import ephys writers
 from .si013nwbephyswriter import SI013NwbEphysWriter
 from .si090nwbephyswriter import SI090NwbEphysWriter
@@ -8,9 +9,17 @@ from .neonwbephyswriter import NEONwbEphysWriter
 from .. import NWBConverter
 
 
-def export_ecephys_to_nwb(objects_to_write, nwb_file_path=None, nwbfile=None, metadata=None,
-                          use_times=False, write_as="raw", es_key="ElectricalSeries",
-                          buffer_mb=500, **kwargs):
+def export_ecephys_to_nwb(
+    objects_to_write,
+    nwb_file_path=None,
+    nwbfile=None,
+    metadata=None,
+    use_times=False,
+    write_as="raw",
+    es_key="ElectricalSeries",
+    buffer_mb=500,
+    **kwargs,
+):
     """
     Writes one or multiple objects to NWB.
 
@@ -68,9 +77,7 @@ def export_ecephys_to_nwb(objects_to_write, nwb_file_path=None, nwbfile=None, me
         if writer_class is None:
             raise Exception(f"Could not write object of type {type(object_to_write)}")
         else:
-            writer = writer_class(
-                object_to_write, nwbfile=nwbfile, metadata=metadata, **kwargs
-            )
+            writer = writer_class(object_to_write, nwbfile=nwbfile, metadata=metadata, **kwargs)
             writer.write_to_nwb()
 
         # handle modes and overwrite
