@@ -53,7 +53,9 @@ def export_ecephys_to_nwb(
 
     if nwbfile is None:
         # instantiate
-        converter = NWBConverter({})
+        class TempNWBConverter(NWBConverter):
+            data_interface_classes = dict()
+        converter = TempNWBConverter({})
         nwbfile = converter.run_conversion(metadata=metadata, save_to_file=False)
 
     for object_to_write in objects_to_write:
