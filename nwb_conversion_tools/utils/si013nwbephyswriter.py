@@ -87,7 +87,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
         self.add_devices()
         self.add_electrode_groups()
         self.add_electrodes()
-        if self._conversion_ops['write_electrical_series']:
+        if self._conversion_ops["write_electrical_series"]:
             self.add_electrical_series()
             self.add_epochs()
 
@@ -377,14 +377,18 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
         """
         if self.nwbfile is not None:
             assert isinstance(self.nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile!"
-        assert self._conversion_ops["buffer_mb"] > 10, "'buffer_mb' should be at least 10MB to ensure data can be chunked!"
+        assert (
+            self._conversion_ops["buffer_mb"] > 10
+        ), "'buffer_mb' should be at least 10MB to ensure data can be chunked!"
 
         if not self.nwbfile.electrodes:
             self.add_electrodes()
 
         if self._conversion_ops["compression"] == "lzf" and self._conversion_ops["compression_opts"] is not None:
-            warn(f"compression_opts ({self._conversion_ops['compression_opts']})" \
-                                    "were passed, but compression type is 'lzf'! Ignoring options.")
+            warn(
+                f"compression_opts ({self._conversion_ops['compression_opts']})"
+                "were passed, but compression type is 'lzf'! Ignoring options."
+            )
             compression_opts = None
 
         if self._conversion_ops["write_as"] == "raw":
@@ -424,8 +428,9 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
 
         # If user passed metadata info, overwrite defaults
         if self.metadata is not None and "Ecephys" in self.metadata:
-            assert self._conversion_ops["es_key"] in self.metadata["Ecephys"],\
-                f"metadata['Ecephys'] dictionary does not contain key '{self._conversion_ops['es_key']}'"
+            assert (
+                self._conversion_ops["es_key"] in self.metadata["Ecephys"]
+            ), f"metadata['Ecephys'] dictionary does not contain key '{self._conversion_ops['es_key']}'"
             eseries_kwargs.update(self.metadata["Ecephys"][self._conversion_ops["es_key"]])
 
         # Check for existing names in nwbfile
@@ -484,11 +489,13 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
             warn("iteration was disabled, but not enough memory to load traces! Forcing iterate=True.")
             iterate = True
         if self._conversion_ops["iterate"]:
-            if isinstance(self.recording.get_traces(end_frame=5, return_scaled=self._conversion_ops["write_scaled"]), np.memmap) and np.all(
-                channel_offset == 0
-            ):
+            if isinstance(
+                self.recording.get_traces(end_frame=5, return_scaled=self._conversion_ops["write_scaled"]), np.memmap
+            ) and np.all(channel_offset == 0):
                 n_bytes = np.dtype(self.recording.get_dtype()).itemsize
-                buffer_size = int(self._conversion_ops["buffer_mb"] * 1e6) // (self.recording.get_num_channels() * n_bytes)
+                buffer_size = int(self._conversion_ops["buffer_mb"] * 1e6) // (
+                    self.recording.get_num_channels() * n_bytes
+                )
                 ephys_data = DataChunkIterator(
                     data=self.recording.get_traces(return_scaled=self._conversion_ops["write_scaled"]).T,
                     # nwb standard is time as zero axis
@@ -520,9 +527,13 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
         else:
             ephys_data = self.recording.get_traces(return_scaled=self._conversion_ops["write_scaled"]).T
 
-        eseries_kwargs.update(data=H5DataIO(ephys_data,
-                                            compression=self._conversion_ops["compression"],
-                                            compression_opts=self._conversion_ops["compression_opts"]))
+        eseries_kwargs.update(
+            data=H5DataIO(
+                ephys_data,
+                compression=self._conversion_ops["compression"],
+                compression_opts=self._conversion_ops["compression_opts"],
+            )
+        )
         if not self._conversion_ops["use_times"]:
             eseries_kwargs.update(
                 starting_time=float(self.recording.frame_to_time(0)),
@@ -562,8 +573,9 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
         if self._conversion_ops["property_descriptions"] is None:
             property_descriptions = dict(_default_sorting_property_descriptions)
         else:
-            property_descriptions = dict(_default_sorting_property_descriptions,
-                                         **self._conversion_ops["property_descriptions"])
+            property_descriptions = dict(
+                _default_sorting_property_descriptions, **self._conversion_ops["property_descriptions"]
+            )
 
         if self.nwbfile.units is None:
             # Check that array properties have the same shape across units

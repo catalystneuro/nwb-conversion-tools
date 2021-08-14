@@ -92,7 +92,7 @@ def default_export_ops():
         skip_unit_features=[],
         skip_electrode_properties=[],
         property_descriptions=dict(),
-        write_electrical_series=True
+        write_electrical_series=True,
     )
 
 
@@ -100,17 +100,17 @@ def default_export_ops_schema():
     schema = get_base_schema()
     schema["required"] = []
     schema["properties"] = dict(
-        use_times = dict(type="bool"),
-        write_as = dict(type="string",enum=["raw","lfp","processed"]),
+        use_times=dict(type="bool"),
+        write_as=dict(type="string", enum=["raw", "lfp", "processed"]),
         es_key=dict(type="string"),
-        buffer_mb=dict(type="number",minimum=10),
+        buffer_mb=dict(type="number", minimum=10),
         write_scaled=dict(type="bool"),
-        compression=dict(type="string",enum=["gzip","lzf"]),
-        compression_opts=dict(type="number",minimun=0,maximum=9),
+        compression=dict(type="string", enum=["gzip", "lzf"]),
+        compression_opts=dict(type="number", minimun=0, maximum=9),
         iterate=dict(type="bool"),
-        skip_unit_properties=dict(type="array",items=dict(type="string")),
+        skip_unit_properties=dict(type="array", items=dict(type="string")),
         skip_unit_features=dict(type="array", items=dict(type="string")),
         skip_electrode_properties=dict(type="array", items=dict(type="string")),
         property_descriptions=dict(type="object"),
-        write_electrical_series=dict(type="bool")
+        write_electrical_series=dict(type="bool"),
     )
