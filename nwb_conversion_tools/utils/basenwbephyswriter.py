@@ -62,7 +62,7 @@ class BaseNwbEphysWriter:
     def add_electrodes(self):
         raise NotImplementedError
 
-    def add_electrode_groups(self, channel_groups_unique:Iterable=None):
+    def add_electrode_groups(self, channel_groups_unique: Iterable = None):
         """
         Auxiliary method to write electrode groups.
 
