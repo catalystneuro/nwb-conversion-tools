@@ -2,6 +2,7 @@ import numpy as np
 import pynwb
 from typing import Union
 from pathlib import Path
+from .json_schema import get_base_schema
 
 PathType = Union[str, Path, None]
 ArrayType = Union[list, np.ndarray]
@@ -75,3 +76,41 @@ def check_module(nwbfile, name: str, description: str = None):
         if description is None:
             description = name
         return nwbfile.create_processing_module(name, description)
+
+
+def default_export_ops():
+    return dict(
+        use_times=False,
+        write_as="raw",
+        es_key="ElectricalSeries",
+        buffer_mb=500,
+        write_scaled=False,
+        compression="gzip",
+        compression_opts=4,
+        iterate=True,
+        skip_unit_properties=[],
+        skip_unit_features=[],
+        skip_electrode_properties=[],
+        property_descriptions=dict(),
+        write_electrical_series=True
+    )
+
+
+def default_export_ops_schema():
+    schema = get_base_schema()
+    schema["required"] = []
+    schema["properties"] = dict(
+        use_times = dict(type="bool"),
+        write_as = dict(type="string",enum=["raw","lfp","processed"]),
+        es_key=dict(type="string"),
+        buffer_mb=dict(type="number",minimum=10),
+        write_scaled=dict(type="bool"),
+        compression=dict(type="string",enum=["gzip","lzf"]),
+        compression_opts=dict(type="number",minimun=0,maximum=9),
+        iterate=dict(type="bool"),
+        skip_unit_properties=dict(type="array",items=dict(type="string")),
+        skip_unit_features=dict(type="array", items=dict(type="string")),
+        skip_electrode_properties=dict(type="array", items=dict(type="string")),
+        property_descriptions=dict(type="object"),
+        write_electrical_series=dict(type="bool")
+    )

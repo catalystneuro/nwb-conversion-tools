@@ -21,7 +21,7 @@ from .common_writer_tools import ArrayType, PathType, set_dynamic_table_property
 try:
     import spikeinterface as si
 
-    if StrictVersion(si.__version__) >= StrictVersion("0.90"):
+    if StrictVersion(si.__version__[:4]) >= StrictVersion("0.90"):
         HAVE_SI_090 = True
     else:
         HAVE_SI_090 = False

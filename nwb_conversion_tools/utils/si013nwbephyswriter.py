@@ -80,11 +80,6 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
             self.write_sorting()
 
     def write_recording(self):
-        if "write_electrical_series" in self._kwargs:
-            write_electrical_series = self._kwargs["write_electrical_series"]
-        else:
-            write_electrical_series = True
-
         assert (
             distutils.version.LooseVersion(pynwb.__version__) >= "1.3.3"
         ), "'write_recording' not supported for version < 1.3.3. Run pip install --upgrade pynwb"
@@ -92,7 +87,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
         self.add_devices()
         self.add_electrode_groups()
         self.add_electrodes()
-        if write_electrical_series:
+        if self._conversion_ops['write_electrical_series']:
             self.add_electrical_series()
             self.add_epochs()
 
@@ -213,7 +208,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                 property_names.add(i)
 
         # property 'brain_area' of RX channels corresponds to 'location' of NWB electrodes
-        exclude_names = set(["location", "group"] + list(self._exclude_properties))
+        exclude_names = set(["location", "group"] + list(self._conversion_ops["skip_electrode_properties"]))
 
         channel_property_defaults = {list: [], np.ndarray: np.array(np.nan), str: "", Real: np.nan}
         found_property_types = {prop: Real for prop in property_names}
@@ -380,74 +375,25 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
         Missing keys in an element of metadata['Ecephys']['ElectrodeGroup'] will be auto-populated with defaults
         whenever possible.
         """
-        if "buffer_mb" not in self._kwargs:
-            buffer_mb = 500
-        else:
-            buffer_mb = int(self._kwargs["buffer_mb"])
-        if "use_times" not in self._kwargs:
-            use_times = False
-        else:
-            use_times = bool(self._kwargs["use_times"])
-        if "write_as" not in self._kwargs:
-            write_as = "raw"
-        else:
-            write_as = self._kwargs["write_as"]
-        if "es_key" not in self._kwargs:
-            es_key = None
-        else:
-            es_key = self._kwargs["es_key"]
-        if "write_scaled" not in self._kwargs:
-            write_scaled = False
-        else:
-            write_scaled = bool(self._kwargs["write_scaled"])
-        if "compression" not in self._kwargs:
-            compression = "gzip"
-        else:
-            compression = self._kwargs["compression"]
-        if "compression_opts" not in self._kwargs:
-            compression_opts = None
-        else:
-            compression_opts = self._kwargs["compression_opts"]
-        if "iterate" not in self._kwargs:
-            iterate = True
-        else:
-            iterate = bool(self._kwargs["iterate"])
-
         if self.nwbfile is not None:
             assert isinstance(self.nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile!"
-        assert buffer_mb > 10, "'buffer_mb' should be at least 10MB to ensure data can be chunked!"
-        assert compression is None or compression in [
-            "gzip",
-            "lzf",
-        ], "Invalid compression type ({compression})! Choose one of 'gzip', 'lzf', or None."
+        assert self._conversion_ops["buffer_mb"] > 10, "'buffer_mb' should be at least 10MB to ensure data can be chunked!"
 
         if not self.nwbfile.electrodes:
             self.add_electrodes()
 
-        assert write_as in [
-            "raw",
-            "processed",
-            "lfp",
-        ], f"'write_as' should be 'raw', 'processed' or 'lfp', but instead received value {write_as}"
-
-        if compression == "gzip":
-            if compression_opts is None:
-                compression_opts = 4
-            else:
-                assert compression_opts in range(
-                    10
-                ), "compression type is 'gzip', but specified compression_opts is not an integer between 0 and 9!"
-        elif compression == "lzf" and compression_opts is not None:
-            warn(f"compression_opts ({compression_opts}) were passed, but compression type is 'lzf'! Ignoring options.")
+        if self._conversion_ops["compression"] == "lzf" and self._conversion_ops["compression_opts"] is not None:
+            warn(f"compression_opts ({self._conversion_ops['compression_opts']})" \
+                                    "were passed, but compression type is 'lzf'! Ignoring options.")
             compression_opts = None
 
-        if write_as == "raw":
+        if self._conversion_ops["write_as"] == "raw":
             eseries_kwargs = dict(
                 name="ElectricalSeries_raw",
                 description="Raw acquired data",
                 comments="Generated from SpikeInterface::NwbRecordingExtractor",
             )
-        elif write_as == "processed":
+        elif self._conversion_ops["write_as"] == "processed":
             eseries_kwargs = dict(
                 name="ElectricalSeries_processed",
                 description="Processed data",
@@ -461,7 +407,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
             )
             if "Processed" not in ecephys_mod.data_interfaces:
                 ecephys_mod.add(pynwb.ecephys.FilteredEphys(name="Processed"))
-        elif write_as == "lfp":
+        elif self._conversion_ops["write_as"] == "lfp":
             eseries_kwargs = dict(
                 name="ElectricalSeries_lfp",
                 description="Processed data - LFP",
@@ -477,21 +423,22 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                 ecephys_mod.add(pynwb.ecephys.LFP(name="LFP"))
 
         # If user passed metadata info, overwrite defaults
-        if self.metadata is not None and "Ecephys" in self.metadata and es_key is not None:
-            assert es_key in self.metadata["Ecephys"], f"metadata['Ecephys'] dictionary does not contain key '{es_key}'"
-            eseries_kwargs.update(self.metadata["Ecephys"][es_key])
+        if self.metadata is not None and "Ecephys" in self.metadata:
+            assert self._conversion_ops["es_key"] in self.metadata["Ecephys"],\
+                f"metadata['Ecephys'] dictionary does not contain key '{self._conversion_ops['es_key']}'"
+            eseries_kwargs.update(self.metadata["Ecephys"][self._conversion_ops["es_key"]])
 
         # Check for existing names in nwbfile
-        if write_as == "raw":
+        if self._conversion_ops["write_as"] == "raw":
             assert (
                 eseries_kwargs["name"] not in self.nwbfile.acquisition
             ), f"Raw ElectricalSeries '{eseries_kwargs['name']}' is already written in the NWBFile!"
-        elif write_as == "processed":
+        elif self._conversion_ops["write_as"] == "processed":
             assert (
                 eseries_kwargs["name"]
                 not in self.nwbfile.processing["ecephys"].data_interfaces["Processed"].electrical_series
             ), f"Processed ElectricalSeries '{eseries_kwargs['name']}' is already written in the NWBFile!"
-        elif write_as == "lfp":
+        elif self._conversion_ops["write_as"] == "lfp":
             assert (
                 eseries_kwargs["name"]
                 not in self.nwbfile.processing["ecephys"].data_interfaces["LFP"].electrical_series
@@ -522,7 +469,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                 "type that does not use offsets."
             )
             unsigned_coercion = unsigned_coercion.astype(int)
-        if write_scaled:
+        if self._conversion_ops["write_scaled"]:
             eseries_kwargs.update(conversion=1e-6)
         else:
             if len(np.unique(channel_conversion)) == 1:  # if all gains are equal
@@ -533,17 +480,17 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
 
         trace_dtype = self.recording.get_traces(channel_ids=channel_ids[:1], end_frame=1).dtype
         estimated_memory = trace_dtype.itemsize * self.recording.get_num_channels() * self.recording.get_num_frames()
-        if not iterate and psutil.virtual_memory().available <= estimated_memory:
+        if not self._conversion_ops["iterate"] and psutil.virtual_memory().available <= estimated_memory:
             warn("iteration was disabled, but not enough memory to load traces! Forcing iterate=True.")
             iterate = True
-        if iterate:
-            if isinstance(self.recording.get_traces(end_frame=5, return_scaled=write_scaled), np.memmap) and np.all(
+        if self._conversion_ops["iterate"]:
+            if isinstance(self.recording.get_traces(end_frame=5, return_scaled=self._conversion_ops["write_scaled"]), np.memmap) and np.all(
                 channel_offset == 0
             ):
                 n_bytes = np.dtype(self.recording.get_dtype()).itemsize
-                buffer_size = int(buffer_mb * 1e6) // (self.recording.get_num_channels() * n_bytes)
+                buffer_size = int(self._conversion_ops["buffer_mb"] * 1e6) // (self.recording.get_num_channels() * n_bytes)
                 ephys_data = DataChunkIterator(
-                    data=self.recording.get_traces(return_scaled=write_scaled).T,
+                    data=self.recording.get_traces(return_scaled=self._conversion_ops["write_scaled"]).T,
                     # nwb standard is time as zero axis
                     buffer_size=buffer_size,
                 )
@@ -565,16 +512,18 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                         recording=self.recording,
                         channels_ids=channel_ids,
                         unsigned_coercion=unsigned_coercion,
-                        write_scaled=write_scaled,
+                        write_scaled=self._conversion_ops["write_scaled"],
                     ),
                     iter_axis=1,  # nwb standard is time as zero axis
                     maxshape=(self.recording.get_num_frames(), self.recording.get_num_channels()),
                 )
         else:
-            ephys_data = self.recording.get_traces(return_scaled=write_scaled).T
+            ephys_data = self.recording.get_traces(return_scaled=self._conversion_ops["write_scaled"]).T
 
-        eseries_kwargs.update(data=H5DataIO(ephys_data, compression=compression, compression_opts=compression_opts))
-        if not use_times:
+        eseries_kwargs.update(data=H5DataIO(ephys_data,
+                                            compression=self._conversion_ops["compression"],
+                                            compression_opts=self._conversion_ops["compression_opts"]))
+        if not self._conversion_ops["use_times"]:
             eseries_kwargs.update(
                 starting_time=float(self.recording.frame_to_time(0)),
                 rate=float(self.recording.get_sampling_frequency()),
@@ -583,40 +532,22 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
             eseries_kwargs.update(
                 timestamps=H5DataIO(
                     self.recording.frame_to_time(np.arange(self.recording.get_num_frames())),
-                    compression=compression,
-                    compression_opts=compression_opts,
+                    compression=self._conversion_ops["compression"],
+                    compression_opts=self._conversion_ops["compression_opts"],
                 )
             )
 
         # Add ElectricalSeries to nwbfile object
         es = pynwb.ecephys.ElectricalSeries(**eseries_kwargs)
-        if write_as == "raw":
+        if self._conversion_ops["write_as"] == "raw":
             self.nwbfile.add_acquisition(es)
-        elif write_as == "processed":
+        elif self._conversion_ops["write_as"] == "processed":
             ecephys_mod.data_interfaces["Processed"].add_electrical_series(es)
-        elif write_as == "lfp":
+        elif self._conversion_ops["write_as"] == "lfp":
             ecephys_mod.data_interfaces["LFP"].add_electrical_series(es)
 
     def add_units(self):
         """Auxilliary function for write_sorting."""
-
-        if "property_descriptions" not in self._kwargs:
-            property_descriptions = None
-        else:
-            property_descriptions = self._kwargs["property_descriptions"]
-        if "use_times" not in self._kwargs:
-            use_times = False
-        else:
-            use_times = bool(self._kwargs["use_times"])
-        if "skip_properties" not in self._kwargs:
-            skip_properties = None
-        else:
-            skip_properties = self._kwargs["skip_properties"]
-        if "skip_features" not in self._kwargs:
-            skip_features = None
-        else:
-            skip_features = self._kwargs["skip_features"]
-
         unit_ids = self.sorting.get_unit_ids()
         fs = self.sorting.get_sampling_frequency()
         if fs is None:
@@ -628,14 +559,11 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
             all_properties.update(self.sorting.get_unit_property_names(unit_id))
             all_features.update(self.sorting.get_unit_spike_feature_names(unit_id))
 
-        if property_descriptions is None:
+        if self._conversion_ops["property_descriptions"] is None:
             property_descriptions = dict(_default_sorting_property_descriptions)
         else:
-            property_descriptions = dict(_default_sorting_property_descriptions, **property_descriptions)
-        if skip_properties is None:
-            skip_properties = []
-        if skip_features is None:
-            skip_features = []
+            property_descriptions = dict(_default_sorting_property_descriptions,
+                                         **self._conversion_ops["property_descriptions"])
 
         if self.nwbfile.units is None:
             # Check that array properties have the same shape across units
@@ -654,7 +582,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                                 shapes.append(np.array(prop_value).shape)
                         elif isinstance(prop_value, dict):
                             print(f"Skipping property '{pr}' because dictionaries are not supported.")
-                            skip_properties.append(pr)
+                            self._conversion_ops["skip_unit_properties"].append(pr)
                             break
                     else:
                         shapes.append(np.nan)
@@ -664,9 +592,9 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                 elems = [elem for elem in property_shapes[pr] if not np.any(np.isnan(elem))]
                 if not np.all([elem == elems[0] for elem in elems]):
                     print(f"Skipping property '{pr}' because it has variable size across units.")
-                    skip_properties.append(pr)
+                    self._conversion_ops["skip_unit_properties"].append(pr)
 
-            write_properties = set(all_properties) - set(skip_properties)
+            write_properties = set(all_properties) - set(self._conversion_ops["skip_unit_properties"])
             for pr in write_properties:
                 if pr not in property_descriptions:
                     warnings.warn(
@@ -682,7 +610,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
 
             for unit_id in unit_ids:
                 unit_kwargs = dict()
-                if use_times:
+                if self._conversion_ops["use_times"]:
                     spkt = self.sorting.frame_to_time(self.sorting.get_unit_spike_train(unit_id=unit_id))
                 else:
                     spkt = self.sorting.get_unit_spike_train(unit_id=unit_id) / self.sorting.get_sampling_frequency()
@@ -709,11 +637,11 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                                 feature_shapes[ft] = shapes
                         elif isinstance(feat_value[0], dict):
                             print(f"Skipping feature '{ft}' because dictionaries are not supported.")
-                            skip_features.append(ft)
+                            self._conversion_ops["skip_unit_features"].append(ft)
                             break
                     else:
                         print(f"Skipping feature '{ft}' because not share across all units.")
-                        skip_features.append(ft)
+                        self._conversion_ops["skip_unit_features"].append(ft)
                         break
 
             nspikes = {k: get_num_spikes(self.nwbfile.units, int(k)) for k in unit_ids}
@@ -722,16 +650,16 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                 # skip first dimension (num_spikes) when comparing feature shape
                 if not np.all([elem[1:] == feature_shapes[ft][0][1:] for elem in feature_shapes[ft]]):
                     print(f"Skipping feature '{ft}' because it has variable size across units.")
-                    skip_features.append(ft)
+                    self._conversion_ops["skip_unit_features"].append(ft)
 
-            for ft in set(all_features) - set(skip_features):
+            for ft in set(all_features) - set(self._conversion_ops["skip_unit_features"]):
                 values = []
                 if not ft.endswith("_idxs"):
                     for unit_id in self.sorting.get_unit_ids():
                         feat_vals = self.sorting.get_unit_spike_features(unit_id, ft)
 
                         if len(feat_vals) < nspikes[unit_id]:
-                            skip_features.append(ft)
+                            self._conversion_ops["skip_unit_features"].append(ft)
                             print(f"Skipping feature '{ft}' because it is not defined for all spikes.")
                             break
                             # this means features are available for a subset of spikes

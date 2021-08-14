@@ -6,7 +6,7 @@ from copy import deepcopy
 import warnings
 from .json_schema import dict_deep_update
 from collections import Iterable
-
+from .common_writer_tools import default_export_ops
 
 class BaseNwbEphysWriter:
     def __init__(self, object_to_write, nwbfile=None, metadata=None, **kwargs):
@@ -14,11 +14,7 @@ class BaseNwbEphysWriter:
         assert nwbfile is not None and isinstance(nwbfile, pynwb.NWBFile), "Instantiate an NWBFile and pass as argument"
         self.metadata = metadata if metadata is not None else dict()
         self.nwbfile = nwbfile
-        self._kwargs = kwargs
-
-    @staticmethod
-    def get_kwargs_description(self):
-        raise NotImplementedError
+        self._conversion_ops = dict(**default_export_ops(),**kwargs)
 
     def add_to_nwb(self):
         raise NotImplementedError

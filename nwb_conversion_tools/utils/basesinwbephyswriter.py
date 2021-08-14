@@ -27,16 +27,6 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter):
         metadata: dict = None,
         **kwargs,
     ):
-        # exclude properties
-        if "exclude_properties" in kwargs:
-            self._exclude_properties = kwargs["exclude_properties"]
-        else:
-            self._exclude_properties = []
-        if "exclude_features" in kwargs:
-            self._exclude_features = kwargs["exclude_features"]
-        else:
-            self._exclude_features = []
-
         self.recording, self.sorting, self.waveforms, self.event = None, None, None, None
         BaseNwbEphysWriter.__init__(self, object_to_write, nwbfile=nwbfile, metadata=metadata, **kwargs)
 
