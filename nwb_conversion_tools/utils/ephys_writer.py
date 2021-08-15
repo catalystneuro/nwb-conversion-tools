@@ -7,7 +7,7 @@ from jsonschema import validate
 from .si013nwbephyswriter import SI013NwbEphysWriter
 from .si090nwbephyswriter import SI090NwbEphysWriter
 from .neonwbephyswriter import NEONwbEphysWriter
-from .. import NWBConverter
+from nwb_conversion_tools.nwbconverter import NWBConverter
 from .common_writer_tools import default_export_ops, default_export_ops_schema
 
 
