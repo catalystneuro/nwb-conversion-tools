@@ -9,7 +9,7 @@ from warnings import warn
 import psutil
 from collections import defaultdict
 from copy import deepcopy
-
+from abc import ABC
 import pynwb
 from numbers import Real
 from hdmf.data_utils import DataChunkIterator
@@ -19,7 +19,7 @@ from .basenwbephyswriter import BaseNwbEphysWriter
 from .common_writer_tools import ArrayType, PathType, set_dynamic_table_property, check_module, list_get
 
 
-class BaseSINwbEphysWriter(BaseNwbEphysWriter):
+class BaseSINwbEphysWriter(BaseNwbEphysWriter,ABC):
     def __init__(
         self,
         object_to_write,
@@ -30,10 +30,19 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter):
         self.recording, self.sorting, self.waveforms, self.event = None, None, None, None
         BaseNwbEphysWriter.__init__(self, object_to_write, nwbfile=nwbfile, metadata=metadata, **kwargs)
 
-    def add_electrode_groups(self, channel_groups_unique=None):
+    def add_electrode_groups(self):
         channel_groups = self.recording.get_channel_groups()
         if channel_groups is None:
             channel_groups_unique = np.array([0], dtype="int")
         else:
             channel_groups_unique = np.unique(channel_groups)
-        super(BaseNwbEphysWriter).add_electrode_groups(channel_groups_unique=channel_groups_unique)
+        super(BaseNwbEphysWriter)._add_electrode_groups(channel_groups_unique=channel_groups_unique)
+
+    def _get_sampling_frequency(self):
+        return self.recording.get_sampling_frequency()
+
+    def _get_num_frames(self):
+        return self.recording.get_num_frames()
+
+    def _get_channel_ids(self):
+        return self.recording.get_channel_ids()

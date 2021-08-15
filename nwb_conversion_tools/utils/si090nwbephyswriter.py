@@ -43,12 +43,12 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
     """
 
     def __init__(
-        self,
-        object_to_write: Union[si.BaseRecording, si.BaseSorting, si.BaseEvent, si.WaveformExtractor],
-        nwb_file_path: PathType = None,
-        nwbfile: pynwb.NWBFile = None,
-        metadata: dict = None,
-        **kwargs,
+            self,
+            object_to_write: Union[si.BaseRecording, si.BaseSorting, si.BaseEvent, si.WaveformExtractor],
+            nwb_file_path: PathType = None,
+            nwbfile: pynwb.NWBFile = None,
+            metadata: dict = None,
+            **kwargs,
     ):
         assert HAVE_SI_090
         BaseSINwbEphysWriter.__init__(
@@ -60,43 +60,67 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
         assert HAVE_SI_090
         return (si.BaseRecording, si.BaseSorting, si.BaseEvent, si.WaveformExtractor)
 
-    def write_to_nwb(self):
+    def add_to_nwb(self):
         if isinstance(self.object_to_write, si.BaseRecording):
             self.recording = self.object_to_write
-            self.write_recording()
+            self.add_recording()
         elif isinstance(self.object_to_write, si.BaseRecording):
             self.sorting = self.object_to_write
-            self.write_sorting()
+            self.add_sorting()
         elif isinstance(self.object_to_write, si.BaseEvent):
             self.event = self.object_to_write
-            self.write_epochs()
+            self.add_epochs()
         elif isinstance(self.object_to_write, si.WaveformExtractor):
             self.recording = self.object_to_write.recording
             self.sorting = self.object_to_write.sorting
             self.waveforms = self.object_to_write
-            self.write_recording()
-            self.write_sorting()
-            self.write_waveforms()
+            self.add_recording()
+            self.add_sorting()
+            self.add_waveforms()
 
-    def write_recording(self):
+    def _get_traces(self, channel_ids=None, start_frame=None, end_frame=None, return_scaled=True):
+        return self.recording.get_traces(channel_ids=None, start_frame=None, end_frame=None, return_scaled=True).T
+
+    def _get_channel_property_names(self, chan_id):
+        return self.recording.get_property_keys()
+
+    def _get_channel_property_values(self, prop, chan_id):
+        if prop == 'location':
+            try:
+                return self.recording.get_channel_locations(channel_ids=chan_id)
+            except:
+                return np.nan*np.ones(len(self._get_channel_ids()), 2)
+        elif prop == 'gain':
+            if self.recording.get_channel_gains(channel_ids=chan_id) is None:
+                return np.ones(len(self._get_channel_ids()))
+            else:
+                return self.recording.get_channel_gains(channel_ids=chan_id)
+        elif prop == 'offset':
+            if self.recording.get_channel_offsets(channel_ids=chan_id) is None:
+                return np.zeros(len(self._get_channel_ids()))
+            else:
+                return self.recording.get_channel_offsets(channel_ids=chan_id)
+        elif prop == 'group':
+            if self.recording.get_channel_groups(channel_ids=chan_id) is None:
+                return np.zeros(len(self._get_channel_ids()))
+            else:
+                return self.recording.get_channel_groups(channel_ids=chan_id)
+        self.recording.get_property(prop, ids=chan_id)
+
+    def _get_times(self):
+        return np.range(0, self._get_num_frames()*self._get_sampling_frequency(),
+                        self._get_sampling_frequency())
+
+    def add_recording(self):
         raise NotImplementedError
 
-    def write_sorting(self):
+    def add_sorting(self):
         raise NotImplementedError
 
-    def write_epochs(self):
+    def add_epochs(self):
         raise NotImplementedError
 
-    def write_waveforms(self):
-        raise NotImplementedError
-
-    def get_nwb_metadata(self):
-        raise NotImplementedError
-
-    def add_electrodes(self):
-        raise NotImplementedError
-
-    def add_electrical_series(self):
+    def add_waveforms(self):
         raise NotImplementedError
 
     def add_units(self):
