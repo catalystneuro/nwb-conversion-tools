@@ -121,20 +121,19 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
         return self.recording.get_channel_property_names(channel_id=chan_id)
 
     def _get_channel_property_values(self, prop, chan_id):
-        if prop=='location':
+        if prop == "location":
             return self.recording.get_channel_locations(channel_ids=chan_id)
-        elif prop=='gain':
+        elif prop == "gain":
             return self.recording.get_channel_gains(channel_ids=chan_id)
-        elif prop=='offset':
+        elif prop == "offset":
             return self.recording.get_channel_offsets(channel_ids=chan_id)
-        elif prop=='group':
+        elif prop == "group":
             return self.recording.get_channel_groups(channel_ids=chan_id)
         return self.recording.get_channel_property(channel_id=chan_id, property_name=prop)
 
     def _get_times(self):
         if self.recording._times is None:
-            return np.range(0,self._get_num_frames()*self._get_sampling_frequency(),
-                            self._get_sampling_frequency())
+            return np.range(0, self._get_num_frames() * self._get_sampling_frequency(), self._get_sampling_frequency())
         return self.recording._times
 
     def add_units(self):

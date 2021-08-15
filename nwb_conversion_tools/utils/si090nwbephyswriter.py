@@ -43,12 +43,12 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
     """
 
     def __init__(
-            self,
-            object_to_write: Union[si.BaseRecording, si.BaseSorting, si.BaseEvent, si.WaveformExtractor],
-            nwb_file_path: PathType = None,
-            nwbfile: pynwb.NWBFile = None,
-            metadata: dict = None,
-            **kwargs,
+        self,
+        object_to_write: Union[si.BaseRecording, si.BaseSorting, si.BaseEvent, si.WaveformExtractor],
+        nwb_file_path: PathType = None,
+        nwbfile: pynwb.NWBFile = None,
+        metadata: dict = None,
+        **kwargs,
     ):
         assert HAVE_SI_090
         BaseSINwbEphysWriter.__init__(
@@ -85,22 +85,22 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
         return self.recording.get_property_keys()
 
     def _get_channel_property_values(self, prop, chan_id):
-        if prop == 'location':
+        if prop == "location":
             try:
                 return self.recording.get_channel_locations(channel_ids=chan_id)
             except:
-                return np.nan*np.ones(len(self._get_channel_ids()), 2)
-        elif prop == 'gain':
+                return np.nan * np.ones(len(self._get_channel_ids()), 2)
+        elif prop == "gain":
             if self.recording.get_channel_gains(channel_ids=chan_id) is None:
                 return np.ones(len(self._get_channel_ids()))
             else:
                 return self.recording.get_channel_gains(channel_ids=chan_id)
-        elif prop == 'offset':
+        elif prop == "offset":
             if self.recording.get_channel_offsets(channel_ids=chan_id) is None:
                 return np.zeros(len(self._get_channel_ids()))
             else:
                 return self.recording.get_channel_offsets(channel_ids=chan_id)
-        elif prop == 'group':
+        elif prop == "group":
             if self.recording.get_channel_groups(channel_ids=chan_id) is None:
                 return np.zeros(len(self._get_channel_ids()))
             else:
@@ -108,8 +108,7 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
         self.recording.get_property(prop, ids=chan_id)
 
     def _get_times(self):
-        return np.range(0, self._get_num_frames()*self._get_sampling_frequency(),
-                        self._get_sampling_frequency())
+        return np.range(0, self._get_num_frames() * self._get_sampling_frequency(), self._get_sampling_frequency())
 
     def add_recording(self):
         raise NotImplementedError

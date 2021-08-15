@@ -58,7 +58,7 @@ class BaseNwbEphysWriter(ABC):
 
     def add_recording(self):
         assert (
-                distutils.version.LooseVersion(pynwb.__version__) >= "1.3.3"
+            distutils.version.LooseVersion(pynwb.__version__) >= "1.3.3"
         ), "'write_recording' not supported for version < 1.3.3. Run pip install --upgrade pynwb"
 
         self.add_devices()
@@ -262,7 +262,7 @@ class BaseNwbEphysWriter(ABC):
                 for chan_id in self._get_channel_ids():
                     if prop in self._get_channel_property_names(chan_id):
                         prop_chan_count += 1
-                        chan_data = self._get_channel_property_values(prop,chan_id)
+                        chan_data = self._get_channel_property_values(prop, chan_id)
                         # find the type and store (only when the first channel with given property is found):
                         if prop_chan_count == 1:
                             proptype = [
@@ -275,7 +275,7 @@ class BaseNwbEphysWriter(ABC):
                                     chan_data = np.float(chan_data)
                                 # update data if wrong datatype items filled prior:
                                 if len(data) > 0 and not isinstance(data[-1], found_property_types[prop]):
-                                    data = [channel_property_defaults[found_property_types[prop]]]*len(data)
+                                    data = [channel_property_defaults[found_property_types[prop]]] * len(data)
                             else:
                                 prop_skip = True  # skip storing that property if not of default type
                                 break
@@ -315,7 +315,7 @@ class BaseNwbEphysWriter(ABC):
                     )
                 else:
                     # build default junk values for data to force add columns later:
-                    combine_data = [channel_property_defaults[found_property_types[name]]]*len(
+                    combine_data = [channel_property_defaults[found_property_types[name]]] * len(
                         self.nwbfile.electrodes.id
                     )
                     des_args["data"] = combine_data + des_args["data"]
@@ -330,7 +330,7 @@ class BaseNwbEphysWriter(ABC):
                 electrode_kwargs.update(id=channel_id)
 
                 # self.recording.get_channel_locations defaults to np.nan if there are none
-                location = self._get_channel_property_values('location', channel_id)
+                location = self._get_channel_property_values("location", channel_id)
                 if all([not np.isnan(loc) for loc in location]):
                     # property 'location' of RX channels corresponds to rel_x and rel_ y of NWB electrodes
                     electrode_kwargs.update(dict(rel_x=float(location[0]), rel_y=float(location[1])))
@@ -360,7 +360,7 @@ class BaseNwbEphysWriter(ABC):
                         electrode_kwargs[name] = desc["data"][j]
 
                 if "group_name" not in elec_columns:
-                    group_id = self._get_channel_property_values('group',channel_id)[0]
+                    group_id = self._get_channel_property_values("group", channel_id)[0]
                     electrode_kwargs.update(
                         dict(group=self.nwbfile.electrode_groups[str(group_id)], group_name=str(group_id))
                     )
@@ -370,7 +370,7 @@ class BaseNwbEphysWriter(ABC):
         for col_name, cols_args in elec_columns_append.items():
             self.nwbfile.add_electrode_column(col_name, **cols_args)
         assert (
-                self.nwbfile.electrodes is not None
+            self.nwbfile.electrodes is not None
         ), "Unable to form electrode table! Check device, electrode group, and electrode metadata."
 
     def add_electrical_series(self):
@@ -418,7 +418,7 @@ class BaseNwbEphysWriter(ABC):
         if self.nwbfile is not None:
             assert isinstance(self.nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile!"
         assert (
-                self._conversion_ops["buffer_mb"] > 10
+            self._conversion_ops["buffer_mb"] > 10
         ), "'buffer_mb' should be at least 10MB to ensure data can be chunked!"
 
         if not self.nwbfile.electrodes:
@@ -469,24 +469,24 @@ class BaseNwbEphysWriter(ABC):
         # If user passed metadata info, overwrite defaults
         if self.metadata is not None and "Ecephys" in self.metadata:
             assert (
-                    self._conversion_ops["es_key"] in self.metadata["Ecephys"]
+                self._conversion_ops["es_key"] in self.metadata["Ecephys"]
             ), f"metadata['Ecephys'] dictionary does not contain key '{self._conversion_ops['es_key']}'"
             eseries_kwargs.update(self.metadata["Ecephys"][self._conversion_ops["es_key"]])
 
         # Check for existing names in nwbfile
         if self._conversion_ops["write_as"] == "raw":
             assert (
-                    eseries_kwargs["name"] not in self.nwbfile.acquisition
+                eseries_kwargs["name"] not in self.nwbfile.acquisition
             ), f"Raw ElectricalSeries '{eseries_kwargs['name']}' is already written in the NWBFile!"
         elif self._conversion_ops["write_as"] == "processed":
             assert (
-                    eseries_kwargs["name"]
-                    not in self.nwbfile.processing["ecephys"].data_interfaces["Processed"].electrical_series
+                eseries_kwargs["name"]
+                not in self.nwbfile.processing["ecephys"].data_interfaces["Processed"].electrical_series
             ), f"Processed ElectricalSeries '{eseries_kwargs['name']}' is already written in the NWBFile!"
         elif self._conversion_ops["write_as"] == "lfp":
             assert (
-                    eseries_kwargs["name"]
-                    not in self.nwbfile.processing["ecephys"].data_interfaces["LFP"].electrical_series
+                eseries_kwargs["name"]
+                not in self.nwbfile.processing["ecephys"].data_interfaces["LFP"].electrical_series
             ), f"LFP ElectricalSeries '{eseries_kwargs['name']}' is already written in the NWBFile!"
 
         # Electrodes table region
@@ -500,9 +500,9 @@ class BaseNwbEphysWriter(ABC):
         # channels gains - for RecordingExtractor, these are values to cast traces to uV.
         # For nwb, the conversions (gains) cast the data to Volts.
         # To get traces in Volts we take data*channel_conversion*conversion.
-        channel_conversion = self._get_channel_property_values('gain',channel_ids)
-        channel_offset = self._get_channel_property_values('offset',channel_ids)
-        unsigned_coercion = channel_offset/channel_conversion
+        channel_conversion = self._get_channel_property_values("gain", channel_ids)
+        channel_offset = self._get_channel_property_values("offset", channel_ids)
+        unsigned_coercion = channel_offset / channel_conversion
         if not np.all([x.is_integer() for x in unsigned_coercion]):
             raise NotImplementedError(
                 "Unable to coerce underlying unsigned data type to signed type, which is currently required for NWB "
@@ -518,27 +518,22 @@ class BaseNwbEphysWriter(ABC):
             eseries_kwargs.update(conversion=1e-6)
         else:
             if len(np.unique(channel_conversion)) == 1:  # if all gains are equal
-                eseries_kwargs.update(conversion=channel_conversion[0]*1e-6)
+                eseries_kwargs.update(conversion=channel_conversion[0] * 1e-6)
             else:
                 eseries_kwargs.update(conversion=1e-6)
                 eseries_kwargs.update(channel_conversion=channel_conversion)
 
         trace_dtype = self._get_traces(channel_ids=channel_ids[:1], end_frame=1).dtype
-        estimated_memory = trace_dtype.itemsize*\
-                           len(self._get_channel_ids())*\
-                           self._get_num_frames()
+        estimated_memory = trace_dtype.itemsize * len(self._get_channel_ids()) * self._get_num_frames()
         if not self._conversion_ops["iterate"] and psutil.virtual_memory().available <= estimated_memory:
             warn("iteration was disabled, but not enough memory to load traces! Forcing iterate=True.")
             iterate = True
         if self._conversion_ops["iterate"]:
             if isinstance(
-                    self._get_traces(end_frame=5, return_scaled=self._conversion_ops["write_scaled"]),
-                    np.memmap
+                self._get_traces(end_frame=5, return_scaled=self._conversion_ops["write_scaled"]), np.memmap
             ) and np.all(channel_offset == 0):
                 n_bytes = np.dtype(self.recording.get_dtype()).itemsize
-                buffer_size = int(self._conversion_ops["buffer_mb"]*1e6)//(
-                        len(self._get_channel_ids())*n_bytes
-                )
+                buffer_size = int(self._conversion_ops["buffer_mb"] * 1e6) // (len(self._get_channel_ids()) * n_bytes)
                 ephys_data = DataChunkIterator(
                     data=self._get_traces(return_scaled=self._conversion_ops["write_scaled"]).T,
                     # nwb standard is time as zero axis

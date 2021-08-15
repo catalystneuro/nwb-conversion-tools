@@ -19,7 +19,7 @@ from .basenwbephyswriter import BaseNwbEphysWriter
 from .common_writer_tools import ArrayType, PathType, set_dynamic_table_property, check_module, list_get
 
 
-class BaseSINwbEphysWriter(BaseNwbEphysWriter,ABC):
+class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
     def __init__(
         self,
         object_to_write,
