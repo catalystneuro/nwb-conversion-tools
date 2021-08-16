@@ -841,6 +841,7 @@ def check_module(nwbfile, name: str, description: str = None):
             description = name
         return nwbfile.create_processing_module(name, description)
 
+
 def get_num_spikes(units_table, unit_id):
     """Return the number of spikes for chosen unit."""
     ids = np.array(units_table.id[:])

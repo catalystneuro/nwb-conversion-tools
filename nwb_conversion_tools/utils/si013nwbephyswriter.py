@@ -91,7 +91,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
         return self.sorting.get_unit_spike_feature_names(unit_id)
 
     def _get_unit_feature_values(self, prop, unit_id):
-        return self.sorting.get_unit_spike_features(unit_id,prop)
+        return self.sorting.get_unit_spike_features(unit_id, prop)
 
     def _get_unit_spike_train_times(self, unit_id):
         return self.sorting.frame_to_time(self.sorting.get_unit_spike_train(unit_id=unit_id))
@@ -132,4 +132,3 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                         stop_time=self.recording.frame_to_time(epoch["end_frame"]),
                         tags=epoch_name,
                     )
-

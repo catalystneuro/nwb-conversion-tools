@@ -54,4 +54,4 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
         return self.sorting.get_unit_ids()
 
     def _get_unit_spike_train_ids(self, unit_id, start_frame=None, end_frame=None):
-        return self.sorting.get_unit_spike_train(unit_id,start_frame=start_frame,end_frame=end_frame)
+        return self.sorting.get_unit_spike_train(unit_id, start_frame=start_frame, end_frame=end_frame)

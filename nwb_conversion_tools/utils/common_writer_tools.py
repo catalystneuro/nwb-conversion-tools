@@ -115,6 +115,7 @@ def default_export_ops_schema():
         write_electrical_series=dict(type="bool"),
     )
 
+
 _default_sorting_property_descriptions = dict(
     isi_violation="Quality metric that measures the ISI violation ratio as a proxy for the purity of the unit.",
     firing_rate="Number of spikes per unit of time.",
