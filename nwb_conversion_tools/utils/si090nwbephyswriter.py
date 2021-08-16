@@ -110,19 +110,25 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
     def _get_times(self):
         return np.range(0, self._get_num_frames() * self._get_sampling_frequency(), self._get_sampling_frequency())
 
-    def add_recording(self):
-        raise NotImplementedError
+    def _get_unit_feature_names(self, unit_id):
+        return []
 
-    def add_sorting(self):
-        raise NotImplementedError
+    def _get_unit_feature_values(self, prop, unit_id):
+        return
+
+    def _get_unit_spike_train_times(self, unit_id):
+        return self._get_unit_spike_train_ids(unit_id) / self._get_unit_sampling_frequency()
+
+    def _get_unit_property_names(self, unit_id):
+        return list(self.sorting._properties.keys())
+
+    def _get_unit_property_values(self, prop, unit_id):
+        return self.sorting.get_unit_property(unit_id, prop)
 
     def add_epochs(self):
         raise NotImplementedError
 
     def add_waveforms(self):
-        raise NotImplementedError
-
-    def add_units(self):
         raise NotImplementedError
 
     def add_epochs(self):

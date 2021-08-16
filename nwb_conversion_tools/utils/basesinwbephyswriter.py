@@ -46,3 +46,12 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
 
     def _get_channel_ids(self):
         return self.recording.get_channel_ids()
+
+    def _get_unit_sampling_frequency(self):
+        return self.sorting.get_sampling_frequency()
+
+    def _get_unit_ids(self):
+        return self.sorting.get_unit_ids()
+
+    def _get_unit_spike_train_ids(self, unit_id, start_frame=None, end_frame=None):
+        return self.sorting.get_unit_spike_train(unit_id,start_frame=start_frame,end_frame=end_frame)

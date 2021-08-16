@@ -8,7 +8,7 @@ import warnings
 import distutils.version
 from .json_schema import dict_deep_update
 from collections import Iterable, defaultdict
-from .common_writer_tools import default_export_ops, ArrayType
+from .common_writer_tools import default_export_ops, ArrayType, _default_sorting_property_descriptions
 from abc import ABC, abstractmethod
 import psutil
 from warnings import warn
@@ -41,6 +41,38 @@ class BaseNwbEphysWriter(ABC):
         pass
 
     @abstractmethod
+    def _get_unit_ids(self):
+        pass
+
+    @abstractmethod
+    def _get_unit_sampling_frequency(self):
+        pass
+
+    @abstractmethod
+    def _get_unit_property_names(self, unit_id):
+        pass
+
+    @abstractmethod
+    def _get_unit_property_values(self, prop, unit_id):
+        pass
+
+    @abstractmethod
+    def _get_unit_feature_names(self, unit_id):
+        pass
+
+    @abstractmethod
+    def _get_unit_feature_values(self, prop, unit_id):
+        pass
+
+    @abstractmethod
+    def _get_unit_spike_train_ids(self, unit_id):
+        pass
+
+    @abstractmethod
+    def _get_unit_spike_train_times(self, unit_id):
+        pass
+
+    @abstractmethod
     def _get_sampling_frequency(self):
         pass
 
@@ -68,9 +100,8 @@ class BaseNwbEphysWriter(ABC):
             self.add_electrical_series()
             self.add_epochs()
 
-    @abstractmethod
     def add_sorting(self):
-        pass
+        self.add_units()
 
     @abstractmethod
     def add_epochs(self):
@@ -595,9 +626,146 @@ class BaseNwbEphysWriter(ABC):
         elif self._conversion_ops["write_as"] == "lfp":
             ecephys_mod.data_interfaces["LFP"].add_electrical_series(es)
 
-    @abstractmethod
     def add_units(self):
-        pass
+        """Auxilliary function for add_sorting."""
+        unit_ids = self._get_unit_ids()
+        fs = self._get_unit_sampling_frequency()
+        if fs is None:
+            raise ValueError("Writing a SortingExtractor to an NWBFile requires a known sampling frequency!")
+
+        all_properties = set()
+        all_features = set()
+        for unit_id in unit_ids:
+            all_properties.update(self._get_unit_property_names(unit_id))
+            all_features.update(self._get_unit_feature_names(unit_id))
+
+        if self._conversion_ops["unit_property_descriptions"] is None:
+            property_descriptions = dict(_default_sorting_property_descriptions)
+        else:
+            property_descriptions = dict(
+                _default_sorting_property_descriptions, **self._conversion_ops["unit_property_descriptions"]
+            )
+
+        if self.nwbfile.units is None:
+            # Check that array properties have the same shape across units
+            property_shapes = dict()
+            for pr in all_properties:
+                shapes = []
+                for unit_id in unit_ids:
+                    if pr in self._get_unit_property_names(unit_id):
+                        prop_value = self._get_unit_property_values(pr, unit_id)
+                        if isinstance(prop_value, (int, np.integer, float, str, bool)):
+                            shapes.append(1)
+                        elif isinstance(prop_value, (list, np.ndarray)):
+                            if np.array(prop_value).ndim == 1:
+                                shapes.append(len(prop_value))
+                            else:
+                                shapes.append(np.array(prop_value).shape)
+                        elif isinstance(prop_value, dict):
+                            print(f"Skipping property '{pr}' because dictionaries are not supported.")
+                            self._conversion_ops["skip_unit_properties"].append(pr)
+                            break
+                    else:
+                        shapes.append(np.nan)
+                property_shapes[pr] = shapes
+
+            for pr in property_shapes.keys():
+                elems = [elem for elem in property_shapes[pr] if not np.any(np.isnan(elem))]
+                if not np.all([elem == elems[0] for elem in elems]):
+                    print(f"Skipping property '{pr}' because it has variable size across units.")
+                    self._conversion_ops["skip_unit_properties"].append(pr)
+
+            write_properties = set(all_properties) - set(self._conversion_ops["skip_unit_properties"])
+            for pr in write_properties:
+                if pr not in property_descriptions:
+                    warnings.warn(
+                        f"Description for property {pr} not found in property_descriptions. "
+                        f"Description for property {pr} not found in property_descriptions. "
+                        "Setting description to 'no description'"
+                    )
+            for pr in write_properties:
+                unit_col_args = dict(name=pr, description=property_descriptions.get(pr, "No description."))
+                if pr in ["max_channel", "max_electrode"] and self.nwbfile.electrodes is not None:
+                    unit_col_args.update(table=self.nwbfile.electrodes)
+                self.nwbfile.add_unit_column(**unit_col_args)
+
+            for unit_id in unit_ids:
+                unit_kwargs = dict()
+                if self._conversion_ops["use_times"]:
+                    spkt = self._get_unit_spike_train_times(unit_id)
+                else:
+                    spkt = self._get_unit_spike_train_ids(unit_id) / self._get_unit_sampling_frequency()
+                for pr in write_properties:
+                    if pr in self._get_unit_property_names(unit_id):
+                        prop_value = self._get_unit_property_values(pr, unit_id)
+                        unit_kwargs.update({pr: prop_value})
+                    else:  # Case of missing data for this unit and this property
+                        unit_kwargs.update({pr: np.nan})
+                self.nwbfile.add_unit(id=int(unit_id), spike_times=spkt, **unit_kwargs)
+
+            # Check that multidimensional features have the same shape across units
+            feature_shapes = dict()
+            for ft in all_features:
+                shapes = []
+                for unit_id in unit_ids:
+                    if ft in self._get_unit_feature_names(unit_id):
+                        feat_value = self._get_unit_feature_values(ft, unit_id)
+                        if isinstance(feat_value[0], (int, np.integer, float, str, bool)):
+                            break
+                        elif isinstance(feat_value[0], (list, np.ndarray)):  # multidimensional features
+                            if np.array(feat_value).ndim > 1:
+                                shapes.append(np.array(feat_value).shape)
+                                feature_shapes[ft] = shapes
+                        elif isinstance(feat_value[0], dict):
+                            print(f"Skipping feature '{ft}' because dictionaries are not supported.")
+                            self._conversion_ops["skip_unit_features"].append(ft)
+                            break
+                    else:
+                        print(f"Skipping feature '{ft}' because not share across all units.")
+                        self._conversion_ops["skip_unit_features"].append(ft)
+                        break
+
+            nspikes = {k: get_num_spikes(self.nwbfile.units, int(k)) for k in unit_ids}
+
+            for ft in feature_shapes.keys():
+                # skip first dimension (num_spikes) when comparing feature shape
+                if not np.all([elem[1:] == feature_shapes[ft][0][1:] for elem in feature_shapes[ft]]):
+                    print(f"Skipping feature '{ft}' because it has variable size across units.")
+                    self._conversion_ops["skip_unit_features"].append(ft)
+
+            for ft in set(all_features) - set(self._conversion_ops["skip_unit_features"]):
+                values = []
+                if not ft.endswith("_idxs"):
+                    for unit_id in self._get_unit_ids():
+                        feat_vals = self._get_unit_feature_values(ft, unit_id)
+
+                        if len(feat_vals) < nspikes[unit_id]:
+                            self._conversion_ops["skip_unit_features"].append(ft)
+                            print(f"Skipping feature '{ft}' because it is not defined for all spikes.")
+                            break
+                            # this means features are available for a subset of spikes
+                            # all_feat_vals = np.array([np.nan] * nspikes[unit_id])
+                            # feature_idxs = sorting.get_unit_spike_features(unit_id, feat_name + '_idxs')
+                            # all_feat_vals[feature_idxs] = feat_vals
+                        else:
+                            all_feat_vals = feat_vals
+                        values.append(all_feat_vals)
+
+                    flatten_vals = [item for sublist in values for item in sublist]
+                    nspks_list = [sp for sp in nspikes.values()]
+                    spikes_index = np.cumsum(nspks_list).astype("int64")
+                    if ft in self.nwbfile.units:  # If property already exists, skip it
+                        warnings.warn(f"Feature {ft} already present in units table, skipping it")
+                        continue
+                    set_dynamic_table_property(
+                        dynamic_table=self.nwbfile.units,
+                        row_ids=[int(k) for k in unit_ids],
+                        property_name=ft,
+                        values=flatten_vals,
+                        index=spikes_index,
+                    )
+        else:
+            warnings.warn("The nwbfile already contains units. These units will not be over-written.")
 
     @abstractmethod
     def add_epochs(self):
@@ -672,3 +840,15 @@ def check_module(nwbfile, name: str, description: str = None):
         if description is None:
             description = name
         return nwbfile.create_processing_module(name, description)
+
+def get_num_spikes(units_table, unit_id):
+    """Return the number of spikes for chosen unit."""
+    ids = np.array(units_table.id[:])
+    indexes = np.where(ids == unit_id)[0]
+    if not len(indexes):
+        raise ValueError(f"{unit_id} is an invalid unit_id. Valid ids: {ids}.")
+    index = indexes[0]
+    if index == 0:
+        return units_table["spike_times_index"].data[index]
+    else:
+        return units_table["spike_times_index"].data[index] - units_table["spike_times_index"].data[index - 1]

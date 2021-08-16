@@ -91,7 +91,7 @@ def default_export_ops():
         skip_unit_properties=[],
         skip_unit_features=[],
         skip_electrode_properties=[],
-        property_descriptions=dict(),
+        unit_property_descriptions=dict(),
         write_electrical_series=True,
     )
 
@@ -111,6 +111,19 @@ def default_export_ops_schema():
         skip_unit_properties=dict(type="array", items=dict(type="string")),
         skip_unit_features=dict(type="array", items=dict(type="string")),
         skip_electrode_properties=dict(type="array", items=dict(type="string")),
-        property_descriptions=dict(type="object"),
+        unit_property_descriptions=dict(type="object"),
         write_electrical_series=dict(type="bool"),
     )
+
+_default_sorting_property_descriptions = dict(
+    isi_violation="Quality metric that measures the ISI violation ratio as a proxy for the purity of the unit.",
+    firing_rate="Number of spikes per unit of time.",
+    template="The extracellular average waveform.",
+    max_channel="The recording channel id with the largest amplitude.",
+    halfwidth="The full-width half maximum of the negative peak computed on the maximum channel.",
+    peak_to_valley="The duration between the negative and the positive peaks computed on the maximum channel.",
+    snr="The signal-to-noise ratio of the unit.",
+    quality="Quality of the unit as defined by phy (good, mua, noise).",
+    spike_amplitude="Average amplitude of peaks detected on the channel.",
+    spike_rate="Average rate of peaks detected on the channel.",
+)
