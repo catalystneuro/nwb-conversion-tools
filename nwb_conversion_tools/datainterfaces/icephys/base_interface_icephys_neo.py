@@ -23,16 +23,16 @@ OptionalPathType = Optional[Union[str, Path]]
 class BaseIcephysNeoInterface(BaseDataInterface, ABC):
     """Primary class for all NeoInterfaces."""
 
-    RX = None
+    neo_class = None
 
     @classmethod
     def get_source_schema(cls):
-        """Compile input schema for the RecordingExtractor."""
-        return get_schema_from_method_signature(cls.RX.__init__)
+        """Compile input schema for the Neo class"""
+        return get_schema_from_method_signature(cls.neo_class.__init__)
 
     def __init__(self, **source_data):
         super().__init__(**source_data)
-        self.recording_extractor = self.RX(**source_data)
+        self.reader = self.neo_class(**source_data)
         self.subset_channels = None
         self.source_data = source_data
 
