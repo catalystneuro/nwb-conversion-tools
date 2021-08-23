@@ -70,11 +70,18 @@ class WriteRecordingProfiler():
         return total_time_estimate, speed
 
     def estimate_compression_ratio(self) -> float:
-        """Test the compression ratio from writing the recording data to NWB on this system."""
-        if not self.test_nwbfile_path.exists()
+        """
+        Test the compression ratio from writing the recording data to NWB on this system.
+
+        Returns
+        -------
+        ratio : float
+            Ratio of uncompressed storage size to compressed storage size on system.
+        """
+        if not self.test_nwbfile_path.exists():
             write_recording(recording=self.test_recording, save_path=self.test_nwbfile_path, **self.write_kwargs)
 
-        with NWBHDF5IO(path=test_nwbfile_path, mode="r") as io:
+        with NWBHDF5IO(path=self.test_nwbfile_path, mode="r") as io:
             nwbfile = io.read()
             acquisition = nwbfile.acquisition[list(nwbfile.acquisition.keys())[0]].data
             uncompressed_size = acquisition.size * np.dtype(acquisition.dtype).itemsize
@@ -89,7 +96,7 @@ class WriteRecordingProfiler():
             speed=dict(
                 total_time_estimate=total_time_estimate,
                 speed=speed
-            )
+            ),
             compression=dict(
                 compression_ratio=compression_ratio
             )
