@@ -20,7 +20,7 @@ from ...utils.spike_interface import write_recording
 OptionalPathType = Optional[Union[str, Path]]
 
 
-class BaseNeoInterfaceIcephys(BaseDataInterface, ABC):
+class BaseIcephysNeoInterface(BaseDataInterface, ABC):
     """Primary class for all NeoInterfaces."""
 
     RX = None
