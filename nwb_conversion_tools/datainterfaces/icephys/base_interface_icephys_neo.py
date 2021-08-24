@@ -6,7 +6,7 @@ import numpy as np
 import spikeextractors as se
 from pynwb import NWBFile
 from pynwb.device import Device
-from pynwb.ecephys import ElectrodeGroup, ElectricalSeries
+from pynwb.icephys import IntracellularElectrode
 
 from ...basedatainterface import BaseDataInterface
 from ...utils.json_schema import (
@@ -37,49 +37,28 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
         self.source_data = source_data
 
     def get_metadata_schema(self):
-        """Compile metadata schema for the RecordingExtractor."""
+        """Compile metadata schema for the Neo interface"""
         metadata_schema = super().get_metadata_schema()
 
         # Initiate Ecephys metadata
         metadata_schema['properties']['Icephys'] = get_base_schema(tag='Icephys')
-        metadata_schema['properties']['Icephys']['required'] = ['Device', 'ElectrodeGroup']
+        metadata_schema['properties']['Icephys']['required'] = ['Device', 'IntracellularElectrode']
         metadata_schema['properties']['Icephys']['properties'] = dict(
             Device=dict(
                 type="array",
                 minItems=1,
                 items={"$ref": "#/properties/Ecephys/properties/definitions/Device"}
             ),
-            ElectrodeGroup=dict(
+            IntracellularElectrode=dict(
                 type="array",
                 minItems=1,
-                items={"$ref": "#/properties/Ecephys/properties/definitions/ElectrodeGroup"}
-            ),
-            Electrodes=dict(
-                type="array",
-                minItems=0,
-                renderForm=False,
-                items={"$ref": "#/properties/Ecephys/properties/definitions/Electrodes"}
+                items={"$ref": "#/properties/Ecephys/properties/definitions/IntracellularElectrode"}
             ),
         )
         # Schema definition for arrays
         metadata_schema['properties']['Ecephys']['properties']["definitions"] = dict(
             Device=get_schema_from_hdmf_class(Device),
-            ElectrodeGroup=get_schema_from_hdmf_class(ElectrodeGroup),
-            Electrodes=dict(
-                type="object",
-                additionalProperties=False,
-                required=["name"],
-                properties=dict(
-                    name=dict(
-                        type="string",
-                        description="name of this electrodes column"
-                    ),
-                    description=dict(
-                        type="string",
-                        description="description of this electrodes column"
-                    )
-                )
-            )
+            IntracellularElectrode=get_schema_from_hdmf_class(IntracellularElectrode),
         )
         return metadata_schema
 
@@ -88,16 +67,16 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
         metadata['Ecephys'] = dict(
             Device=[
                 dict(
-                    name='Device_ecephys',
+                    name='Device_icephys',
                     description='no description'
                 )
             ],
-            ElectrodeGroup=[
+            IntracellularElectrode=[
                 dict(
                     name=str(group_id),
                     description="no description",
                     location="unknown",
-                    device='Device_ecephys'
+                    device='Device_icephys'
                 )
                 for group_id in np.unique(self.recording_extractor.get_channel_groups())
             ],
