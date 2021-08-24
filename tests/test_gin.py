@@ -9,6 +9,7 @@ from spikeextractors.testing import check_recordings_equal
 from nwb_conversion_tools import (
     NWBConverter,
     IntanRecordingInterface,
+    NeuralynxRecordingInterface
 )
 
 try:
@@ -61,6 +62,11 @@ if HAVE_PARAMETERIZED and (HAVE_DATALAD and sys.platform == "linux" or RUN_LOCAL
                     IntanRecordingInterface,
                     "intan",
                     dict(file_path=str(data_path / "intan" / "intan_rhs_test_1.rhs")),
+                ),
+                (
+                    NeuralynxRecordingInterface,
+                    "neuralynx/Cheetah_v5.7.4/original_data",
+                    dict(folder_path=str(data_path / "neuralynx" / "Cheetah_v5.7.4" / "original_data")),
                 ),
             ]
         )
