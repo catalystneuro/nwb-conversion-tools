@@ -6,11 +6,7 @@ from pathlib import Path
 
 from spikeextractors import NwbRecordingExtractor
 from spikeextractors.testing import check_recordings_equal
-from nwb_conversion_tools import (
-    NWBConverter,
-    IntanRecordingInterface,
-    NeuralynxRecordingInterface
-)
+from nwb_conversion_tools import NWBConverter, IntanRecordingInterface, NeuralynxRecordingInterface
 
 try:
     from datalad.api import install

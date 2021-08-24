@@ -28,7 +28,7 @@ class NeuralynxRecordingInterface(BaseRecordingExtractorInterface):
         self.source_data = dict(folder_path=folder_path)
         neuralynx_files = natsorted([str(x) for x in Path(folder_path).iterdir() if ".ncs" in x.suffixes])
         extractors = [NeuralynxRecordingExtractor(filename=filename, seg_index=0) for filename in neuralynx_files]
-        gains=[extractor.get_channel_gains()[0] for extractor in extractors]
+        gains = [extractor.get_channel_gains()[0] for extractor in extractors]
         for extractor in extractors:
             extractor.clear_channel_gains()
         self.recording_extractor = self.RX(extractors)
