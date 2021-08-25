@@ -74,6 +74,8 @@ if HAVE_PARAMETERIZED and (HAVE_DATALAD and sys.platform == "linux" or RUN_LOCAL
             print(f"\n\n\n TESTING {recording_interface.__name__}...")
             if self.dataset is not None:
                 self.dataset.get(dataset_path)
+            print([x for x in Path(list(interface_kwargs.values())[0]).iterdir()])
+            assert False
             dataset_stem = Path(dataset_path).stem
             nwbfile_path = self.savedir / f"{recording_interface.__name__}_test_{dataset_stem}.nwb"
 
