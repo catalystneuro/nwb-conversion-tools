@@ -39,20 +39,18 @@ if HAVE_PARAMETERIZED and (HAVE_DATALAD and sys.platform == "linux" or RUN_LOCAL
             data_path = Path.cwd() / "ephy_testing_data"
 
         def setUp(self):
-            print(RUN_LOCAL)
-            print(self.data_path.exists())
+            data_exists = self.data_path.exists()
+            if HAVE_DATALAD and data_exists:
+                self.dataset = Dataset(self.data_path)
             if RUN_LOCAL:
-                if not self.data_path.exists():
+                if not data_exists:
                     if HAVE_DATALAD:
                         self.dataset = install("https://gin.g-node.org/NeuralEnsemble/ephy_testing_data")
                         self.use_datalad = True
                     else:
-                        raise OSError(f"The manually specified data path ({self.data_path}) does not exist!")
-            else:
-                if self.data_path.exists():
-                    self.dataset = Dataset(self.data_path)
-                else:
-                    self.dataset = install("https://gin.g-node.org/NeuralEnsemble/ephy_testing_data")
+                        raise FileNotFoundError(f"The manually specified data path ({self.data_path}) does not exist!")
+            elif not data_exists:
+                self.dataset = install("https://gin.g-node.org/NeuralEnsemble/ephy_testing_data")
                 self.use_datalad = True
 
         @parameterized.expand(
@@ -88,8 +86,9 @@ if HAVE_PARAMETERIZED and (HAVE_DATALAD and sys.platform == "linux" or RUN_LOCAL
             if Path(loc).suffix == "":
                 print([x for x in Path(list(interface_kwargs.values())[0]).iterdir()])
                 print(self.dataset)
-                for x in Path(list(interface_kwargs.values())[0]).iterdir():
-                    self.dataset.get(f"neuralynx/Cheetah_v5.7.4/original_data/{x.name}")
+                if self.use_datalad:
+                    for x in Path(list(interface_kwargs.values())[0]).iterdir():
+                        self.dataset.get(f"neuralynx/Cheetah_v5.7.4/original_data/{x.name}")
                 print([os.stat(str(x)).st_size for x in Path(list(interface_kwargs.values())[0]).iterdir()])
             assert False
             dataset_stem = Path(dataset_path).stem
