@@ -10,7 +10,7 @@ from spikeextractors.testing import check_recordings_equal
 from nwb_conversion_tools import NWBConverter, IntanRecordingInterface, NeuralynxRecordingInterface
 
 try:
-    from datalad.api import install
+    from datalad.api import install, Dataset
 
     HAVE_DATALAD = True
 except ImportError:
@@ -31,6 +31,7 @@ if HAVE_PARAMETERIZED and (HAVE_DATALAD and sys.platform == "linux" or RUN_LOCAL
 
     class TestNwbConversions(unittest.TestCase):
         dataset = None
+        use_datalad = False
         savedir = Path(tempfile.mkdtemp())
 
         if RUN_LOCAL and LOCAL_PATH.exists():
@@ -43,10 +44,12 @@ if HAVE_PARAMETERIZED and (HAVE_DATALAD and sys.platform == "linux" or RUN_LOCAL
                 if not self.data_path.exists():
                     if HAVE_DATALAD:
                         self.dataset = install("https://gin.g-node.org/NeuralEnsemble/ephy_testing_data")
+                        self.use_datalad = True
                     else:
                         raise OSError(f"The manually specified data path ({self.data_path}) does not exist!")
             else:
                 self.dataset = install("https://gin.g-node.org/NeuralEnsemble/ephy_testing_data")
+                self.use_datalad = True
 
         @parameterized.expand(
             [
@@ -70,7 +73,11 @@ if HAVE_PARAMETERIZED and (HAVE_DATALAD and sys.platform == "linux" or RUN_LOCAL
         def test_convert_recording_extractor_to_nwb(self, recording_interface, dataset_path, interface_kwargs):
             print(f"\n\n\n TESTING {recording_interface.__name__}...")
             print(self.dataset is None)
-            if self.dataset is not None:
+            if self.use_datalad:
+                print(self.data_path.exists()
+                if self.dataset is None and self.data_path.exists():
+                    self.dataset = Dataset(self.data_path)
+                print(self.dataset)
                 self.dataset.get(dataset_path)
             loc = list(interface_kwargs.values())[0]
             print(loc)

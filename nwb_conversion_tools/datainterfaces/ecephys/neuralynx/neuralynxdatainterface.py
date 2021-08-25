@@ -22,7 +22,7 @@ class NeuralynxRecordingInterface(BaseRecordingExtractorInterface):
     def get_source_schema(cls):
         """Compile input schema for the RecordingExtractor."""
         source_schema = get_schema_from_method_signature(cls.__init__)
-        source_schema["properties"]["filename"]["format"] = "file"
+        source_schema["properties"]["folder_path"]["format"] = "directory"
         return source_schema
 
     def __init__(self, folder_path: PathType):
