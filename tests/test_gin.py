@@ -69,6 +69,7 @@ if HAVE_PARAMETERIZED and (HAVE_DATALAD and sys.platform == "linux" or RUN_LOCAL
         )
         def test_convert_recording_extractor_to_nwb(self, recording_interface, dataset_path, interface_kwargs):
             print(f"\n\n\n TESTING {recording_interface.__name__}...")
+            print(self.dataset is None)
             if self.dataset is not None:
                 self.dataset.get(dataset_path)
             loc = list(interface_kwargs.values())[0]
@@ -76,6 +77,8 @@ if HAVE_PARAMETERIZED and (HAVE_DATALAD and sys.platform == "linux" or RUN_LOCAL
             print(os.stat(loc).st_size)
             if Path(loc).suffix == "":
                 print([x for x in Path(list(interface_kwargs.values())[0]).iterdir()])
+                print(self.dataset)
+                print(self.dataset is None)
                 for x in Path(list(interface_kwargs.values())[0]).iterdir():
                     self.dataset.get(f"neuralynx/Cheetah_v5.7.4/original_data/{x.name}")
                 print([os.stat(str(x)).st_size for x in Path(list(interface_kwargs.values())[0]).iterdir()])
