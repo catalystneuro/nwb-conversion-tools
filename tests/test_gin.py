@@ -76,6 +76,8 @@ if HAVE_PARAMETERIZED and (HAVE_DATALAD and sys.platform == "linux" or RUN_LOCAL
             print(os.stat(loc).st_size)
             if Path(loc).suffix == "":
                 print([x for x in Path(list(interface_kwargs.values())[0]).iterdir()])
+                for x in Path(list(interface_kwargs.values())[0]).iterdir():
+                    self.dataset.get(f"neuralynx/Cheetah_v5.7.4/original_data/{x.name}")
                 print([os.stat(str(x)).st_size for x in Path(list(interface_kwargs.values())[0]).iterdir()])
             assert False
             dataset_stem = Path(dataset_path).stem
