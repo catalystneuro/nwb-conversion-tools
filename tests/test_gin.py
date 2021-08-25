@@ -74,7 +74,7 @@ if HAVE_PARAMETERIZED and (HAVE_DATALAD and sys.platform == "linux" or RUN_LOCAL
             print(f"\n\n\n TESTING {recording_interface.__name__}...")
             print(self.dataset is None)
             if self.use_datalad:
-                print(self.data_path.exists()
+                print(self.data_path.exists())
                 if self.dataset is None and self.data_path.exists():
                     self.dataset = Dataset(self.data_path)
                 print(self.dataset)
