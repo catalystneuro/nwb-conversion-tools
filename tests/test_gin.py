@@ -72,7 +72,7 @@ if HAVE_PARAMETERIZED and (HAVE_DATALAD and sys.platform == "linux" or RUN_LOCAL
                 self.dataset.get(dataset_path)
             loc = list(interface_kwargs.values())[0]
             print(loc)
-            if Path(loc).suffix = "":
+            if Path(loc).suffix == "":
                 print([x for x in Path(list(interface_kwargs.values())[0]).iterdir()])
             print([os.stat(str(x)).st_size for x in Path(list(interface_kwargs.values())[0]).iterdir()])
             assert False
