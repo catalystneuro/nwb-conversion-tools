@@ -3,6 +3,7 @@ import tempfile
 import unittest
 import numpy as np
 from pathlib import Path
+import os
 
 from spikeextractors import NwbRecordingExtractor
 from spikeextractors.testing import check_recordings_equal
@@ -72,9 +73,10 @@ if HAVE_PARAMETERIZED and (HAVE_DATALAD and sys.platform == "linux" or RUN_LOCAL
                 self.dataset.get(dataset_path)
             loc = list(interface_kwargs.values())[0]
             print(loc)
+            print(os.stat(loc).st_size)
             if Path(loc).suffix == "":
                 print([x for x in Path(list(interface_kwargs.values())[0]).iterdir()])
-            print([os.stat(str(x)).st_size for x in Path(list(interface_kwargs.values())[0]).iterdir()])
+                print([os.stat(str(x)).st_size for x in Path(list(interface_kwargs.values())[0]).iterdir()])
             assert False
             dataset_stem = Path(dataset_path).stem
             nwbfile_path = self.savedir / f"{recording_interface.__name__}_test_{dataset_stem}.nwb"
