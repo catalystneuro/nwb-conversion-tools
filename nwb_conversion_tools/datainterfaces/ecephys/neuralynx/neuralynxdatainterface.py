@@ -21,7 +21,9 @@ class NeuralynxRecordingInterface(BaseRecordingExtractorInterface):
     @classmethod
     def get_source_schema(cls):
         """Compile input schema for the RecordingExtractor."""
-        return get_schema_from_method_signature(cls.__init__)
+        source_schema = get_schema_from_method_signature(cls.__init__)
+        source_schema["properties"]["filename"]["format"] = "file"
+        return source_schema
 
     def __init__(self, folder_path: PathType):
         self.subset_channels = None
