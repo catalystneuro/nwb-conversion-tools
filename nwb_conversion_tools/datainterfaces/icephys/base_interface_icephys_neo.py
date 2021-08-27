@@ -20,6 +20,46 @@ from ...utils.spike_interface import write_recording
 OptionalPathType = Optional[Union[str, Path]]
 
 
+# TODO - get number of electrodes
+def get_number_of_electrodes(neo_reader, block: int=0) -> int:
+    """
+    Get number of electrodes from Neo reader
+
+    Args:
+        neo_reader ([type]): Neo reader
+        block (int, optional): [description]. Defaults to 0.
+
+    Returns:
+        int: number of electrodes
+    """
+    return 0
+
+# TODO - get electrodes metadata
+def get_electrodes_metadata(neo_reader, electrodes_ids: list, block: int=0) -> list:
+    """
+    Get electrodes metadata from Neo reader. The typical information we look for is the information
+    accepted by pynwb.icephys.IntracellularElectrode:
+    - name – the name of this electrode
+    - device – the device that was used to record from this electrode
+    - description – Recording description, description of electrode (e.g., whole-cell, sharp, etc) COMMENT: Free-form text (can be from Methods)
+    - slice – Information about slice used for recording.
+    - seal – Information about seal used for recording.
+    - location – Area, layer, comments on estimation, stereotaxis coordinates (if in vivo, etc).
+    - resistance – Electrode resistance COMMENT: unit: Ohm.
+    - filtering – Electrode specific filtering.
+    - initial_access_resistance – Initial access resistance.
+
+    Args:
+        neo_reader ([type]): Neo reader
+        electrodes_ids (list): List of electrodes ids.
+        block (int, optional): Block id. Defaults to 0.
+
+    Returns:
+        list: List of dictionaries containing electrodes metadata
+    """
+    return []
+
+
 class BaseIcephysNeoInterface(BaseDataInterface, ABC):
     """Primary class for all NeoInterfaces."""
 
@@ -73,39 +113,14 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
             ],
             IntracellularElectrode=[
                 dict(
-                    name=str(group_id),
+                    name=f'electrode-{i}',
                     description="no description",
-                    location="unknown",
                     device='Device_icephys'
                 )
-                for group_id in np.unique(self.recording_extractor.get_channel_groups())
+                for i in range(get_number_of_electrodes(self.reader))
             ],
         )
         return metadata
-
-    def subset_recording(self, stub_test: bool = False):
-        """
-        Subset a recording extractor according to stub and channel subset options.
-
-        Parameters
-        ----------
-        stub_test : bool, optional (default False)
-        """
-        kwargs = dict()
-
-        if stub_test:
-            num_frames = 100
-            end_frame = min([num_frames, self.recording_extractor.get_num_frames()])
-            kwargs.update(end_frame=end_frame)
-
-        if self.subset_channels is not None:
-            kwargs.update(channel_ids=self.subset_channels)
-
-        recording_extractor = se.SubRecordingExtractor(
-            self.recording_extractor,
-            **kwargs
-        )
-        return recording_extractor
 
     def run_conversion(
         self,
