@@ -68,13 +68,20 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
     @classmethod
     def get_source_schema(cls):
         """Compile input schema for the Neo class"""
-        return get_schema_from_method_signature(cls.neo_class.__init__)
+        source_schema = get_schema_from_method_signature(
+            class_method=cls.__init__, 
+            exclude=[]
+        )
+        return source_schema
 
     def __init__(self, **source_data):
         super().__init__(**source_data)
+        self.source_data = source_data
+
         self.reader = self.neo_class(**source_data)
         self.subset_channels = None
-        self.source_data = source_data
+        self.n_segments = self.reader.header['nb_segment'][0]
+        self.n_channels = len(self.reader.header['signal_channels'])
 
     def get_metadata_schema(self):
         """Compile metadata schema for the Neo interface"""
@@ -87,16 +94,16 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
             Device=dict(
                 type="array",
                 minItems=1,
-                items={"$ref": "#/properties/Ecephys/properties/definitions/Device"}
+                items={"$ref": "#/properties/Icephys/properties/definitions/Device"}
             ),
             IntracellularElectrode=dict(
                 type="array",
                 minItems=1,
-                items={"$ref": "#/properties/Ecephys/properties/definitions/IntracellularElectrode"}
+                items={"$ref": "#/properties/Icephys/properties/definitions/IntracellularElectrode"}
             ),
         )
         # Schema definition for arrays
-        metadata_schema['properties']['Ecephys']['properties']["definitions"] = dict(
+        metadata_schema['properties']['Icephys']['properties']["definitions"] = dict(
             Device=get_schema_from_hdmf_class(Device),
             IntracellularElectrode=get_schema_from_hdmf_class(IntracellularElectrode),
         )
@@ -104,7 +111,7 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
 
     def get_metadata(self):
         metadata = super().get_metadata()
-        metadata['Ecephys'] = dict(
+        metadata['Icephys'] = dict(
             Device=[
                 dict(
                     name='Device_icephys',
