@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Union, Optional
+from typing import Union, Optional, Tuple
 from pathlib import Path
 import numpy as np
 
@@ -16,48 +16,12 @@ from ...utils.json_schema import (
     get_base_schema
 )
 from ...utils.spike_interface import write_recording
+from ...utils.neo import (
+    get_command_traces, get_number_of_electrodes,
+    get_electrodes_metadata, get_number_of_segments
+)
 
 OptionalPathType = Optional[Union[str, Path]]
-
-
-# TODO - get number of electrodes
-def get_number_of_electrodes(neo_reader, block: int=0) -> int:
-    """
-    Get number of electrodes from Neo reader
-
-    Args:
-        neo_reader ([type]): Neo reader
-        block (int, optional): [description]. Defaults to 0.
-
-    Returns:
-        int: number of electrodes
-    """
-    return 0
-
-# TODO - get electrodes metadata
-def get_electrodes_metadata(neo_reader, electrodes_ids: list, block: int=0) -> list:
-    """
-    Get electrodes metadata from Neo reader. The typical information we look for is the information
-    accepted by pynwb.icephys.IntracellularElectrode:
-    - name – the name of this electrode
-    - device – the device that was used to record from this electrode
-    - description – Recording description, description of electrode (e.g., whole-cell, sharp, etc) COMMENT: Free-form text (can be from Methods)
-    - slice – Information about slice used for recording.
-    - seal – Information about seal used for recording.
-    - location – Area, layer, comments on estimation, stereotaxis coordinates (if in vivo, etc).
-    - resistance – Electrode resistance COMMENT: unit: Ohm.
-    - filtering – Electrode specific filtering.
-    - initial_access_resistance – Initial access resistance.
-
-    Args:
-        neo_reader ([type]): Neo reader
-        electrodes_ids (list): List of electrodes ids.
-        block (int, optional): Block id. Defaults to 0.
-
-    Returns:
-        list: List of dictionaries containing electrodes metadata
-    """
-    return []
 
 
 class BaseIcephysNeoInterface(BaseDataInterface, ABC):
@@ -80,8 +44,8 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
 
         self.reader = self.neo_class(**source_data)
         self.subset_channels = None
-        self.n_segments = self.reader.header['nb_segment'][0]
-        self.n_channels = len(self.reader.header['signal_channels'])
+        self.n_segments = get_number_of_segments(neo_reader=self.reader, block=0)
+        self.n_channels = get_number_of_electrodes(neo_reader=self.reader)
 
     def get_metadata_schema(self):
         """Compile metadata schema for the Neo interface"""
