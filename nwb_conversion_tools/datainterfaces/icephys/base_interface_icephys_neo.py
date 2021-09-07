@@ -18,7 +18,8 @@ from ...utils.json_schema import (
 from ...utils.spike_interface import write_recording
 from ...utils.neo import (
     get_command_traces, get_number_of_electrodes,
-    get_electrodes_metadata, get_number_of_segments
+    get_electrodes_metadata, get_number_of_segments, 
+    write_neo_to_nwb
 )
 
 OptionalPathType = Optional[Union[str, Path]]
@@ -101,7 +102,6 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
         use_times: bool = False,
         save_path: OptionalPathType = None,
         overwrite: bool = False,
-        buffer_mb: int = 500,
         write_as: str = 'raw',
         es_key: str = None,
     ):
@@ -134,19 +134,19 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
         es_key: str (optional)
             Key in metadata dictionary containing metadata info for the specific electrical series
         """
-        if stub_test or self.subset_channels is not None:
-            recording = self.subset_recording(stub_test=stub_test)
-        else:
-            recording = self.recording_extractor
+        # TODO - stub test
+        # if stub_test or self.subset_channels is not None:
+        #     recording = self.subset_recording(stub_test=stub_test)
+        # else:
+        #     recording = self.recording_extractor
 
-        write_recording(
-            recording=recording,
+        write_neo_to_nwb(
+            neo_reader=self.reader,
             nwbfile=nwbfile,
             metadata=metadata,
             use_times=use_times,
             write_as=write_as,
             es_key=es_key,
             save_path=save_path,
-            overwrite=overwrite,
-            buffer_mb=buffer_mb
+            overwrite=overwrite
         )

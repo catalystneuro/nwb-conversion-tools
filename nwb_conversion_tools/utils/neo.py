@@ -108,6 +108,94 @@ def get_nwb_metadata(neo_reader, metadata: dict = None):
     return metadata
 
 
+def add_all_to_nwbfile(
+    neo_reader,
+    nwbfile=None,
+    use_times: bool = False,
+    metadata: dict = None,
+    write_as: str = "raw",
+    es_key: str = None,
+    write_scaled: bool = False,
+    compression: Optional[str] = "gzip",
+    compression_opts: Optional[int] = None,
+    iterator_type: Optional[str] = None,
+    iterator_opts: Optional[dict] = None,
+):
+    """
+    Auxiliary static method for nwbextractor.
+
+    Adds all recording related information from recording object and metadata to the nwbfile object.
+
+    Parameters
+    ----------
+    neo_reader: Neo reader object
+    nwbfile: NWBFile
+        nwb file to which the recording information is to be added
+    use_times: bool
+        If True, the times are saved to the nwb file using recording.frame_to_time(). If False (defualut),
+        the sampling rate is used.
+    metadata: dict
+        metadata info for constructing the nwb file (optional).
+        Check the auxiliary function docstrings for more information
+        about metadata format.
+    write_as: str (optional, defaults to 'raw')
+        How to save the traces data in the nwb file. Options:
+        - 'raw' will save it in acquisition
+        - 'processed' will save it as FilteredEphys, in a processing module
+        - 'lfp' will save it as LFP, in a processing module
+    es_key: str (optional)
+        Key in metadata dictionary containing metadata info for the specific electrical series
+    write_scaled: bool (optional, defaults to True)
+        If True, writes the scaled traces (return_scaled=True)
+    compression: str (optional, defaults to "gzip")
+        Type of compression to use. Valid types are "gzip" and "lzf".
+        Set to None to disable all compression.
+    compression_opts: int (optional, defaults to 4)
+        Only applies to compression="gzip". Controls the level of the GZIP.
+    iterator_type: str (optional, defaults to 'v2')
+        The type of DataChunkIterator to use.
+        'v1' is the original DataChunkIterator of the hdmf data_utils.
+        'v2' is the locally developed RecordingExtractorDataChunkIterator, which offers full control over chunking.
+    iterator_opts: dict (optional)
+        Dictionary of options for the RecordingExtractorDataChunkIterator (iterator_type='v2')
+        or DataChunkIterator (iterator_tpye='v1').
+        Valid options are
+            buffer_gb : float (optional, defaults to 1 GB, available for both 'v2' and 'v1')
+                Recommended to be as much free RAM as available). Automatically calculates suitable buffer shape.
+            chunk_mb : float (optional, defaults to 1 MB, only available for 'v2')
+                Should be below 1 MB. Automatically calculates suitable chunk shape.
+        If manual specification of buffer_shape and chunk_shape are desired, these may be specified as well.
+    """
+    if nwbfile is not None:
+        assert isinstance(nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
+
+    add_devices(
+        nwbfile=nwbfile, 
+        data_type='Icephys',
+        metadata=metadata
+    )
+    # add_electrode_groups(recording=recording, nwbfile=nwbfile, metadata=metadata)
+    # add_electrodes(
+    #     recording=recording,
+    #     nwbfile=nwbfile,
+    #     metadata=metadata,
+    # )
+    # add_electrical_series(
+    #     recording=recording,
+    #     nwbfile=nwbfile,
+    #     use_times=use_times,
+    #     metadata=metadata,
+    #     write_as=write_as,
+    #     es_key=es_key,
+    #     write_scaled=write_scaled,
+    #     compression=compression,
+    #     compression_opts=compression_opts,
+    #     iterator_type=iterator_type,
+    #     iterator_opts=iterator_opts,
+    # )
+    # add_epochs(recording=recording, nwbfile=nwbfile, metadata=metadata)
+
+
 def write_neo_to_nwb(
     neo_reader,
     save_path: PathType = None,
@@ -238,7 +326,7 @@ def write_neo_to_nwb(
                 nwbfile = pynwb.NWBFile(**nwbfile_kwargs)
 
             add_all_to_nwbfile(
-                recording=recording,
+                neo_reader=neo_reader,
                 nwbfile=nwbfile,
                 metadata=metadata,
                 use_times=use_times,
@@ -253,7 +341,7 @@ def write_neo_to_nwb(
             io.write(nwbfile)
     else:
         add_all_to_nwbfile(
-            recording=recording,
+            neo_reader=neo_reader,
             nwbfile=nwbfile,
             use_times=use_times,
             metadata=metadata,
