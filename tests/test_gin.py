@@ -54,6 +54,11 @@ if HAVE_PARAMETERIZED and (HAVE_DATALAD and sys.platform == "linux" or RUN_LOCAL
                 "neuroscope/test1",
                 dict(file_path=str(data_path / "neuroscope" / "test1" / "test1.dat")),
             ),
+            (
+                OpenEphysRecordingExtractorInterface,
+                "openephys/OpenEphys_SampleData_1",
+                dict(folder_path=str(data_path / "openephys" / "OpenEphys_SampleData_1"))
+            ),
         ]
         for suffix in ["rhd", "rhs"]:
             parameterized_expand_list.append(
@@ -62,13 +67,6 @@ if HAVE_PARAMETERIZED and (HAVE_DATALAD and sys.platform == "linux" or RUN_LOCAL
                     "intan",
                     dict(file_path=str(data_path / "intan" / f"intan_{suffix}_test_1.{suffix}")),
                 )
-            )
-        for outer_folder, inner_folder in zip(
-            ["openephys", "openephysbinary"], ["OpenEphys_SampleData_1", "v0.4.4.1_with_video_tracking"]
-        ):
-            sub_path = Path(outer_folder) / inner_folder
-            parameterized_expand_list.append(
-                (OpenEphysRecordingExtractorInterface, sub_path, dict(folder_path=str(data_path / sub_path)))
             )
         for suffix in ["ap", "lf"]:
             sub_path = Path("spikeglx") / "Noise4Sam_g0" / "Noise4Sam_g0_imec0"
