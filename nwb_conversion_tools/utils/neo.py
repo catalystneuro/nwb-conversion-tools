@@ -180,6 +180,60 @@ def add_icephys_electrode(neo_reader, nwbfile=None, metadata: dict = None):
             nwbfile.create_icephys_electrode(**electrode_kwargs)
 
 
+# Add Icephys recording: stimulus/response pair
+def add_icephys_recording(neo_reader, nwbfile=None, metadata: dict = None):
+    """
+    Adds icephys recording (stimulus/response pair) to nwbfile object.
+
+    Args:
+        neo_reader ([type]): [description]
+        nwbfile ([type], optional): [description]. Defaults to None.
+        metadata (dict, optional): [description]. Defaults to None.
+    """
+
+    n_segments = get_number_of_segments(neo_reader, block=0)
+    n_electrodes = get_number_of_electrodes(neo_reader)
+    protocol = neo_reader.read_raw_protocol()
+
+    n_commands = len(protocol[0])
+    if n_commands == 0:
+        experiment_type = 'i_zero'
+    else:
+        assert n_commands == n_segments, f"File contains inconsistent number of segments ({n_segments}) and commands ({n_commands})"
+
+    # TODO - check and auto-create devices and electrodes, in case those items don't existe yet on nwbfile
+
+    # Loop through segments - sequential icephys recordings
+    for si in range(n_segments):
+        # Loop through electrodes - parallel icephys recordings
+        for ei, electrode in enumerate(nwbfile.icephys_electrodes.values()):
+            # Voltage-clamp
+            response = pynwb.icephys.VoltageClampSeries(
+                name=f"response-{si}-ch-{ei}",
+                electrode=electrode,
+                data=neo_reader.get_analogsignal_chunk(block_index=0, seg_index=si, channel_indexes=ei),
+                starting_time=neo_reader.get_signal_t_start(block_index=0, seg_index=si),
+                rate=neo_reader.get_signal_sampling_rate(),
+                gain=1000.,  # TODO - get correct gain to Ampere
+                # conversion=1e-12,
+            )
+
+            stimulus = pynwb.icephys.VoltageClampStimulusSeries(
+                name=f"stimulus-{si}-ch-{ei}",
+                electrode=electrode,
+                data=protocol[0][si][ei],
+                rate=neo_reader.get_signal_sampling_rate(),
+                starting_time=123.6,
+                gain=1000.,  # TODO - get correct gain to Volt
+            )
+
+            icephys_recording = nwbfile.add_intracellular_recording(
+                electrode=electrode,
+                stimulus=stimulus,
+                response=response
+            )
+
+
 def add_all_to_nwbfile(
     neo_reader,
     nwbfile=None,
@@ -251,6 +305,12 @@ def add_all_to_nwbfile(
         nwbfile=nwbfile,
         metadata=metadata,
     )
+    add_icephys_recording(
+        neo_reader=neo_reader,
+        nwbfile=nwbfile,
+        metadata=metadata,
+    )
+
     # add_electrical_series(
     #     recording=recording,
     #     nwbfile=nwbfile,
