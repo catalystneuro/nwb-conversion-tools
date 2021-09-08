@@ -10,6 +10,7 @@ from nwb_conversion_tools import (
     IntanRecordingInterface,
     NeuralynxRecordingInterface,
     NeuroscopeRecordingInterface,
+    OpenEphysRecordingExtractorInterface,
     SpikeGLXRecordingInterface,
 )
 
@@ -28,7 +29,7 @@ except ImportError:
     HAVE_PARAMETERIZED = False
 
 RUN_LOCAL = True
-LOCAL_PATH = Path("D:/GIN")  # Path to dataset downloaded from https://gin.g-node.org/NeuralEnsemble/ephy_testing_data
+LOCAL_PATH = Path("E:/GIN")  # Path to dataset downloaded from https://gin.g-node.org/NeuralEnsemble/ephy_testing_data
 
 
 if HAVE_PARAMETERIZED and (HAVE_DATALAD and sys.platform == "linux" or RUN_LOCAL):
@@ -41,6 +42,43 @@ if HAVE_PARAMETERIZED and (HAVE_DATALAD and sys.platform == "linux" or RUN_LOCAL
             data_path = LOCAL_PATH
         else:
             data_path = Path.cwd() / "ephy_testing_data"
+
+        parameterized_expand_list = [
+            (
+                NeuralynxRecordingInterface,
+                "neuralynx/Cheetah_v5.7.4/original_data",
+                dict(folder_path=str(data_path / "neuralynx" / "Cheetah_v5.7.4" / "original_data")),
+            ),
+            (
+                NeuroscopeRecordingInterface,
+                "neuroscope/test1",
+                dict(file_path=str(data_path / "neuroscope" / "test1" / "test1.dat")),
+            ),
+        ]
+        for suffix in ["rhd", "rhs"]:
+            parameterized_expand_list.append(
+                (
+                    IntanRecordingInterface,
+                    "intan",
+                    dict(file_path=str(data_path / "intan" / f"intan_{suffix}_test_1.{suffix}")),
+                )
+            )
+        for outer_folder, inner_folder in zip(
+            ["openephys", "openephysbinary"], ["OpenEphys_SampleData_1", "v0.4.4.1_with_video_tracking"]
+        ):
+            sub_path = Path(outer_folder) / inner_folder
+            parameterized_expand_list.append(
+                (OpenEphysRecordingExtractorInterface, sub_path, dict(folder_path=str(data_path / sub_path)))
+            )
+        for suffix in ["ap", "lf"]:
+            sub_path = Path("spikeglx") / "Noise4Sam_g0" / "Noise4Sam_g0_imec0"
+            parameterized_expand_list.append(
+                (
+                    SpikeGLXRecordingInterface,
+                    sub_path,
+                    dict(file_path=str(data_path / sub_path / f"Noise4Sam_g0_t0.imec0.{suffix}.bin"))
+                )
+            )
 
         def setUp(self):
             data_exists = self.data_path.exists()
@@ -55,56 +93,7 @@ if HAVE_PARAMETERIZED and (HAVE_DATALAD and sys.platform == "linux" or RUN_LOCAL
             elif not data_exists:
                 self.dataset = install("https://gin.g-node.org/NeuralEnsemble/ephy_testing_data")
 
-        @parameterized.expand(
-            [
-                (
-                    IntanRecordingInterface,
-                    "intan",
-                    dict(file_path=str(data_path / "intan" / "intan_rhd_test_1.rhd")),
-                ),
-                (
-                    IntanRecordingInterface,
-                    "intan",
-                    dict(file_path=str(data_path / "intan" / "intan_rhs_test_1.rhs")),
-                ),
-                (
-                    NeuralynxRecordingInterface,
-                    "neuralynx/Cheetah_v5.7.4/original_data",
-                    dict(folder_path=str(data_path / "neuralynx" / "Cheetah_v5.7.4" / "original_data")),
-                ),
-                (
-                    NeuroscopeRecordingInterface,
-                    "neuroscope/test1",
-                    dict(file_path=str(data_path / "neuroscope" / "test1" / "test1.dat")),
-                ),
-                (
-                    SpikeGLXRecordingInterface,
-                    "spikeglx/Noise4Sam_g0/Noise4Sam_g0_imec0",
-                    dict(
-                        file_path=str(
-                            data_path
-                            / "spikeglx"
-                            / "Noise4Sam_g0"
-                            / "Noise4Sam_g0_imec0"
-                            / "Noise4Sam_g0_t0.imec0.ap.bin"
-                        )
-                    ),
-                ),
-                (
-                    SpikeGLXRecordingInterface,
-                    "spikeglx/Noise4Sam_g0/Noise4Sam_g0_imec0",
-                    dict(
-                        file_path=str(
-                            data_path
-                            / "spikeglx"
-                            / "Noise4Sam_g0"
-                            / "Noise4Sam_g0_imec0"
-                            / "Noise4Sam_g0_t0.imec0.lf.bin"
-                        )
-                    ),
-                ),
-            ]
-        )
+        @parameterized.expand(parameterized_expand_list)
         def test_convert_recording_extractor_to_nwb(self, recording_interface, dataset_path, interface_kwargs):
             print(f"\n\n\n TESTING {recording_interface.__name__}...")
             if HAVE_DATALAD:
