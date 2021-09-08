@@ -57,7 +57,7 @@ if HAVE_PARAMETERIZED and (HAVE_DATALAD and sys.platform == "linux" or RUN_LOCAL
             (
                 OpenEphysRecordingExtractorInterface,
                 "openephys/OpenEphys_SampleData_1",
-                dict(folder_path=str(data_path / "openephys" / "OpenEphys_SampleData_1"))
+                dict(folder_path=str(data_path / "openephys" / "OpenEphys_SampleData_1")),
             ),
         ]
         for suffix in ["rhd", "rhs"]:
