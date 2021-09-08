@@ -3,6 +3,7 @@ import distutils.version
 import uuid
 from datetime import datetime
 from pathlib import Path
+import warnings
 
 import pynwb
 
@@ -108,6 +109,77 @@ def get_nwb_metadata(neo_reader, metadata: dict = None):
     return metadata
 
 
+# Add Icephys electrode
+def add_icephys_electrode(neo_reader, nwbfile=None, metadata: dict = None):
+    """
+    Adds icephys electrodes to nwbfile object.
+    Will always ensure nwbfile has at least one icephys electrode.
+    Will auto-generate a linked device if the specified name does not exist in the nwbfile.
+
+    Args:
+        neo_reader ([type]): [description]
+        nwbfile: NWBFile
+            nwb file to which the icephys electrode is to be added
+        metadata: dict
+            metadata info for constructing the nwb file (optional).
+            Should be of the format
+                metadata['Icephys']['Electrodes'] = [
+                    {
+                        'name': my_name,
+                        'description': my_description,
+                        'device_name': my_device_name
+                    },
+                    ...
+                ]
+    """
+    if nwbfile is not None:
+        assert isinstance(nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
+
+    if len(nwbfile.devices) == 0:
+        warnings.warn("When adding Icephys Electrode, no Devices were found on nwbfile. Creating a Device now...")
+        add_devices(nwbfile=nwbfile, metadata=metadata)
+
+    if metadata is None:
+        metadata = dict()
+
+    if "Icephys" not in metadata:
+        metadata["Icephys"] = dict()
+
+    defaults = [
+        dict(
+            name=f"icephys_electrode_{elec_id}",
+            description="no description",
+            device_name=[i.name for i in nwbfile.devices.values()][0],
+        )
+        for elec_id in range(get_number_of_electrodes(neo_reader))
+    ]
+
+    if "Electrodes" not in metadata["Icephys"] or len(metadata["Icephys"]["Electrodes"]) == 0:
+        metadata["Icephys"]["Electrodes"] = defaults
+
+    assert all(
+        [isinstance(x, dict) for x in metadata["Icephys"]["Electrodes"]]
+    ), "Expected metadata['Icephys']['Electrodes'] to be a list of dictionaries!"
+
+    # Create Icephys electrode from metadata
+    for elec in metadata["Icephys"]["Electrodes"]:
+        if elec.get("name", defaults[0]["name"]) not in nwbfile.icephys_electrodes:
+            device_name = elec.get("device_name", defaults[0]["device_name"])
+            if device_name not in nwbfile.devices:
+                new_device_metadata = dict(Ecephys=dict(Device=[dict(name=device_name)]))
+                add_devices(nwbfile, metadata=new_device_metadata)
+                warnings.warn(
+                    f"Device '{device_name}' not detected in "
+                    "attempted link to icephys electrode! Automatically generating."
+                )
+            electrode_kwargs = dict(
+                name=elec.get("name", defaults[0]["name"]),
+                description=elec.get("description", defaults[0]["description"]),
+                device=nwbfile.devices[device_name]
+            )
+            nwbfile.create_icephys_electrode(**electrode_kwargs)
+
+
 def add_all_to_nwbfile(
     neo_reader,
     nwbfile=None,
@@ -174,12 +246,11 @@ def add_all_to_nwbfile(
         data_type='Icephys',
         metadata=metadata
     )
-    # add_electrode_groups(recording=recording, nwbfile=nwbfile, metadata=metadata)
-    # add_electrodes(
-    #     recording=recording,
-    #     nwbfile=nwbfile,
-    #     metadata=metadata,
-    # )
+    add_icephys_electrode(
+        neo_reader=neo_reader,
+        nwbfile=nwbfile,
+        metadata=metadata,
+    )
     # add_electrical_series(
     #     recording=recording,
     #     nwbfile=nwbfile,
