@@ -80,9 +80,7 @@ if HAVE_PARAMETERIZED and (HAVE_DATALAD and sys.platform == "linux" or RUN_LOCAL
                 param(
                     recording_interface=SpikeGLXRecordingInterface,
                     dataset_path=sub_path,
-                    interface_kwargs=dict(
-                        file_path=str(data_path / sub_path / f"Noise4Sam_g0_t0.imec0.{suffix}.bin")
-                    ),
+                    interface_kwargs=dict(file_path=str(data_path / sub_path / f"Noise4Sam_g0_t0.imec0.{suffix}.bin")),
                 )
             )
 
