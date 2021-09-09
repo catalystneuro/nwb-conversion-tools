@@ -78,8 +78,16 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
             self.add_sorting()
             self.add_waveforms()
 
-    def _get_traces(self, channel_ids=None, start_frame=None, end_frame=None, return_scaled=True):
-        return self.recording.get_traces(channel_ids=None, start_frame=None, end_frame=None, return_scaled=True).T
+    def get_num_segments(self):
+        return self.object_to_write.get_num_segments()
+
+    def _get_num_frames(self, segment_index=0):
+        if self.recording is not None:
+            return self.recording.get_num_frames(segment_index=segment_index)
+
+    def _get_traces(self, channel_ids=None, start_frame=None, end_frame=None, return_scaled=True, segment_index=0):
+        return self.recording.get_traces(channel_ids=None, start_frame=None, end_frame=None,
+                                         return_scaled=True, segment_index=segment_index).T
 
     def _get_channel_property_names(self, chan_id):
         return self.recording.get_property_keys()
@@ -107,8 +115,9 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
                 return self.recording.get_channel_groups(channel_ids=chan_id)
         self.recording.get_property(prop, ids=chan_id)
 
-    def _get_times(self):
-        return np.range(0, self._get_num_frames() * self._get_sampling_frequency(), self._get_sampling_frequency())
+    def _get_recording_times(self, segment_index=0):
+        return np.range(0, self._get_num_frames(segment_index=segment_index)
+                        * self._get_sampling_frequency(), self._get_sampling_frequency())
 
     def _get_unit_feature_names(self, unit_id):
         return []
@@ -116,8 +125,13 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
     def _get_unit_feature_values(self, prop, unit_id):
         return
 
-    def _get_unit_spike_train_times(self, unit_id):
-        return self._get_unit_spike_train_ids(unit_id) / self._get_unit_sampling_frequency()
+    def _get_unit_spike_train_ids(self, unit_id, start_frame=None, end_frame=None, segment_index=None):
+        if self.sorting is not None:
+            return self.sorting.get_unit_spike_train(unit_id, start_frame=start_frame,
+                                                     end_frame=end_frame, segment_index=segment_index)
+
+    def _get_unit_spike_train_times(self, unit_id, segment_index=0):
+        return self._get_unit_spike_train_ids(unit_id, segment_index) / self._get_unit_sampling_frequency()
 
     def _get_unit_property_names(self, unit_id):
         return list(self.sorting._properties.keys())

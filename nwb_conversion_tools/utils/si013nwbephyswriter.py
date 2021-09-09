@@ -65,7 +65,10 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
         elif isinstance(self.object_to_write, se.SortingExtractor):
             self.add_sorting()
 
-    def _get_traces(self, channel_ids=None, start_frame=None, end_frame=None, return_scaled=True):
+    def get_num_segments(self):
+        return 1
+
+    def _get_traces(self, channel_ids=None, start_frame=None, end_frame=None, return_scaled=True, segment_index=0):
         return self.recording.get_traces(channel_ids=None, start_frame=None, end_frame=None, return_scaled=True)
 
     def _get_channel_property_names(self, chan_id):
@@ -82,7 +85,11 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
             return self.recording.get_channel_groups(channel_ids=chan_id)
         return self.recording.get_channel_property(channel_id=chan_id, property_name=prop)
 
-    def _get_times(self):
+    def _get_num_frames(self, segment_index=0):
+        if self.recording is not None:
+            return self.recording.get_num_frames()
+
+    def _get_recording_times(self, segment_index=0):
         if self.recording._times is None:
             return np.range(0, self._get_num_frames() * self._get_sampling_frequency(), self._get_sampling_frequency())
         return self.recording._times
@@ -93,8 +100,13 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
     def _get_unit_feature_values(self, prop, unit_id):
         return self.sorting.get_unit_spike_features(unit_id, prop)
 
-    def _get_unit_spike_train_times(self, unit_id):
-        return self.sorting.frame_to_time(self.sorting.get_unit_spike_train(unit_id=unit_id))
+    def _get_unit_spike_train_ids(self, unit_id, start_frame=None, end_frame=None, segment_index=None):
+        if self.sorting is not None:
+            return self.sorting.get_unit_spike_train(unit_id, start_frame=start_frame, end_frame=end_frame)
+
+    def _get_unit_spike_train_times(self, unit_id, segment_index=0):
+        if self.sorting is not None:
+            return self.sorting.frame_to_time(self.sorting.get_unit_spike_train(unit_id=unit_id))
 
     def _get_unit_property_names(self, unit_id):
         return self.sorting.get_unit_property_names(unit_id)

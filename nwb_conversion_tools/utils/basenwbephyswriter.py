@@ -25,7 +25,11 @@ class BaseNwbEphysWriter(ABC):
         self._conversion_ops = dict(**default_export_ops(), **kwargs)
 
     @abstractmethod
-    def _get_traces(self, channel_ids=None, start_frame=None, end_frame=None, return_scaled=True):
+    def get_num_segments(self):
+        pass
+
+    @abstractmethod
+    def _get_traces(self, channel_ids=None, start_frame=None, end_frame=None, return_scaled=True, segment_index=None):
         pass
 
     @abstractmethod
@@ -65,11 +69,12 @@ class BaseNwbEphysWriter(ABC):
         pass
 
     @abstractmethod
-    def _get_unit_spike_train_ids(self, unit_id):
+    def _get_unit_spike_train_ids(self, unit_id, start_frame=None,
+                                  end_frame=None, segment_index=None):
         pass
 
     @abstractmethod
-    def _get_unit_spike_train_times(self, unit_id):
+    def _get_unit_spike_train_times(self, unit_id, segment_index=None):
         pass
 
     @abstractmethod
@@ -77,11 +82,11 @@ class BaseNwbEphysWriter(ABC):
         pass
 
     @abstractmethod
-    def _get_num_frames(self):
+    def _get_num_frames(self, segment_index):
         pass
 
     @abstractmethod
-    def _get_times(self):
+    def _get_recording_times(self, segment_index):
         pass
 
     @abstractmethod
@@ -289,7 +294,7 @@ class BaseNwbEphysWriter(ABC):
             if prop not in exclude_names:
                 data = []
                 prop_chan_count = 0
-                # build data:
+                # build data: #TODO: keep this separate; only for the old version, new version fills stuff in automatically
                 for chan_id in self._get_channel_ids():
                     if prop in self._get_channel_property_names(chan_id):
                         prop_chan_count += 1
@@ -404,7 +409,7 @@ class BaseNwbEphysWriter(ABC):
             self.nwbfile.electrodes is not None
         ), "Unable to form electrode table! Check device, electrode group, and electrode metadata."
 
-    def add_electrical_series(self):
+    def add_electrical_series(self, segment_index):
         """
         Auxiliary static method for nwbextractor.
 
@@ -503,7 +508,9 @@ class BaseNwbEphysWriter(ABC):
                 self._conversion_ops["es_key"] in self.metadata["Ecephys"]
             ), f"metadata['Ecephys'] dictionary does not contain key '{self._conversion_ops['es_key']}'"
             eseries_kwargs.update(self.metadata["Ecephys"][self._conversion_ops["es_key"]])
-
+        # update name for segment:
+        name = eseries_kwargs.get('name')
+        eseries_kwargs.update(name=f'{name}_segment_{segment_index}')
         # Check for existing names in nwbfile
         if self._conversion_ops["write_as"] == "raw":
             assert (
@@ -554,19 +561,22 @@ class BaseNwbEphysWriter(ABC):
                 eseries_kwargs.update(conversion=1e-6)
                 eseries_kwargs.update(channel_conversion=channel_conversion)
 
-        trace_dtype = self._get_traces(channel_ids=channel_ids[:1], end_frame=1).dtype
-        estimated_memory = trace_dtype.itemsize * len(self._get_channel_ids()) * self._get_num_frames()
+        trace_dtype = self._get_traces(channel_ids=channel_ids[:1], end_frame=1, segment_index=segment_index).dtype
+        estimated_memory = trace_dtype.itemsize * len(self._get_channel_ids()) * \
+                           self._get_num_frames(segment_index=segment_index)
         if not self._conversion_ops["iterate"] and psutil.virtual_memory().available <= estimated_memory:
             warn("iteration was disabled, but not enough memory to load traces! Forcing iterate=True.")
             iterate = True
         if self._conversion_ops["iterate"]:
             if isinstance(
-                self._get_traces(end_frame=5, return_scaled=self._conversion_ops["write_scaled"]), np.memmap
+                self._get_traces(end_frame=5, return_scaled=self._conversion_ops["write_scaled"],
+                                 segment_index=segment_index), np.memmap
             ) and np.all(channel_offset == 0):
                 n_bytes = np.dtype(self.recording.get_dtype()).itemsize
                 buffer_size = int(self._conversion_ops["buffer_mb"] * 1e6) // (len(self._get_channel_ids()) * n_bytes)
                 ephys_data = DataChunkIterator(
-                    data=self._get_traces(return_scaled=self._conversion_ops["write_scaled"]).T,
+                    data=self._get_traces(return_scaled=self._conversion_ops["write_scaled"],
+                                          segment_index=segment_index).T,
                     # nwb standard is time as zero axis
                     buffer_size=buffer_size,
                 )
@@ -574,7 +584,8 @@ class BaseNwbEphysWriter(ABC):
 
                 def data_generator(recording, channels_ids, unsigned_coercion, write_scaled):
                     for i, ch in enumerate(channels_ids):
-                        data = recording._get_traces(channel_ids=[ch], return_scaled=write_scaled)
+                        data = recording._get_traces(channel_ids=[ch], return_scaled=write_scaled,
+                                                     segment_index=segment_index)
                         if not write_scaled:
                             data_dtype_name = data.dtype.name
                             if data_dtype_name.startswith("uint"):
@@ -591,10 +602,11 @@ class BaseNwbEphysWriter(ABC):
                         write_scaled=self._conversion_ops["write_scaled"],
                     ),
                     iter_axis=1,  # nwb standard is time as zero axis
-                    maxshape=(self._get_num_frames(), len(self._get_channel_ids())),
+                    maxshape=(self._get_num_frames(segment_index=segment_index), len(self._get_channel_ids())),
                 )
         else:
-            ephys_data = self._get_traces(return_scaled=self._conversion_ops["write_scaled"]).T
+            ephys_data = self._get_traces(return_scaled=self._conversion_ops["write_scaled"],
+                                          segment_index=segment_index).T
 
         eseries_kwargs.update(
             data=H5DataIO(
@@ -605,13 +617,13 @@ class BaseNwbEphysWriter(ABC):
         )
         if not self._conversion_ops["use_times"]:
             eseries_kwargs.update(
-                starting_time=float(self._get_times()[0]),
+                starting_time=float(self._get_recording_times(segment_index=segment_index)[0]),
                 rate=float(self._get_sampling_frequency()),
             )
         else:
             eseries_kwargs.update(
                 timestamps=H5DataIO(
-                    self._get_times(),
+                    self._get_recording_times(segment_index=segment_index),
                     compression=self._conversion_ops["compression"],
                     compression_opts=self._conversion_ops["compression_opts"],
                 )
