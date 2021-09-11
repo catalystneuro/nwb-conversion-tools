@@ -3,17 +3,13 @@ import os
 import dateutil
 import numpy as np
 from pathlib import Path
-from typing import Union, Optional
+from typing import Union
 
 import spikeextractors as se
 from pynwb import NWBFile
 from pynwb.behavior import Position, SpatialSeries
-from pynwb.ecephys import ElectricalSeries
 
-from ....utils.json_schema import (
-    get_schema_from_hdmf_class,
-    get_schema_from_method_signature,
-)
+from ....utils.json_schema import get_schema_from_method_signature, FilePathType
 from ....basedatainterface import BaseDataInterface
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ..baselfpextractorinterface import BaseLFPExtractorInterface
@@ -26,7 +22,7 @@ OptionalPathType = Optional[PathType]
 
 
 # Helper functions for AxonaRecordingExtractorInterface
-def parse_generic_header(filename: PathType, params: Union[list, set]):
+def parse_generic_header(filename: FilePathType, params: Union[list, set]):
     """
     Given a binary file with phrases and line breaks, enters the
     first word of a phrase as dictionary key and the following
@@ -59,7 +55,7 @@ def parse_generic_header(filename: PathType, params: Union[list, set]):
     return header
 
 
-def read_axona_iso_datetime(set_file: PathType):
+def read_axona_iso_datetime(set_file: FilePathType):
     """
     Creates datetime object (y, m, d, h, m, s) from .set file header
     and converts it to ISO 8601 format
@@ -79,11 +75,7 @@ class AxonaRecordingExtractorInterface(BaseRecordingExtractorInterface):
 
     RX = se.AxonaRecordingExtractor
 
-    @classmethod
-    def get_source_schema(cls):
-        return get_schema_from_method_signature(cls.__init__)
-
-    def __init__(self, filename: str):
+    def __init__(self, filename: FilePathType):
         super().__init__(filename=filename)
 
     def get_metadata(self):
@@ -151,8 +143,33 @@ class AxonaUnitRecordingExtractorInterface(AxonaRecordingExtractorInterface):
         self.recording_extractor = se.AxonaUnitRecordingExtractor(filename=filename, noise_std=noise_std)
 
 
+class AxonaUnitRecordingExtractorInterface(AxonaRecordingExtractorInterface):
+    """Primary data interface class for converting a AxonaRecordingExtractor"""
+
+    RX = se.AxonaUnitRecordingExtractor
+
+    @classmethod
+    def get_source_schema(cls):
+        return dict(
+            required=["filename"],
+            properties=dict(
+                filename=dict(
+                    type="string",
+                    format="file",
+                    description="Path to Axona file",
+                ),
+                noise_std=dict(type="number"),
+            ),
+            type="object",
+        )
+
+    def __init__(self, filename: FilePathType, noise_std: float = 3.5):
+        super().__init__(filename=filename)
+        self.recording_extractor = se.AxonaUnitRecordingExtractor(filename=filename, noise_std=noise_std)
+
+
 # Helper functions for AxonaPositionDataInterface
-def get_header_bstring(file: PathType):
+def get_header_bstring(file: FilePathType):
     """
     Scan file for the occurrence of 'data_start' and return the header
     as byte string
@@ -176,7 +193,7 @@ def get_header_bstring(file: PathType):
     return header
 
 
-def read_bin_file_position_data(bin_filename: PathType):
+def read_bin_file_position_data(bin_filename: FilePathType):
     """
     Read position data from Axona `.bin` file (if present).
 
@@ -267,7 +284,7 @@ def read_bin_file_position_data(bin_filename: PathType):
     return pos_data
 
 
-def read_pos_file_position_data(pos_filename: PathType):
+def read_pos_file_position_data(pos_filename: FilePathType):
     """
     Read position data from Axona `.pos` file.
 
@@ -337,7 +354,7 @@ def read_pos_file_position_data(pos_filename: PathType):
     return pos_data
 
 
-def get_position_object(filename: PathType):
+def get_position_object(filename: FilePathType):
     """
     Read position data from .bin or .pos file and convert to
     pynwb.behavior.SpatialSeries objects. If possible it should always
@@ -414,7 +431,7 @@ class AxonaPositionDataInterface(BaseDataInterface):
 
 
 # Helper functions for AxonaLFPDataInterface
-def get_eeg_sampling_frequency(filename: PathType):
+def get_eeg_sampling_frequency(filename: FilePathType):
     """
     Read sampling frequency from .eegX or .egfX file header.
 
@@ -434,7 +451,7 @@ def get_eeg_sampling_frequency(filename: PathType):
     return Fs
 
 
-def read_eeg_file_lfp_data(filename: PathType):
+def read_eeg_file_lfp_data(filename: FilePathType):
     """
     Read LFP data from Axona `.eegX` or `.egfX` file.
 
@@ -469,7 +486,7 @@ def read_eeg_file_lfp_data(filename: PathType):
     return eeg_data
 
 
-def get_all_filenames(filename: PathType):
+def get_all_filenames(filename: FilePathType):
     """
     Read LFP filenames of `.eeg` or `.egf` files in filename's directory.
     E.g. if filename='/my/directory/my_file.eeg', all .eeg channels will be
@@ -494,7 +511,7 @@ def get_all_filenames(filename: PathType):
     return path_list
 
 
-def read_all_eeg_file_lfp_data(filename: PathType):
+def read_all_eeg_file_lfp_data(filename: FilePathType):
     """
     Read LFP data from all Axona `.eeg` or `.egf` files in filename's directory.
     E.g. if filename='/my/directory/my_file.eeg', all .eeg channels will be conactenated
@@ -542,7 +559,7 @@ class AxonaLFPDataInterface(BaseLFPExtractorInterface):
             additionalProperties=False,
         )
 
-    def __init__(self, filename: PathType):
+    def __init__(self, filename: FilePathType):
         self.recording_extractor = se.NumpyRecordingExtractor(
             timeseries=read_all_eeg_file_lfp_data(filename),
             sampling_frequency=get_eeg_sampling_frequency(filename),
