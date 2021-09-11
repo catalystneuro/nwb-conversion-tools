@@ -2,6 +2,7 @@
 import os
 import dateutil
 import numpy as np
+from pathlib import Path
 from typing import Union
 
 import spikeextractors as se
