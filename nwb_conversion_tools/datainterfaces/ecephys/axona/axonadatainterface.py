@@ -2,7 +2,6 @@
 import os
 import dateutil
 import numpy as np
-from pathlib import Path
 from typing import Union
 
 import spikeextractors as se
@@ -15,10 +14,6 @@ from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ..baselfpextractorinterface import BaseLFPExtractorInterface
 from ....utils.conversion_tools import get_module
 from ....utils.spike_interface import write_recording
-
-
-PathType = Union[str, Path]
-OptionalPathType = Optional[PathType]
 
 
 # Helper functions for AxonaRecordingExtractorInterface
@@ -138,7 +133,7 @@ class AxonaUnitRecordingExtractorInterface(AxonaRecordingExtractorInterface):
             type="object",
         )
 
-    def __init__(self, filename: PathType, noise_std: float = 3.5):
+    def __init__(self, filename: FilePathType, noise_std: float = 3.5):
         super().__init__(filename=filename)
         self.recording_extractor = se.AxonaUnitRecordingExtractor(filename=filename, noise_std=noise_std)
 
