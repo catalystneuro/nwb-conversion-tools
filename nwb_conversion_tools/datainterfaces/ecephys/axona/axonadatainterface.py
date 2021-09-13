@@ -121,8 +121,8 @@ class AxonaUnitRecordingExtractorInterface(AxonaRecordingExtractorInterface):
 
     @classmethod
     def get_source_schema(cls):
-        schema = super().__init__()
-        schema["properties"]["file_path"]["properties"].update(description="Path to Axona file")
+        schema = super().get_source_schema()
+        schema["properties"]["file_path"].update(description="Path to Axona file")
         return schema
 
     def __init__(self, file_path: FilePathType, noise_std: float = 3.5):
