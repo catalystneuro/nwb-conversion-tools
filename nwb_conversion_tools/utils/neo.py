@@ -13,7 +13,7 @@ PathType = Union[str, Path, None]
 
 
 # TODO - get electrodes metadata
-def get_electrodes_metadata(neo_reader, electrodes_ids: list, block: int=0) -> list:
+def get_electrodes_metadata(neo_reader, electrodes_ids: list, block: int = 0) -> list:
     """
     Get electrodes metadata from Neo reader. The typical information we look for is the information
     accepted by pynwb.icephys.IntracellularElectrode:
@@ -49,11 +49,11 @@ def get_number_of_electrodes(neo_reader) -> int:
     Returns:
         int: number of electrodes
     """
-    return len(neo_reader.header['signal_channels'])
+    return len(neo_reader.header["signal_channels"])
 
 
 # Get number of segments
-def get_number_of_segments(neo_reader, block: int=0) -> int:
+def get_number_of_segments(neo_reader, block: int = 0) -> int:
     """
     Get number of segments from Neo reader
 
@@ -64,11 +64,11 @@ def get_number_of_segments(neo_reader, block: int=0) -> int:
     Returns:
         int: number of electrodes
     """
-    return neo_reader.header['nb_segment'][block]
+    return neo_reader.header["nb_segment"][block]
 
 
 # Get command traces (e.g. voltage clamp command traces)
-def get_command_traces(neo_reader, block: int=0, segment: int=0, cmd_channel: int=0) -> Tuple[list, str, str]:
+def get_command_traces(neo_reader, block: int = 0, segment: int = 0, cmd_channel: int = 0) -> Tuple[list, str, str]:
     """
     Get command traces (e.g. voltage clamp command traces).
 
@@ -102,9 +102,7 @@ def get_nwb_metadata(neo_reader, metadata: dict = None):
             identifier=str(uuid.uuid4()),
             session_start_time=datetime(1970, 1, 1),
         ),
-        Icephys=dict(
-            Device=[dict(name="Device", description="no description")]
-        ),
+        Icephys=dict(Device=[dict(name="Device", description="no description")]),
     )
     return metadata
 
@@ -175,7 +173,7 @@ def add_icephys_electrode(neo_reader, nwbfile=None, metadata: dict = None):
             electrode_kwargs = dict(
                 name=elec.get("name", defaults[0]["name"]),
                 description=elec.get("description", defaults[0]["description"]),
-                device=nwbfile.devices[device_name]
+                device=nwbfile.devices[device_name],
             )
             nwbfile.create_icephys_electrode(**electrode_kwargs)
 
@@ -197,9 +195,11 @@ def add_icephys_recording(neo_reader, nwbfile=None, metadata: dict = None):
 
     n_commands = len(protocol[0])
     if n_commands == 0:
-        experiment_type = 'i_zero'
+        experiment_type = "i_zero"
     else:
-        assert n_commands == n_segments, f"File contains inconsistent number of segments ({n_segments}) and commands ({n_commands})"
+        assert (
+            n_commands == n_segments
+        ), f"File contains inconsistent number of segments ({n_segments}) and commands ({n_commands})"
 
     # TODO - check and auto-create devices and electrodes, in case those items don't existe yet on nwbfile
 
@@ -214,7 +214,7 @@ def add_icephys_recording(neo_reader, nwbfile=None, metadata: dict = None):
                 data=neo_reader.get_analogsignal_chunk(block_index=0, seg_index=si, channel_indexes=ei),
                 starting_time=neo_reader.get_signal_t_start(block_index=0, seg_index=si),
                 rate=neo_reader.get_signal_sampling_rate(),
-                gain=1000.,  # TODO - get correct gain to Ampere
+                gain=1000.0,  # TODO - get correct gain to Ampere
                 # conversion=1e-12,
             )
 
@@ -224,13 +224,11 @@ def add_icephys_recording(neo_reader, nwbfile=None, metadata: dict = None):
                 data=protocol[0][si][ei],
                 rate=neo_reader.get_signal_sampling_rate(),
                 starting_time=123.6,
-                gain=1000.,  # TODO - get correct gain to Volt
+                gain=1000.0,  # TODO - get correct gain to Volt
             )
 
             icephys_recording = nwbfile.add_intracellular_recording(
-                electrode=electrode,
-                stimulus=stimulus,
-                response=response
+                electrode=electrode, stimulus=stimulus, response=response
             )
 
 
@@ -295,11 +293,7 @@ def add_all_to_nwbfile(
     if nwbfile is not None:
         assert isinstance(nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
 
-    add_devices(
-        nwbfile=nwbfile, 
-        data_type='Icephys',
-        metadata=metadata
-    )
+    add_devices(nwbfile=nwbfile, data_type="Icephys", metadata=metadata)
     add_icephys_electrode(
         neo_reader=neo_reader,
         nwbfile=nwbfile,

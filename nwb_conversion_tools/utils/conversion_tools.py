@@ -120,7 +120,7 @@ def estimate_recording_conversion_time(
     return total_time, speed
 
 
-def add_devices(nwbfile=None, data_type: str='Ecephys', metadata: dict = None):
+def add_devices(nwbfile=None, data_type: str = "Ecephys", metadata: dict = None):
     """
     Adds device information to nwbfile object.
     Will always ensure nwbfile has at least one device, but multiple
@@ -152,7 +152,12 @@ def add_devices(nwbfile=None, data_type: str='Ecephys', metadata: dict = None):
     if nwbfile is not None:
         assert isinstance(nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
 
-    assert data_type in ['Ecephys', 'Icephys', 'Ophys', 'Behavior'], f"Invalid data_type {data_type} when creating device"
+    assert data_type in [
+        "Ecephys",
+        "Icephys",
+        "Ophys",
+        "Behavior",
+    ], f"Invalid data_type {data_type} when creating device"
 
     # Default Device metadata
     defaults = dict(name="Device", description=f"{data_type}. Automatically generated.")

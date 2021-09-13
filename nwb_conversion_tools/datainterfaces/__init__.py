@@ -78,5 +78,5 @@ interface_list = [
     TiffImagingInterface,
     Hdf5ImagingInterface,
     MovieInterface,
-    AbfNeoDataInterface
+    AbfNeoDataInterface,
 ]

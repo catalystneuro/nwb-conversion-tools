@@ -13,13 +13,15 @@ from ...utils.json_schema import (
     get_schema_from_hdmf_class,
     get_schema_from_method_signature,
     fill_defaults,
-    get_base_schema
+    get_base_schema,
 )
 from ...utils.spike_interface import write_recording
 from ...utils.neo import (
-    get_command_traces, get_number_of_electrodes,
-    get_electrodes_metadata, get_number_of_segments, 
-    write_neo_to_nwb
+    get_command_traces,
+    get_number_of_electrodes,
+    get_electrodes_metadata,
+    get_number_of_segments,
+    write_neo_to_nwb,
 )
 
 OptionalPathType = Optional[Union[str, Path]]
@@ -33,10 +35,7 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
     @classmethod
     def get_source_schema(cls):
         """Compile input schema for the Neo class"""
-        source_schema = get_schema_from_method_signature(
-            class_method=cls.__init__, 
-            exclude=[]
-        )
+        source_schema = get_schema_from_method_signature(class_method=cls.__init__, exclude=[])
         return source_schema
 
     def __init__(self, **source_data):
@@ -53,22 +52,18 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
         metadata_schema = super().get_metadata_schema()
 
         # Initiate Ecephys metadata
-        metadata_schema['properties']['Icephys'] = get_base_schema(tag='Icephys')
-        metadata_schema['properties']['Icephys']['required'] = ['Device', 'IntracellularElectrode']
-        metadata_schema['properties']['Icephys']['properties'] = dict(
-            Device=dict(
-                type="array",
-                minItems=1,
-                items={"$ref": "#/properties/Icephys/properties/definitions/Device"}
-            ),
+        metadata_schema["properties"]["Icephys"] = get_base_schema(tag="Icephys")
+        metadata_schema["properties"]["Icephys"]["required"] = ["Device", "IntracellularElectrode"]
+        metadata_schema["properties"]["Icephys"]["properties"] = dict(
+            Device=dict(type="array", minItems=1, items={"$ref": "#/properties/Icephys/properties/definitions/Device"}),
             IntracellularElectrode=dict(
                 type="array",
                 minItems=1,
-                items={"$ref": "#/properties/Icephys/properties/definitions/IntracellularElectrode"}
+                items={"$ref": "#/properties/Icephys/properties/definitions/IntracellularElectrode"},
             ),
         )
         # Schema definition for arrays
-        metadata_schema['properties']['Icephys']['properties']["definitions"] = dict(
+        metadata_schema["properties"]["Icephys"]["properties"]["definitions"] = dict(
             Device=get_schema_from_hdmf_class(Device),
             IntracellularElectrode=get_schema_from_hdmf_class(IntracellularElectrode),
         )
@@ -76,19 +71,10 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
 
     def get_metadata(self):
         metadata = super().get_metadata()
-        metadata['Icephys'] = dict(
-            Device=[
-                dict(
-                    name='Device_icephys',
-                    description='no description'
-                )
-            ],
+        metadata["Icephys"] = dict(
+            Device=[dict(name="Device_icephys", description="no description")],
             IntracellularElectrode=[
-                dict(
-                    name=f'electrode-{i}',
-                    description="no description",
-                    device='Device_icephys'
-                )
+                dict(name=f"electrode-{i}", description="no description", device="Device_icephys")
                 for i in range(get_number_of_electrodes(self.reader))
             ],
         )
@@ -102,7 +88,7 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
         use_times: bool = False,
         save_path: OptionalPathType = None,
         overwrite: bool = False,
-        write_as: str = 'raw',
+        write_as: str = "raw",
         es_key: str = None,
     ):
         """
@@ -148,5 +134,5 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
             write_as=write_as,
             es_key=es_key,
             save_path=save_path,
-            overwrite=overwrite
+            overwrite=overwrite,
         )
