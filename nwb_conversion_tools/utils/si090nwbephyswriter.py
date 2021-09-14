@@ -54,29 +54,21 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
         BaseSINwbEphysWriter.__init__(
             self, object_to_write, nwb_file_path=nwb_file_path, nwbfile=nwbfile, metadata=metadata, **kwargs
         )
+        if isinstance(self.object_to_write, si.BaseRecording):
+            self.recording = self.object_to_write
+        elif isinstance(self.object_to_write, si.BaseRecording):
+            self.sorting = self.object_to_write
+        elif isinstance(self.object_to_write, si.BaseEvent):
+            self.event = self.object_to_write
+        elif isinstance(self.object_to_write, si.WaveformExtractor):
+            self.recording = self.object_to_write.recording
+            self.sorting = self.object_to_write.sorting
+            self.waveforms = self.object_to_write
 
     @staticmethod
     def supported_types():
         assert HAVE_SI_090
         return (si.BaseRecording, si.BaseSorting, si.BaseEvent, si.WaveformExtractor)
-
-    def add_to_nwb(self):
-        if isinstance(self.object_to_write, si.BaseRecording):
-            self.recording = self.object_to_write
-            self.add_recording()
-        elif isinstance(self.object_to_write, si.BaseRecording):
-            self.sorting = self.object_to_write
-            self.add_sorting()
-        elif isinstance(self.object_to_write, si.BaseEvent):
-            self.event = self.object_to_write
-            self.add_epochs()
-        elif isinstance(self.object_to_write, si.WaveformExtractor):
-            self.recording = self.object_to_write.recording
-            self.sorting = self.object_to_write.sorting
-            self.waveforms = self.object_to_write
-            self.add_recording()
-            self.add_sorting()
-            self.add_waveforms()
 
     def get_num_segments(self):
         return self.object_to_write.get_num_segments()

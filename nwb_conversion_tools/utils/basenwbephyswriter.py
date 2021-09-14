@@ -108,29 +108,6 @@ class BaseNwbEphysWriter(ABC):
     def add_to_nwb(self):
         pass
 
-    def add_recording(self):
-        assert (
-            distutils.version.LooseVersion(pynwb.__version__) >= "1.3.3"
-        ), "'write_recording' not supported for version < 1.3.3. Run pip install --upgrade pynwb"
-
-        self.add_devices()
-        self.add_electrode_groups()
-        self.add_electrodes()
-        if self._conversion_ops["write_electrical_series"]:
-            self.add_electrical_series()
-            self.add_epochs()
-
-    def add_sorting(self):
-        self.add_units()
-
-    @abstractmethod
-    def add_epochs(self):
-        pass
-
-    @abstractmethod
-    def add_waveforms(self):
-        pass
-
     def add_devices(self):
         """
         Auxiliary static method for nwbextractor.
@@ -159,11 +136,7 @@ class BaseNwbEphysWriter(ABC):
 
         print(self.nwbfile.devices)
 
-    @abstractmethod
     def add_electrode_groups(self):
-        pass
-
-    def _add_electrode_groups(self, channel_groups_unique: Iterable = None):
         """
         Auxiliary method to write electrode groups.
 
@@ -183,8 +156,8 @@ class BaseNwbEphysWriter(ABC):
         if "Ecephys" not in self.metadata:
             self.metadata["Ecephys"] = dict()
 
-        if channel_groups_unique is None:
-            channel_groups_unique = np.array([0], dtype="int")
+        channel_groups_unique = np.unique([int(self._get_channel_property_values('group',id))
+                                           for id in self._get_channel_ids()])
 
         defaults = [
             dict(

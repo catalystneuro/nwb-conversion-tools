@@ -59,12 +59,6 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
         assert HAVE_SI013
         return (se.RecordingExtractor, se.SortingExtractor)
 
-    def add_to_nwb(self):
-        if isinstance(self.object_to_write, se.RecordingExtractor):
-            self.add_recording()
-        elif isinstance(self.object_to_write, se.SortingExtractor):
-            self.add_sorting()
-
     def get_num_segments(self):
         return 1
 
@@ -147,3 +141,8 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                         stop_time=self.recording.frame_to_time(epoch["end_frame"]),
                         tags=epoch_name,
                     )
+
+    def add_recording(self):
+        super().add_recording()
+        if self._conversion_ops["write_electrical_series"]:
+            self.add_epochs()

@@ -53,3 +53,37 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
     def _get_unit_ids(self):
         if self.sorting is not None:
             return self.sorting.get_unit_ids()
+
+    def add_recording(self):
+        assert (
+            distutils.version.LooseVersion(pynwb.__version__) >= "1.3.3"
+        ), "'write_recording' not supported for version < 1.3.3. Run pip install --upgrade pynwb"
+
+        self.add_devices()
+        self.add_electrode_groups()
+        self.add_electrodes()
+        if self._conversion_ops["write_electrical_series"]:
+            self.add_electrical_series()
+
+    def add_sorting(self):
+        self.add_units()
+
+    def add_waveforms(self):
+        if self.waveforms is not None:
+            self.add_units_waveforms()
+
+    def add_to_nwb(self):
+        if self.waveforms is not None:
+            self.add_recording()
+            self.add_sorting()
+            self.add_waveforms()
+            return
+        if self.recording is not None:
+            self.add_recording()
+            return
+        if self.sorting is not None:
+            self.add_sorting()
+            return
+        if self.event is not None:
+            self.add_epochs()
+            return
