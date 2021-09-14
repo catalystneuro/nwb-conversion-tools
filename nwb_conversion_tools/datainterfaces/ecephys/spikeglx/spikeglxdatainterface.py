@@ -44,6 +44,14 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
         source_schema["properties"]["file_path"]["description"] = "Path to SpikeGLX file."
         return source_schema
 
+    @classmethod
+    def get_metadata_schema(cls):
+        metadata_schema = super().get_metadata_schema()
+        metadata_schema["properties"]["Ecephys"]["properties"].update(
+            ElectricalSeries_raw=get_schema_from_hdmf_class(ElectricalSeries)
+        )
+        return metadata_schema
+
     def __init__(self, file_path: FilePathType, stub_test: Optional[bool] = False):
         super().__init__(file_path=str(file_path))
         if stub_test:
@@ -57,13 +65,6 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
             self.recording_extractor.set_channel_property(
                 channel_id=ch, property_name="shank_group_name", value="Shank1"
             )
-
-    def get_metadata_schema(self):
-        metadata_schema = super().get_metadata_schema()
-        metadata_schema["properties"]["Ecephys"]["properties"].update(
-            ElectricalSeries_raw=get_schema_from_hdmf_class(ElectricalSeries)
-        )
-        return metadata_schema
 
     def get_metadata(self):
         metadata = super().get_metadata()
@@ -92,6 +93,14 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
         source_schema["properties"]["file_path"]["description"] = "Path to SpikeGLX file."
         return source_schema
 
+    @classmethod
+    def get_metadata_schema(cls):
+        metadata_schema = super().get_metadata_schema()
+        metadata_schema["properties"]["Ecephys"]["properties"].update(
+            ElectricalSeries_lfp=get_schema_from_hdmf_class(ElectricalSeries)
+        )
+        return metadata_schema
+
     def __init__(self, file_path: FilePathType, stub_test: Optional[bool] = False):
         super().__init__(file_path=str(file_path))
         if stub_test:
@@ -105,13 +114,6 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
             self.recording_extractor.set_channel_property(
                 channel_id=ch, property_name="shank_group_name", value="Shank1"
             )
-
-    def get_metadata_schema(self):
-        metadata_schema = super().get_metadata_schema()
-        metadata_schema["properties"]["Ecephys"]["properties"].update(
-            ElectricalSeries_lfp=get_schema_from_hdmf_class(ElectricalSeries)
-        )
-        return metadata_schema
 
     def get_metadata(self):
         metadata = super().get_metadata()

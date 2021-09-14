@@ -24,6 +24,12 @@ def test_interface_source_schema(data_interface):
 
 
 @pytest.mark.parametrize("data_interface", interface_list)
+def test_interface_metadata_schema(data_interface):
+    schema = data_interface.get_metadata_schema()
+    Draft7Validator.check_schema(schema)
+
+
+@pytest.mark.parametrize("data_interface", interface_list)
 def test_interface_conversion_options_schema(data_interface):
     schema = data_interface.get_conversion_options_schema()
     Draft7Validator.check_schema(schema)

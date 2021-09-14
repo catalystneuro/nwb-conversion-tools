@@ -21,16 +21,17 @@ class BaseSortingExtractorInterface(BaseDataInterface, ABC):
         """Compile input schema for the SortingExtractor."""
         return get_schema_from_method_signature(cls.__init__)
 
-    def __init__(self, **source_data):
-        super().__init__(**source_data)
-        self.sorting_extractor = self.SX(**source_data)
-
-    def get_metadata_schema(self):
+    @classmethod
+    def get_metadata_schema(cls):
         """Compile metadata schema for the RecordingExtractor."""
         metadata_schema = get_base_schema(
             properties=dict(SpikeEventSeries=get_schema_from_hdmf_class(SpikeEventSeries))
         )
         return metadata_schema
+
+    def __init__(self, **source_data):
+        super().__init__(**source_data)
+        self.sorting_extractor = self.SX(**source_data)
 
     def run_conversion(
         self, nwbfile: NWBFile, metadata: dict, stub_test: bool = False, write_ecephys_metadata: bool = False

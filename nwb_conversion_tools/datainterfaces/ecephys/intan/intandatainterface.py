@@ -21,6 +21,14 @@ class IntanRecordingInterface(BaseRecordingExtractorInterface):
 
     RX = se.IntanRecordingExtractor
 
+    @classmethod
+    def get_metadata_schema(cls):
+        metadata_schema = super().get_metadata_schema()
+        metadata_schema["properties"]["Ecephys"]["properties"].update(
+            ElectricalSeries_raw=get_schema_from_hdmf_class(ElectricalSeries)
+        )
+        return metadata_schema
+
     def __init__(self, file_path: FilePathType):
         assert HAVE_PYINTAN, INSTALL_MESSAGE
         super().__init__(file_path=file_path)
@@ -55,13 +63,6 @@ class IntanRecordingInterface(BaseRecordingExtractorInterface):
                 self.recording_extractor.set_channel_property(
                     channel_id=channel_id, property_name="custom_channel_name", value=custom_name
                 )
-
-    def get_metadata_schema(self):
-        metadata_schema = super().get_metadata_schema()
-        metadata_schema["properties"]["Ecephys"]["properties"].update(
-            ElectricalSeries_raw=get_schema_from_hdmf_class(ElectricalSeries)
-        )
-        return metadata_schema
 
     def get_metadata(self):
         channel_ids = self.recording_extractor.get_channel_ids()

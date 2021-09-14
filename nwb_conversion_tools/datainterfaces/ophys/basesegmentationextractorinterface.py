@@ -22,11 +22,8 @@ class BaseSegmentationExtractorInterface(BaseDataInterface, ABC):
     def get_source_schema(cls):
         return get_schema_from_method_signature(cls.__init__)
 
-    def __init__(self, **source_data):
-        super().__init__(**source_data)
-        self.segmentation_extractor = self.SegX(**source_data)
-
-    def get_metadata_schema(self):
+    @classmethod
+    def get_metadata_schema(cls):
         """Compile metadata schema for the RoiExtractor."""
         metadata_schema = super().get_metadata_schema()
         metadata_schema["required"] = ["Ophys"]
@@ -40,8 +37,12 @@ class BaseSegmentationExtractorInterface(BaseDataInterface, ABC):
             TwoPhotonSeries=get_schema_from_hdmf_class(TwoPhotonSeries),
         )
         metadata_schema["properties"]["Ophys"]["required"] = ["Device", "Fluorescence", "ImageSegmentation"]
-        fill_defaults(metadata_schema, self.get_metadata())
+        # fill_defaults(metadata_schema, self.get_metadata())
         return metadata_schema
+
+    def __init__(self, **source_data):
+        super().__init__(**source_data)
+        self.segmentation_extractor = self.SegX(**source_data)
 
     def get_metadata(self):
         """Auto-fill metadata with values found from the corresponding roiextractor.

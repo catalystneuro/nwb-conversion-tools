@@ -17,7 +17,8 @@ OptionalPathType = Optional[Union[str, Path]]
 class BaseLFPExtractorInterface(BaseRecordingExtractorInterface):
     """Primary class for all LFP data interfaces."""
 
-    def get_metadata_schema(self):
+    @classmethod
+    def get_metadata_schema(cls):
         metadata_schema = super().get_metadata_schema()
         metadata_schema["properties"]["Ecephys"]["properties"].update(
             ElectricalSeries_lfp=get_schema_from_hdmf_class(ElectricalSeries)

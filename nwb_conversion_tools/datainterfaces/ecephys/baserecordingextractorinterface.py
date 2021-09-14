@@ -28,12 +28,8 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         """Compile input schema for the RecordingExtractor."""
         return get_schema_from_method_signature(cls.__init__)
 
-    def __init__(self, **source_data):
-        super().__init__(**source_data)
-        self.recording_extractor = self.RX(**source_data)
-        self.subset_channels = None
-
-    def get_metadata_schema(self):
+    @classmethod
+    def get_metadata_schema(cls):
         """Compile metadata schema for the RecordingExtractor."""
         metadata_schema = super().get_metadata_schema()
 
@@ -67,6 +63,11 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
             ),
         )
         return metadata_schema
+
+    def __init__(self, **source_data):
+        super().__init__(**source_data)
+        self.recording_extractor = self.RX(**source_data)
+        self.subset_channels = None
 
     def get_metadata(self):
         metadata = super().get_metadata()

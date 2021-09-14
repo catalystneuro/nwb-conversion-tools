@@ -65,6 +65,14 @@ class NeuroscopeRecordingInterface(BaseRecordingExtractorInterface):
 
     RX = se.NeuroscopeRecordingExtractor
 
+    @classmethod
+    def get_metadata_schema(cls):
+        metadata_schema = super().get_metadata_schema()
+        metadata_schema["properties"]["Ecephys"]["properties"].update(
+            ElectricalSeries_raw=get_schema_from_hdmf_class(ElectricalSeries)
+        )
+        return metadata_schema
+
     @staticmethod
     def get_ecephys_metadata(xml_file_path: str):
         """Auto-populates ecephys metadata from the xml_file_path."""
@@ -98,13 +106,6 @@ class NeuroscopeRecordingInterface(BaseRecordingExtractorInterface):
                 channel_id=channel_id, property_name="group_name", value=group_name
             )
 
-    def get_metadata_schema(self):
-        metadata_schema = super().get_metadata_schema()
-        metadata_schema["properties"]["Ecephys"]["properties"].update(
-            ElectricalSeries_raw=get_schema_from_hdmf_class(ElectricalSeries)
-        )
-        return metadata_schema
-
     def get_metadata(self):
         """Retrieve Ecephys metadata specific to the Neuroscope format."""
         metadata = super().get_metadata()
@@ -124,6 +125,14 @@ class NeuroscopeMultiRecordingTimeInterface(BaseRecordingExtractorInterface):
 
     RX = se.NeuroscopeMultiRecordingTimeExtractor
 
+    @classmethod
+    def get_metadata_schema(cls):
+        metadata_schema = super().get_metadata_schema()
+        metadata_schema["properties"]["Ecephys"]["properties"].update(
+            ElectricalSeries_raw=get_schema_from_hdmf_class(ElectricalSeries)
+        )
+        return metadata_schema
+
     def __init__(self, folder_path: FolderPathType):
         super().__init__(folder_path=folder_path)
         xml_file_path = get_xml_file_path(data_file_path=self.source_data["folder_path"])
@@ -140,13 +149,6 @@ class NeuroscopeMultiRecordingTimeInterface(BaseRecordingExtractorInterface):
             self.recording_extractor.set_channel_property(
                 channel_id=channel_id, property_name="group_name", value=group_name
             )
-
-    def get_metadata_schema(self):
-        metadata_schema = super().get_metadata_schema()
-        metadata_schema["properties"]["Ecephys"]["properties"].update(
-            ElectricalSeries_raw=get_schema_from_hdmf_class(ElectricalSeries)
-        )
-        return metadata_schema
 
     def get_metadata(self):
         """Retrieve Ecephys metadata specific to the Neuroscope format."""
@@ -168,18 +170,19 @@ class NeuroscopeLFPInterface(BaseLFPExtractorInterface):
 
     RX = se.NeuroscopeRecordingExtractor
 
-    def __init__(self, file_path: FilePathType):
-        super().__init__(file_path=file_path)
-        self.subset_channels = get_shank_channels(
-            xml_file_path=get_xml_file_path(data_file_path=self.source_data["file_path"]), sort=True
-        )
-
-    def get_metadata_schema(self):
+    @classmethod
+    def get_metadata_schema(cls):
         metadata_schema = super().get_metadata_schema()
         metadata_schema["properties"]["Ecephys"]["properties"].update(
             ElectricalSeries_lfp=get_schema_from_hdmf_class(ElectricalSeries)
         )
         return metadata_schema
+
+    def __init__(self, file_path: FilePathType):
+        super().__init__(file_path=file_path)
+        self.subset_channels = get_shank_channels(
+            xml_file_path=get_xml_file_path(data_file_path=self.source_data["file_path"]), sort=True
+        )
 
     def get_metadata(self):
         """Retrieve Ecephys metadata specific to the Neuroscope format."""

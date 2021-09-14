@@ -31,12 +31,8 @@ class BlackrockRecordingExtractorInterface(BaseRecordingExtractorInterface):
         source_schema["properties"]["filename"]["description"] = "Path to Blackrock file."
         return source_schema
 
-    def __init__(
-        self, filename: FilePathType, nsx_override: OptionalFilePathType = None, nsx_to_load: Optional[int] = None
-    ):
-        super().__init__(filename=filename, nsx_override=nsx_override, nsx_to_load=nsx_to_load)
-
-    def get_metadata_schema(self):
+    @classmethod
+    def get_metadata_schema(cls):
         """Compile metadata schema for the RecordingExtractor."""
         metadata_schema = super().get_metadata_schema()
         metadata_schema["properties"]["Ecephys"]["properties"].update(
@@ -44,6 +40,11 @@ class BlackrockRecordingExtractorInterface(BaseRecordingExtractorInterface):
             ElectricalSeries_processed=get_schema_from_hdmf_class(ElectricalSeries),
         )
         return metadata_schema
+
+    def __init__(
+        self, filename: FilePathType, nsx_override: OptionalFilePathType = None, nsx_to_load: Optional[int] = None
+    ):
+        super().__init__(filename=filename, nsx_override=nsx_override, nsx_to_load=nsx_to_load)
 
     def get_metadata(self):
         """Auto-fill as much of the metadata as possible. Must comply with metadata schema."""
