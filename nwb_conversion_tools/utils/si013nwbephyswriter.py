@@ -114,6 +114,9 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
     def _get_unit_property_values(self, prop, unit_id):
         return self.sorting.get_unit_property(unit_id, prop)
 
+    def _get_unit_waveforms_templates(self, unit_id, mode='mean'):
+        return
+
     def add_epochs(self):
         """
         Auxiliary static method for nwbextractor.

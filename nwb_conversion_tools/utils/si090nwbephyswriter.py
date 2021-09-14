@@ -139,11 +139,8 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
     def _get_unit_property_values(self, prop, unit_id):
         return self.sorting.get_unit_property(unit_id, prop)
 
-    def add_epochs(self):
-        raise NotImplementedError
-
-    def add_waveforms(self):
-        raise NotImplementedError
+    def _get_unit_waveforms_templates(self, unit_id, mode='mean'):
+        return self.waveforms.get_template(unit_id, mode=mode)
 
     def add_epochs(self):
-        raise NotImplementedError
+        return
