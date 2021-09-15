@@ -32,14 +32,9 @@ class AbfNeoDataInterface(BaseIcephysNeoInterface):
         startDate = datetime.strptime(startDate, "%Y%M%d")
         startTime = timedelta(seconds=startTime)
         abfDateTime = startDate + startTime
-        # Time Zone
-        session_start_time_tzaware = pytz.timezone("UTC").localize(abfDateTime)
-        session_start_time_tzaware = session_start_time_tzaware.strftime("%Y-%m-%dT%H:%M:%S%z")
-        # Add a colon separator to the TZ offset segment
-        session_start_time_tzaware = "{0}:{1}".format(session_start_time_tzaware[:-2], session_start_time_tzaware[-2:])
 
         metadata["NWBFile"] = dict(
-            session_start_time=session_start_time_tzaware,
+            session_start_time=abfDateTime,
         )
 
         return metadata
