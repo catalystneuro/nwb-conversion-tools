@@ -81,31 +81,32 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
         return self.recording.get_traces(channel_ids=None, start_frame=None, end_frame=None,
                                          return_scaled=True, segment_index=segment_index).T
 
-    def _get_channel_property_names(self, chan_id):
+    def _get_channel_property_names(self):
         return self.recording.get_property_keys()
 
     def _get_channel_property_values(self, prop, chan_id):
         if prop == "location":
             try:
-                return self.recording.get_channel_locations(channel_ids=chan_id)
+                return self.recording.get_channel_locations()
             except:
                 return np.nan * np.ones(len(self._get_channel_ids()), 2)
         elif prop == "gain":
-            if self.recording.get_channel_gains(channel_ids=chan_id) is None:
+            if self.recording.get_channel_gains() is None:
                 return np.ones(len(self._get_channel_ids()))
             else:
-                return self.recording.get_channel_gains(channel_ids=chan_id)
+                return self.recording.get_channel_gains()
         elif prop == "offset":
-            if self.recording.get_channel_offsets(channel_ids=chan_id) is None:
+            if self.recording.get_channel_offsets() is None:
                 return np.zeros(len(self._get_channel_ids()))
             else:
-                return self.recording.get_channel_offsets(channel_ids=chan_id)
+                return self.recording.get_channel_offsets()
         elif prop == "group":
-            if self.recording.get_channel_groups(channel_ids=chan_id) is None:
+            if self.recording.get_channel_groups() is None:
                 return np.zeros(len(self._get_channel_ids()))
             else:
-                return self.recording.get_channel_groups(channel_ids=chan_id)
-        self.recording.get_property(prop, ids=chan_id)
+                return self.recording.get_channel_groups()
+        else:
+            return self.recording.get_property(prop)
 
     def _get_recording_times(self, segment_index=0):
         return np.range(0, self._get_num_frames(segment_index=segment_index)

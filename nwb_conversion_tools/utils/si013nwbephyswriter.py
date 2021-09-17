@@ -65,19 +65,50 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
     def _get_traces(self, channel_ids=None, start_frame=None, end_frame=None, return_scaled=True, segment_index=0):
         return self.recording.get_traces(channel_ids=None, start_frame=None, end_frame=None, return_scaled=True)
 
-    def _get_channel_property_names(self, chan_id):
-        return self.recording.get_channel_property_names(channel_id=chan_id)
+    def _get_channel_property_names(self):
+        property_names = set()
+        for chan_id in self._get_channel_ids():
+            for i in self._get_channel_property_names(chan_id):
+                property_names.add(i)
+        return list(property_names)
 
-    def _get_channel_property_values(self, prop, chan_id):
+    def _get_channel_property_values(self, prop):
         if prop == "location":
-            return self.recording.get_channel_locations(channel_ids=chan_id)
+            return self.recording.get_channel_locations()
         elif prop == "gain":
-            return self.recording.get_channel_gains(channel_ids=chan_id)
+            return self.recording.get_channel_gains()
         elif prop == "offset":
-            return self.recording.get_channel_offsets(channel_ids=chan_id)
+            return self.recording.get_channel_offsets()
         elif prop == "group":
-            return self.recording.get_channel_groups(channel_ids=chan_id)
-        return self.recording.get_channel_property(channel_id=chan_id, property_name=prop)
+            return self.recording.get_channel_groups()
+        else:
+            # infer channel properties and fill with defaults when not present for channel:
+            channel_property_defaults = {list: [], np.ndarray: np.array(np.nan), str: "", Real: np.nan}
+            found_property_types = Real
+            # find the channel property dtype:
+            for chan_id in self._get_channel_ids():
+                try:
+                    chan_data = self.recording.get_channel_property(channel_id=chan_id, property_name=prop)
+                    proptype = [proptype for proptype in channel_property_defaults if isinstance(chan_data, proptype)]
+                    if len(proptype)>0:
+                        found_property_types = proptype[0] if len(proptype) > 1 else proptype
+                        break
+                    else: # if property not found in the supported channel_property_defaults, then return None
+                        return
+                except:
+                    continue
+            # build data array:
+            data = []
+            for chan_id in self._get_channel_ids():
+                try:
+                    chan_data = self.recording.get_channel_property(channel_id=chan_id, property_name=prop)
+                except:
+                    chan_data = channel_property_defaults[found_property_types]
+                if found_property_types == Real:
+                    data.append(np.float(chan_data))
+                else:
+                    data.append(chan_data)
+            return np.array(data)
 
     def _get_num_frames(self, segment_index=0):
         if self.recording is not None:

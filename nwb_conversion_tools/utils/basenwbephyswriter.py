@@ -37,11 +37,11 @@ class BaseNwbEphysWriter(ABC):
         pass
 
     @abstractmethod
-    def _get_channel_property_names(self, chan_id):
+    def _get_channel_property_names(self):
         pass
 
     @abstractmethod
-    def _get_channel_property_values(self, prop, chan_id):
+    def _get_channel_property_values(self, prop):
         pass
 
     @abstractmethod
@@ -266,60 +266,26 @@ class BaseNwbEphysWriter(ABC):
 
         elec_columns = defaultdict(dict)  # dict(name: dict(description='',data=data, index=False))
         elec_columns_append = defaultdict(dict)
-        property_names = set()
-        for chan_id in self._get_channel_ids():
-            for i in self._get_channel_property_names(chan_id):
-                property_names.add(i)
-
+        property_names = self._get_channel_property_names()
         # property 'brain_area' of RX channels corresponds to 'location' of NWB electrodes
         exclude_names = set(["location", "group"] + list(self._conversion_ops["skip_electrode_properties"]))
+        for prop in property_names:
+            if prop not in exclude_names:
+                data = self._get_channel_property_values(prop)
+                # store data after build:
+                index = isinstance(data[0], ArrayType)
+                prop_name_new = "location" if prop == "brain_area" else prop
+                elec_columns[prop_name_new].update(description=prop_name_new, data=data, index=index)
+
+        # fill with provided custom descriptions
+        for x in self.metadata["Ecephys"]["Electrodes"]:
+            if x["name"] not in list(elec_columns):
+                raise ValueError(f'"{x["name"]}" not a property of se object, set it first and rerun')
+            elec_columns[x["name"]]["description"] = x["description"]
 
         channel_property_defaults = {list: [], np.ndarray: np.array(np.nan), str: "", Real: np.nan}
-        found_property_types = {prop: Real for prop in property_names}
-
-        for prop in property_names:
-            prop_skip = False
-            if prop not in exclude_names:
-                data = []
-                prop_chan_count = 0
-                # build data: #TODO: keep this separate; only for the old version, new version fills stuff in automatically
-                for chan_id in self._get_channel_ids():
-                    if prop in self._get_channel_property_names(chan_id):
-                        prop_chan_count += 1
-                        chan_data = self._get_channel_property_values(prop, chan_id)
-                        # find the type and store (only when the first channel with given property is found):
-                        if prop_chan_count == 1:
-                            proptype = [
-                                proptype for proptype in channel_property_defaults if isinstance(chan_data, proptype)
-                            ]
-                            if len(proptype) > 0:
-                                found_property_types[prop] = proptype[0]
-                                # cast as float if any number:
-                                if found_property_types[prop] == Real:
-                                    chan_data = np.float(chan_data)
-                                # update data if wrong datatype items filled prior:
-                                if len(data) > 0 and not isinstance(data[-1], found_property_types[prop]):
-                                    data = [channel_property_defaults[found_property_types[prop]]] * len(data)
-                            else:
-                                prop_skip = True  # skip storing that property if not of default type
-                                break
-                        data.append(chan_data)
-                    else:
-                        data.append(channel_property_defaults[found_property_types[prop]])
-                # store data after build:
-                if not prop_skip:
-                    index = found_property_types[prop] == ArrayType
-                    prop_name_new = "location" if prop == "brain_area" else prop
-                    found_property_types[prop_name_new] = found_property_types.pop(prop)
-                    elec_columns[prop_name_new].update(description=prop_name_new, data=data, index=index)
-
-        for x in self.metadata["Ecephys"]["Electrodes"]:
-            elec_columns[x["name"]]["description"] = x["description"]
-            if x["name"] not in list(elec_columns):
-                raise ValueError(f'"{x["name"]}" not a property of se object')
-
         # updating default arguments if electrodes table already present:
-        default_updated = dict()
+        default_updated = dict() #TODO verify
         if self.nwbfile.electrodes is not None:
             for colname in self.nwbfile.electrodes.colnames:
                 if colname != "group":
