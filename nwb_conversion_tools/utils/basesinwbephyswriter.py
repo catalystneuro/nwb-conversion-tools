@@ -54,6 +54,19 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
         if self.sorting is not None:
             return self.sorting.get_unit_ids()
 
+    def _check_valid_property(self, prop_values):
+        if isinstance(prop_values[0], np.ndarray):
+            shapes = [value.shape[1:] for value in prop_values]
+            if not np.all([shape == shape[0] for shape in shapes]):
+                return False
+            else:
+                return True
+        elif isinstance(prop_values[0], dict):
+            return False
+        else:
+            return True
+
+
     def add_recording(self):
         assert (
             distutils.version.LooseVersion(pynwb.__version__) >= "1.3.3"
