@@ -82,7 +82,8 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
                                          return_scaled=True, segment_index=segment_index).T
 
     def _get_channel_property_names(self):
-        return self.recording.get_property_keys()
+        default_properties = ["location", "gain", "offset", "group"]
+        return list(set(self.recording.get_property_keys()).union(default_properties))
 
     def _get_channel_property_values(self, prop, chan_id):
         if prop == "location":

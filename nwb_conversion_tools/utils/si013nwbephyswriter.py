@@ -68,7 +68,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
     def _get_channel_property_names(self):
         property_names = set()
         for chan_id in self._get_channel_ids():
-            for i in self._get_channel_property_names(chan_id):
+            for i in self.recording.get_channel_property_names(chan_id):
                 property_names.add(i)
         return list(property_names)
 
