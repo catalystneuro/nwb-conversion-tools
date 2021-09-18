@@ -156,8 +156,7 @@ class BaseNwbEphysWriter(ABC):
         if "Ecephys" not in self.metadata:
             self.metadata["Ecephys"] = dict()
 
-        channel_groups_unique = np.unique([int(self._get_channel_property_values('group',id))
-                                           for id in self._get_channel_ids()])
+        channel_groups_unique = np.unique(self._get_channel_property_values('group'))
 
         defaults = [
             dict(
@@ -237,7 +236,7 @@ class BaseNwbEphysWriter(ABC):
             filtering="none",
             group_name="0",
         )
-        if self.metadata is None:
+        if self.metadata is None: #TODO: build complete metadata from a separate class/method and fill defaults
             self.metadata = dict(Ecephys=dict())
 
         if "Ecephys" not in self.metadata:
@@ -265,17 +264,28 @@ class BaseNwbEphysWriter(ABC):
             nwb_elec_ids = self.nwbfile.electrodes.id.data[:]
 
         elec_columns = defaultdict(dict)  # dict(name: dict(description='',data=data, index=False))
-        elec_columns_append = defaultdict(dict)
         property_names = self._get_channel_property_names()
         # property 'brain_area' of RX channels corresponds to 'location' of NWB electrodes
-        exclude_names = set(["location", "group"] + list(self._conversion_ops["skip_electrode_properties"]))
+        channel_property_defaults = {list: [], np.ndarray: np.array(np.nan), str: "", Real: np.nan}
+        exclude_names = self._conversion_ops["skip_electrode_properties"]
         for prop in property_names:
             if prop not in exclude_names:
                 data = self._get_channel_property_values(prop)
+                default_datatype_list = \
+                    [proptype for proptype in channel_property_defaults if isinstance(data[0], proptype)]
+                if len(default_datatype_list) == 0:
+                    warnings.warn(f'RX property {prop} not a supported dtype for nwb electrodes table, skipping')
+                    continue
                 # store data after build:
-                index = isinstance(data[0], ArrayType)
-                prop_name_new = "location" if prop == "brain_area" else prop
-                elec_columns[prop_name_new].update(description=prop_name_new, data=data, index=index)
+                if prop=="location":
+                    location_map = ["rel_x", "rel_y", "rel_z"]
+                    for prop_name_new, loc in zip(location_map, range(data.shape[1])):
+                        elec_columns[prop_name_new].update(description=prop_name_new, data=data[:,loc], index=False)
+                else:
+                    prop_name_new = "location" if prop == "brain_area" else prop
+                    prop_name_new = "group_name" if prop == "group" else prop
+                    index = isinstance(data[0], ArrayType)
+                    elec_columns[prop_name_new].update(description=prop_name_new, data=data, index=index)
 
         # fill with provided custom descriptions
         for x in self.metadata["Ecephys"]["Electrodes"]:
@@ -283,78 +293,48 @@ class BaseNwbEphysWriter(ABC):
                 raise ValueError(f'"{x["name"]}" not a property of se object, set it first and rerun')
             elec_columns[x["name"]]["description"] = x["description"]
 
-        channel_property_defaults = {list: [], np.ndarray: np.array(np.nan), str: "", Real: np.nan}
-        # updating default arguments if electrodes table already present:
-        default_updated = dict() #TODO verify
+        # for all non-default columns already existing in electrodes table, build a default dtype for later add_row op
+        default_updated = dict()
         if self.nwbfile.electrodes is not None:
             for colname in self.nwbfile.electrodes.colnames:
-                if colname != "group":
+                if colname not in defaults:
                     samp_data = self.nwbfile.electrodes[colname].data[0]
                     default_datatype = [
                         proptype for proptype in channel_property_defaults if isinstance(samp_data, proptype)
                     ][0]
                     default_updated.update({colname: channel_property_defaults[default_datatype]})
-        default_updated.update(defaults)
+        default_updated.update(defaults)# since the addition of electrode will expect his argument other than defaults
 
+        # for all columns that are new for the given RX, they will
+        elec_columns_append = defaultdict(dict)
         for name, des_dict in elec_columns.items():
             des_args = dict(des_dict)
-            if name not in default_updated:
-                if self.nwbfile.electrodes is None:
-                    self.nwbfile.add_electrode_column(
-                        name=name, description=des_args["description"], index=des_args["index"]
-                    )
-                else:
-                    # build default junk values for data to force add columns later:
-                    combine_data = [channel_property_defaults[found_property_types[name]]] * len(
-                        self.nwbfile.electrodes.id
-                    )
-                    des_args["data"] = combine_data + des_args["data"]
-                    elec_columns_append[name] = des_args
+            if name not in default_updated and self.nwbfile.electrodes is not None:
+                # build default junk values for data and add that as column directly later:
+                default_datatype_list = [
+                    proptype for proptype in channel_property_defaults if isinstance(des_dict["data"][0], proptype)
+                ][0]
+                combine_data = [channel_property_defaults[default_datatype_list]] \
+                               * len(self.nwbfile.electrodes.id)
+                des_args["data"] = np.concatenate([combine_data, des_args["data"]], axis=0)
+                elec_columns_append[name] = des_args
 
         for name in elec_columns_append:
-            _ = elec_columns.pop(name)
+            _ = elec_columns.pop(name) # include only those columns that already exist in electrodes table
 
         for j, channel_id in enumerate(self._get_channel_ids()):
             if channel_id not in nwb_elec_ids:
                 electrode_kwargs = dict(default_updated)
                 electrode_kwargs.update(id=channel_id)
-
-                # self.recording.get_channel_locations defaults to np.nan if there are none
-                location = self._get_channel_property_values("location", channel_id)
-                if all([not np.isnan(loc) for loc in location]):
-                    # property 'location' of RX channels corresponds to rel_x and rel_ y of NWB electrodes
-                    electrode_kwargs.update(dict(rel_x=float(location[0]), rel_y=float(location[1])))
-
                 for name, desc in elec_columns.items():
                     if name == "group_name":
-                        group_name = str(desc["data"][j])
-                        if group_name != "" and group_name not in self.nwbfile.electrode_groups:
-                            warnings.warn(
-                                f"Electrode group {group_name} for electrode {channel_id} was not "
-                                "found in the nwbfile! Automatically adding."
-                            )
-                            missing_group_metadata = dict(
-                                Ecephys=dict(
-                                    ElectrodeGroup=[
-                                        dict(
-                                            name=group_name,
-                                        )
-                                    ]
-                                )
-                            )
-                            self.add_electrode_groups(missing_group_metadata=missing_group_metadata)
+                        # this should always be present as an electrode column, electrode_groups with that group name
+                        # also should be present and created on the call to create_electrode_groups()
                         electrode_kwargs.update(
-                            dict(group=self.nwbfile.electrode_groups[group_name], group_name=group_name)
+                            dict(group=self.nwbfile.electrode_groups[name], group_name=name)
                         )
-                    elif "data" in desc:
+                    else:
                         electrode_kwargs[name] = desc["data"][j]
-
-                if "group_name" not in elec_columns:
-                    group_id = self._get_channel_property_values("group", channel_id)[0]
-                    electrode_kwargs.update(
-                        dict(group=self.nwbfile.electrode_groups[str(group_id)], group_name=str(group_id))
-                    )
-
                 self.nwbfile.add_electrode(**electrode_kwargs)
         # add columns for existing electrodes:
         for col_name, cols_args in elec_columns_append.items():
