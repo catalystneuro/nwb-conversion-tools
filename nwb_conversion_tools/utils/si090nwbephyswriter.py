@@ -108,17 +108,16 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
                 return self.recording.get_channel_groups()
         else:
             prop_values = self.recording.get_property(prop)
-            if self._check_valid_property(prop_values):
-                return prop_values
+            return self._check_valid_property(prop_values)
 
     def _get_recording_times(self, segment_index=0):
         return np.range(0, self._get_num_frames(segment_index=segment_index)
                         * self._get_sampling_frequency(), self._get_sampling_frequency())
 
-    def _get_unit_feature_names(self, unit_id):
+    def _get_unit_feature_names(self):
         return []
 
-    def _get_unit_feature_values(self, prop, unit_id):
+    def _get_unit_feature_values(self, prop):
         return
 
     def _get_unit_spike_train_ids(self, unit_id, start_frame=None, end_frame=None, segment_index=None):
@@ -134,8 +133,7 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
 
     def _get_unit_property_values(self, prop):
         prop_values = self.sorting.get_unit_property(prop)
-        if self._check_valid_property(prop_values):
-            return prop_values
+        return self._check_valid_property(prop_values)
 
     def _get_unit_waveforms_templates(self, unit_id, mode='mean'):
         return self.waveforms.get_template(unit_id, mode=mode)

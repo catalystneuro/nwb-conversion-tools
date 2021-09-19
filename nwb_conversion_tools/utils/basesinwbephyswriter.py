@@ -58,13 +58,13 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
         if isinstance(prop_values[0], np.ndarray):
             shapes = [value.shape[1:] for value in prop_values]
             if not np.all([shape == shape[0] for shape in shapes]):
-                return False
+                return
             else:
-                return True
+                return prop_values
         elif isinstance(prop_values[0], dict):
-            return False
+            return
         else:
-            return True
+            return prop_values
 
 
     def add_recording(self):
