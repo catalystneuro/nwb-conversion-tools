@@ -1,31 +1,19 @@
-import uuid
-from datetime import datetime
-import warnings
-import numpy as np
 import distutils.version
-from pathlib import Path
-from typing import Union, Optional, List
-from warnings import warn
-import psutil
-from collections import defaultdict
-from copy import deepcopy
 from abc import ABC
+
+import numpy as np
 import pynwb
-from numbers import Real
-from hdmf.data_utils import DataChunkIterator
-from hdmf.backends.hdf5.h5_utils import H5DataIO
-from .json_schema import dict_deep_update
+
 from .basenwbephyswriter import BaseNwbEphysWriter
-from .common_writer_tools import ArrayType, PathType, set_dynamic_table_property, check_module, list_get
 
 
 class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
     def __init__(
-        self,
-        object_to_write,
-        nwbfile: pynwb.NWBFile = None,
-        metadata: dict = None,
-        **kwargs,
+            self,
+            object_to_write,
+            nwbfile: pynwb.NWBFile = None,
+            metadata: dict = None,
+            **kwargs,
     ):
         self.recording, self.sorting, self.waveforms, self.event = None, None, None, None
         BaseNwbEphysWriter.__init__(self, object_to_write, nwbfile=nwbfile, metadata=metadata, **kwargs)
@@ -55,21 +43,16 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
             return self.sorting.get_unit_ids()
 
     def _check_valid_property(self, prop_values):
+        if not isinstance(prop_values[0], tuple(self.dt_column_defaults)):
+            return
         if isinstance(prop_values[0], np.ndarray):
             shapes = [value.shape[1:] for value in prop_values]
-            if not np.all([shape == shape[0] for shape in shapes]):
-                return
-            else:
+            if np.all([shape == shape[0] for shape in shapes]):
                 return prop_values
-        elif isinstance(prop_values[0], dict):
-            return
-        else:
-            return prop_values
-
 
     def add_recording(self):
         assert (
-            distutils.version.LooseVersion(pynwb.__version__) >= "1.3.3"
+                distutils.version.LooseVersion(pynwb.__version__) >= "1.3.3"
         ), "'write_recording' not supported for version < 1.3.3. Run pip install --upgrade pynwb"
 
         self.add_devices()

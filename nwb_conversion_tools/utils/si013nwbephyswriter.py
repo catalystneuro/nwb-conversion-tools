@@ -1,23 +1,10 @@
-import uuid
-from datetime import datetime
-import warnings
-import numpy as np
-import distutils.version
-from pathlib import Path
-from typing import Union, Optional, List
-from warnings import warn
-import psutil
-from collections import defaultdict
-from copy import deepcopy
-
-import pynwb
 from numbers import Real
-from hdmf.data_utils import DataChunkIterator
-from hdmf.backends.hdf5.h5_utils import H5DataIO
-from .json_schema import dict_deep_update
-from .basenwbephyswriter import BaseNwbEphysWriter
+from typing import Union
+
+import numpy as np
+import pynwb
+
 from .basesinwbephyswriter import BaseSINwbEphysWriter
-from .common_writer_tools import ArrayType, PathType, set_dynamic_table_property, check_module, list_get
 
 try:
     import spikeextractors as se
@@ -41,11 +28,11 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
     """
 
     def __init__(
-        self,
-        object_to_write: Union[se.RecordingExtractor, se.SortingExtractor],
-        nwbfile: pynwb.NWBFile = None,
-        metadata: dict = None,
-        **kwargs,
+            self,
+            object_to_write: Union[se.RecordingExtractor, se.SortingExtractor],
+            nwbfile: pynwb.NWBFile = None,
+            metadata: dict = None,
+            **kwargs,
     ):
         assert HAVE_SI013, "spikeextractors 0.13 version not installed"
         BaseSINwbEphysWriter.__init__(self, object_to_write, nwbfile=nwbfile, metadata=metadata, **kwargs)
@@ -63,7 +50,10 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
         return 1
 
     def _get_traces(self, channel_ids=None, start_frame=None, end_frame=None, return_scaled=True, segment_index=0):
-        return self.recording.get_traces(channel_ids=None, start_frame=None, end_frame=None, return_scaled=True)
+        return self.recording.get_traces(channel_ids=channel_ids,
+                                         start_frame=start_frame,
+                                         end_frame=end_frame,
+                                         return_scaled=return_scaled).T
 
     def _get_channel_property_names(self):
         property_names = set()
@@ -73,16 +63,16 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
         return list(property_names)
 
     def _fill_missing_property_values(self, ids, prop, get_prop_func):
-        channel_property_defaults = {list: [],
-                                     str: "",
-                                     Real: np.nan,
-                                     np.ndarray: np.array([np.nan])}
+        self.dt_column_defaults = {list: [],
+                                   str: "",
+                                   Real: np.nan,
+                                   np.ndarray: np.array([np.nan])}
         # find the size of ndarray dtype:
         for id in ids:
             try:
                 id_data = get_prop_func(id, prop)
-                if isinstance(id_data,np.ndarray):
-                    channel_property_defaults.update({np.ndarray: np.nan*np.ones(shape=[1,id_data.shape[1:]])})
+                if isinstance(id_data, np.ndarray):
+                    self.dt_column_defaults.update({np.ndarray: np.nan*np.ones(shape=[1, id_data.shape[1:]])})
                     break
                 else:
                     break
@@ -93,11 +83,11 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
         for id in ids:
             try:
                 id_data = get_prop_func(id, prop)
-                proptype = [proptype for proptype in channel_property_defaults if isinstance(id_data, proptype)]
+                proptype = [proptype for proptype in self.dt_column_defaults if isinstance(id_data, proptype)]
                 if len(proptype) > 0:
                     found_property_types = proptype[0] if len(proptype) > 1 else proptype
                     break
-                else:  # if property not found in the supported channel_property_defaults, then return None
+                else:  # if property not found in the supported self.dt_column_defaults, then return None
                     return
             except:
                 continue
@@ -107,7 +97,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
             try:
                 id_data = get_prop_func(id, prop)
             except:
-                id_data = channel_property_defaults[found_property_types]
+                id_data = self.dt_column_defaults[found_property_types]
             if found_property_types == Real:
                 data.append(np.float(id_data))
             else:
@@ -134,7 +124,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
 
     def _get_recording_times(self, segment_index=0):
         if self.recording._times is None:
-            return np.range(0, self._get_num_frames() * self._get_sampling_frequency(), self._get_sampling_frequency())
+            return np.arange(0, self._get_num_frames()*self._get_sampling_frequency(), self._get_sampling_frequency())
         return self.recording._times
 
     def _get_unit_feature_names(self):
@@ -145,7 +135,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
         return all_features
 
     def _get_unit_feature_values(self, prop):
-        feat_values = self._fill_missing_property_values(self._get_unit_ids(),prop,self.sorting.get_unit_property)
+        feat_values = self._fill_missing_property_values(self._get_unit_ids(), prop, self.sorting.get_unit_property)
         return self._check_valid_property(feat_values)
 
     def _get_unit_spike_train_ids(self, unit_id, start_frame=None, end_frame=None, segment_index=None):
@@ -169,7 +159,13 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
         return self._check_valid_property(prop_values)
 
     def _get_unit_waveforms_templates(self, unit_id, mode='mean'):
-        return
+        if "template" in self._get_unit_property_names():
+            template = self._get_unit_property_values("template")
+            if template is not None:
+                if mode == "mean":
+                    return template.T
+                elif mode == "std":
+                    return
 
     def add_epochs(self):
         """

@@ -1,22 +1,11 @@
-import uuid
-from datetime import datetime
-import warnings
-import numpy as np
-import distutils.version
-from pathlib import Path
-from typing import Union, Optional, List
 from distutils.version import StrictVersion
-from warnings import warn
-import psutil
-from collections import defaultdict
+from typing import Union
 
+import numpy as np
 import pynwb
-from numbers import Real
-from hdmf.data_utils import DataChunkIterator
-from hdmf.backends.hdf5.h5_utils import H5DataIO
-from .json_schema import dict_deep_update
+
 from .basesinwbephyswriter import BaseSINwbEphysWriter
-from .common_writer_tools import ArrayType, PathType, set_dynamic_table_property, check_module, list_get
+from .common_writer_tools import PathType
 
 try:
     import spikeinterface as si
@@ -43,12 +32,12 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
     """
 
     def __init__(
-        self,
-        object_to_write: Union[si.BaseRecording, si.BaseSorting, si.BaseEvent, si.WaveformExtractor],
-        nwb_file_path: PathType = None,
-        nwbfile: pynwb.NWBFile = None,
-        metadata: dict = None,
-        **kwargs,
+            self,
+            object_to_write: Union[si.BaseRecording, si.BaseSorting, si.BaseEvent, si.WaveformExtractor],
+            nwb_file_path: PathType = None,
+            nwbfile: pynwb.NWBFile = None,
+            metadata: dict = None,
+            **kwargs,
     ):
         assert HAVE_SI_090
         BaseSINwbEphysWriter.__init__(
@@ -78,8 +67,11 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
             return self.recording.get_num_frames(segment_index=segment_index)
 
     def _get_traces(self, channel_ids=None, start_frame=None, end_frame=None, return_scaled=True, segment_index=0):
-        return self.recording.get_traces(channel_ids=None, start_frame=None, end_frame=None,
-                                         return_scaled=True, segment_index=segment_index).T
+        return self.recording.get_traces(channel_ids=channel_ids,
+                                         start_frame=start_frame,
+                                         end_frame=end_frame,
+                                         return_scaled=return_scaled,
+                                         segment_index=segment_index)
 
     def _get_channel_property_names(self):
         default_properties = ["location", "gain", "offset", "group"]
@@ -90,7 +82,7 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
             try:
                 return self.recording.get_channel_locations()
             except:
-                return np.nan * np.ones(len(self._get_channel_ids()), 2)
+                return np.nan*np.ones(len(self._get_channel_ids()), 2)
         elif prop == "gain":
             if self.recording.get_channel_gains() is None:
                 return np.ones(len(self._get_channel_ids()))
@@ -112,7 +104,7 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
 
     def _get_recording_times(self, segment_index=0):
         return np.range(0, self._get_num_frames(segment_index=segment_index)
-                        * self._get_sampling_frequency(), self._get_sampling_frequency())
+                        *self._get_sampling_frequency(), self._get_sampling_frequency())
 
     def _get_unit_feature_names(self):
         return []
@@ -126,7 +118,7 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
                                                      end_frame=end_frame, segment_index=segment_index)
 
     def _get_unit_spike_train_times(self, unit_id, segment_index=0):
-        return self._get_unit_spike_train_ids(unit_id, segment_index) / self._get_unit_sampling_frequency()
+        return self._get_unit_spike_train_ids(unit_id, segment_index)/self._get_unit_sampling_frequency()
 
     def _get_unit_property_names(self):
         return list(self.sorting._properties.keys())
