@@ -10,7 +10,9 @@ from .json_schema import dict_deep_update
 from collections import Iterable, defaultdict
 from .common_writer_tools import (default_export_ops, ArrayType,
                                   _default_sorting_property_descriptions,
-                                  _add_properties_to_dynamictable)
+                                  _add_properties_to_dynamictable,
+                                  set_dynamic_table_property,
+                                  check_module)
 from abc import ABC, abstractmethod
 import psutil
 from warnings import warn
@@ -538,7 +540,6 @@ class BaseNwbEphysWriter(ABC):
         elif self._conversion_ops["write_as"] == "lfp":
             ecephys_mod.data_interfaces["LFP"].add_electrical_series(es)
 
-
     def add_units(self):
         """Auxilliary function for add_sorting."""
         unit_ids = self._get_unit_ids()
@@ -636,7 +637,6 @@ class BaseNwbEphysWriter(ABC):
                     index=spikes_index,
                 )
 
-
     def add_units_waveforms(self):
         if self._get_unit_waveforms_templates(unit_id=0) is not None:
             if len(self.nwbfile.units) == 0:
@@ -659,76 +659,6 @@ class BaseNwbEphysWriter(ABC):
     @abstractmethod
     def add_epochs(self):
         pass
-
-
-def list_get(li: list, idx: int, default):
-    """Safe index retrieval from list."""
-    try:
-        return li[idx]
-    except IndexError:
-        return default
-
-
-def set_dynamic_table_property(
-    dynamic_table,
-    row_ids,
-    property_name,
-    values,
-    index=False,
-    default_value=np.nan,
-    table=False,
-    description="no description",
-):
-    if not isinstance(row_ids, list) or not all(isinstance(x, int) for x in row_ids):
-        raise TypeError("'ids' must be a list of integers")
-    ids = list(dynamic_table.id[:])
-    if any([i not in ids for i in row_ids]):
-        raise ValueError("'ids' contains values outside the range of existing ids")
-    if not isinstance(property_name, str):
-        raise TypeError("'property_name' must be a string")
-    if len(row_ids) != len(values) and index is False:
-        raise ValueError("'ids' and 'values' should be lists of same size")
-
-    if index is False:
-        if property_name in dynamic_table:
-            for (row_id, value) in zip(row_ids, values):
-                dynamic_table[property_name].data[ids.index(row_id)] = value
-        else:
-            col_data = [default_value] * len(ids)  # init with default val
-            for (row_id, value) in zip(row_ids, values):
-                col_data[ids.index(row_id)] = value
-            dynamic_table.add_column(
-                name=property_name, description=description, data=col_data, index=index, table=table
-            )
-    else:
-        if property_name in dynamic_table:
-            # TODO
-            raise NotImplementedError
-        else:
-            dynamic_table.add_column(name=property_name, description=description, data=values, index=index, table=table)
-
-
-def check_module(nwbfile, name: str, description: str = None):
-    """
-    Check if processing module exists. If not, create it. Then return module.
-
-    Parameters
-    ----------
-    nwbfile: pynwb.NWBFile
-    name: str
-    description: str | None (optional)
-
-    Returns
-    -------
-    pynwb.module
-    """
-    assert isinstance(nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
-    if name in nwbfile.modules:
-        return nwbfile.modules[name]
-    else:
-        if description is None:
-            description = name
-        return nwbfile.create_processing_module(name, description)
 
 
 def get_num_spikes(units_table, unit_id):
