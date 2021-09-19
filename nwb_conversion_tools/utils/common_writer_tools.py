@@ -54,6 +54,42 @@ def set_dynamic_table_property(
         else:
             dynamic_table.add_column(name=property_name, description=description, data=values, index=index, table=table)
 
+def _add_properties_to_dynamictable(self, dt, prop_dict, defaults):
+    """
+    Prepares an already existing dynamic table to take custom properties using the add_functions.
+    Parameters
+    ----------
+    dt: DynamicTable
+    prop_dict: dict
+        dict(name=dict(description='',data='', index=bool)
+    defaults: dict
+        default row values for dt columns
+
+    Returns
+    -------
+    default_updated: dict
+    """
+    defaults_updated = defaults
+    if dt is None:
+        return defaults_updated
+    property_default_data = {list: [], np.ndarray: np.array(np.nan), str: "", Real: np.nan}
+    for colname in dt.colnames:
+        if colname not in defaults:
+            samp_data = dt[colname].data[0]
+            default_datatype = [
+                proptype for proptype in property_default_data if isinstance(samp_data, proptype)
+            ][0]
+            defaults_updated.update({colname: property_default_data[default_datatype]})
+    # for all columns that are new for the given RX, they will
+    for name, des_dict in prop_dict.items():
+        des_args = dict(des_dict)
+        if name not in defaults_updated:
+            # build default junk values for data and add that as column directly later:
+            default_datatype_list = [proptype for proptype in property_default_data
+                                     if isinstance(des_dict["data"][0], proptype)][0]
+            des_args["data"] = [property_default_data[default_datatype_list]] *len(dt.id)
+            dt.add_column(**des_args)
+    return defaults_updated
 
 def check_module(nwbfile, name: str, description: str = None):
     """
