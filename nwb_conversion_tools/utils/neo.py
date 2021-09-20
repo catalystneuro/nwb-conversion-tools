@@ -486,7 +486,7 @@ def write_neo_to_nwb(
                 Should be below 1 MB. Automatically calculates suitable chunk shape.
         If manual specification of buffer_shape and chunk_shape are desired, these may be specified as well.
     icephys_experiment_type: str (optional)
-        Type of Icephys experiment. Allowed types are: 'voltage_clamp', 'current_clamp' and 'izero'. 
+        Type of Icephys experiment. Allowed types are: 'voltage_clamp', 'current_clamp' and 'izero'.
         If no value is passed, 'voltage_clamp' is used as default.
     """
     if nwbfile is not None:
@@ -532,7 +532,7 @@ def write_neo_to_nwb(
                 compression_opts=compression_opts,
                 iterator_type=iterator_type,
                 iterator_opts=iterator_opts,
-                icephys_experiment_type=icephys_experiment_type
+                icephys_experiment_type=icephys_experiment_type,
             )
             io.write(nwbfile)
     else:
@@ -548,5 +548,5 @@ def write_neo_to_nwb(
             compression_opts=compression_opts,
             iterator_type=iterator_type,
             iterator_opts=iterator_opts,
-            icephys_experiment_type=icephys_experiment_type
+            icephys_experiment_type=icephys_experiment_type,
         )
