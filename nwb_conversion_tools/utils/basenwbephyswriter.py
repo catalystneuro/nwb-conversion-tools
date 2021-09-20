@@ -13,9 +13,10 @@ from hdmf.data_utils import DataChunkIterator
 
 from .common_writer_tools import (default_export_ops,
                                   _default_sorting_property_descriptions,
-                                  _add_properties_to_dynamictable,
+                                  add_properties_to_dynamictable,
                                   set_dynamic_table_property,
-                                  check_module)
+                                  check_module,
+                                  DynamicTableSupportedDtypes)
 
 
 class BaseNwbEphysWriter(ABC):
@@ -25,10 +26,7 @@ class BaseNwbEphysWriter(ABC):
         self.metadata = metadata if metadata is not None else dict()
         self.nwbfile = nwbfile
         self._conversion_ops = dict(**default_export_ops(), **kwargs)
-        self.dt_column_defaults = {list: [],
-                                   str: "",
-                                   Real: np.nan,
-                                   np.ndarray: np.array([np.nan])}
+        self.dt_column_defaults = DynamicTableSupportedDtypes
 
     @abstractmethod
     def get_num_segments(self):
@@ -296,13 +294,12 @@ class BaseNwbEphysWriter(ABC):
             elec_columns[x["name"]]["description"] = x["description"]
 
         # 3. For existing electrodes table, add the additional columns and fill with default data:
-        default_updated = \
-            _add_properties_to_dynamictable(self.nwbfile.electrodes, elec_columns, defaults)
+        add_properties_to_dynamictable(self.nwbfile,'electrodes', elec_columns, defaults)
 
         # 4. add info to electrodes table:
         for j, channel_id in enumerate(self._get_channel_ids()):
             if channel_id not in nwb_elec_ids:
-                electrode_kwargs = dict(default_updated)
+                electrode_kwargs = dict(defaults)
                 electrode_kwargs.update(id=channel_id)
                 for name, desc in elec_columns.items():
                     if name == "group_name":
@@ -577,6 +574,10 @@ class BaseNwbEphysWriter(ABC):
                 index = isinstance(data[0], (list, np.ndarray))
                 unit_columns[prop].update(description=property_descriptions.get(prop, "No description."),
                                           data=data, index=index)
+                if prop in ["max_channel", "max_electrode"]:
+                    if self.nwbfile.electrodes is None:
+                        self.add_electrodes()
+                    unit_columns[prop].update(table=self.nwbfile.electrodes)
 
         # 2. fill with provided custom descriptions
         for x in self.metadata["Units"]:
@@ -585,19 +586,12 @@ class BaseNwbEphysWriter(ABC):
             unit_columns[x["name"]]["description"] = x["description"]
 
         # 3. For existing electrodes table, add the additional columns and fill with default data:
-        default_updated = \
-            _add_properties_to_dynamictable(self.nwbfile.Units, unit_columns, defaults)
+        add_properties_to_dynamictable(self.nwbfile, 'units', unit_columns, defaults)
 
         # 4. Add info to units table:
-        for pr in unit_columns:  # TODO: need to implement this in add to dynamic table.
-            unit_col_args = dict(name=pr, description=property_descriptions.get(pr, "No description."))
-            if pr in ["max_channel", "max_electrode"] and self.nwbfile.electrodes is not None:
-                unit_col_args.update(table=self.nwbfile.electrodes)
-            self.nwbfile.add_unit_column(**unit_col_args)
-
         for j, unit_id in enumerate(unit_ids):
             if unit_id not in nwb_units_ids:
-                unit_kwargs = dict(default_updated)
+                unit_kwargs = dict(defaults)
                 if self._conversion_ops["use_times"]:
                     spkt = self._get_unit_spike_train_times(unit_id)
                 else:
