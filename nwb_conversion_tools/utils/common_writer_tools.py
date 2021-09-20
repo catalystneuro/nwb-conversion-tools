@@ -65,7 +65,7 @@ def add_properties_to_dynamictable(nwbfile, dt_name, prop_dict, defaults):
         add_method = nwbfile.add_unit_column
         dt = nwbfile.units
 
-    if dt is not None:
+    if dt is None:
         for prop_name, prop_args in prop_dict.items():
             if prop_name not in defaults:
                 add_method(prop_name, **prop_args)
