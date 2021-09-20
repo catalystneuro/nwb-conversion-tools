@@ -110,6 +110,22 @@ def reshape_dynamictable(dt, prop_dict, defaults):
             dt.add_column(name, **des_args)
 
 
+def default_return(value):
+    def return_dec(func):
+        def wrapper(**args):
+            try:
+                func(**args)
+                if func(**args) is None:
+                    return value
+            except Exception as e:
+                if 'NoneType' in str(e):
+                    return value
+                else:
+                    return e
+        return wrapper
+    return return_dec
+
+
 def check_module(nwbfile, name: str, description: str = None):
     """
     Check if processing module exists. If not, create it. Then return module.

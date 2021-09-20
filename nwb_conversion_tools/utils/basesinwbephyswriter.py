@@ -5,6 +5,7 @@ import numpy as np
 import pynwb
 
 from .basenwbephyswriter import BaseNwbEphysWriter
+from .common_writer_tools import default_return
 
 
 class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
@@ -18,30 +19,24 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
         self.recording, self.sorting, self.waveforms, self.event = None, None, None, None
         BaseNwbEphysWriter.__init__(self, object_to_write, nwbfile=nwbfile, metadata=metadata, **kwargs)
 
-    def add_electrode_groups(self):
-        channel_groups = self.recording.get_channel_groups()
-        if channel_groups is None:
-            channel_groups_unique = np.array([0], dtype="int")
-        else:
-            channel_groups_unique = np.unique(channel_groups)
-        super(BaseNwbEphysWriter)._add_electrode_groups(channel_groups_unique=channel_groups_unique)
-
+    @default_return(None)
     def _get_sampling_frequency(self):
-        if self.recording is not None:
-            return self.recording.get_sampling_frequency()
+        return self.recording.get_sampling_frequency()
 
+    @default_return([])
     def _get_channel_ids(self):
-        if self.recording is not None:
-            return self.recording.get_channel_ids()
+        return self.recording.get_channel_ids()
 
+    @default_return(None)
     def _get_unit_sampling_frequency(self):
-        if self.sorting is not None:
-            return self.sorting.get_sampling_frequency()
+        return self.sorting.get_sampling_frequency()
 
+    @default_return([])
     def _get_unit_ids(self):
         if self.sorting is not None:
             return self.sorting.get_unit_ids()
 
+    @default_return([])
     def _check_valid_property(self, prop_values):
         if not isinstance(prop_values[0], tuple(self.dt_column_defaults)):
             return
@@ -49,6 +44,8 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
             shapes = [value.shape[1:] for value in prop_values]
             if np.all([shape == shape[0] for shape in shapes]):
                 return prop_values
+        else:
+            return prop_values
 
     def add_recording(self):
         assert (
