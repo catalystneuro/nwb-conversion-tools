@@ -11,6 +11,27 @@ from nwb_conversion_tools.nwbconverter import NWBConverter
 from .common_writer_tools import default_export_ops, default_export_ops_schema
 
 
+def map_si_object_to_writer(object_to_write):
+    writer_class = None
+    try:
+        if isinstance(object_to_write, SI090NwbEphysWriter.supported_types()):
+            writer_class = SI090NwbEphysWriter
+    except AssertionError:
+        pass
+    try:
+        if isinstance(object_to_write, SI013NwbEphysWriter.supported_types()):
+            writer_class = SI013NwbEphysWriter
+    except AssertionError:
+        pass
+    try:
+        if isinstance(object_to_write, NEONwbEphysWriter.supported_types()):
+            writer_class = NEONwbEphysWriter
+    except AssertionError:
+        pass
+    if writer_class is None:
+        raise Exception(f"Could not write object of type {type(object_to_write)}")
+    return writer_class
+
 def export_ecephys_to_nwb(
     objects_to_write,
     nwb_file_path=None,
@@ -60,28 +81,9 @@ def export_ecephys_to_nwb(
         nwbfile = converter.run_conversion(metadata=metadata, save_to_file=False)
 
     for object_to_write in objects_to_write:
-        writer_class = None
-        try:
-            if isinstance(object_to_write, SI090NwbEphysWriter.supported_types()):
-                writer_class = SI090NwbEphysWriter
-        except AssertionError:
-            pass
-        try:
-            if isinstance(object_to_write, SI013NwbEphysWriter.supported_types()):
-                writer_class = SI013NwbEphysWriter
-        except AssertionError:
-            pass
-        try:
-            if isinstance(object_to_write, NEONwbEphysWriter.supported_types()):
-                writer_class = NEONwbEphysWriter
-        except AssertionError:
-            pass
-
-        if writer_class is None:
-            raise Exception(f"Could not write object of type {type(object_to_write)}")
-        else:
-            writer = writer_class(object_to_write, nwbfile=nwbfile, metadata=metadata, **conversion_ops)
-            writer.write_to_nwb()
+        writer_class = map_si_object_to_writer(objects_to_write)
+        writer = writer_class(object_to_write, nwbfile=nwbfile, metadata=metadata, **conversion_ops)
+        writer.write_to_nwb()
 
         # handle modes and overwrite
         if nwb_file_path is not None:

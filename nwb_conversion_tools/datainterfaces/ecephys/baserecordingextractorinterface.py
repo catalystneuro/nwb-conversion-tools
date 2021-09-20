@@ -16,7 +16,7 @@ from ...utils.json_schema import (
     fill_defaults,
     get_base_schema,
 )
-from ...utils import export_ecephys_to_nwb
+from ...utils import export_ecephys_to_nwb, map_si_object_to_writer
 
 OptionalPathType = Optional[Union[str, Path]]
 
@@ -34,6 +34,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
     def __init__(self, **source_data):
         super().__init__(**source_data)
         self.recording_extractor = self.RX(**source_data)
+        self.writer_class = map_si_object_to_writer(self.recording_extractor)
         self.subset_channels = None
         self.source_data = source_data
 
@@ -78,7 +79,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
             Device=[dict(name="Device_ecephys", description="no description")],
             ElectrodeGroup=[
                 dict(name=str(group_id), description="no description", location="unknown", device="Device_ecephys")
-                for group_id in np.unique(self.recording_extractor.get_channel_groups())
+                for group_id in np.unique(self.writer_class._get_channel_property_values('group'))
             ],
         )
         return metadata
