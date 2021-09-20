@@ -32,9 +32,10 @@ class AbfNeoDataInterface(BaseIcephysNeoInterface):
         startDate = datetime.strptime(startDate, "%Y%M%d")
         startTime = timedelta(seconds=startTime)
         abfDateTime = startDate + startTime
+        session_start_time = abfDateTime.strftime("%Y-%m-%dT%H:%M:%S%z")
 
         metadata["NWBFile"] = dict(
-            session_start_time=abfDateTime,
+            session_start_time=session_start_time,
         )
 
         return metadata

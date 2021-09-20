@@ -85,6 +85,30 @@ def get_command_traces(neo_reader, block: int = 0, segment: int = 0, cmd_channel
     return traces[segment][cmd_channel], titles[segment][cmd_channel], units[segment][cmd_channel]
 
 
+# Get gain (to Volt or Ampere) from unit in string format
+def get_gain_from_unit(unit: str) -> float:
+    """
+    Get gain (to Volt or Ampere) from unit in string format.
+
+    Args:
+        unit (str): Unit as string. E.g. pA, mV, uV, etc...
+
+    Returns:
+        float: gain to Ampere or Volt
+    """
+    if unit in ['pA', 'pV']:
+        gain = 10**-12
+    elif unit in ['nA', 'nV']:
+        gain = 10**-9
+    elif unit in ['uA', 'uV']:
+        gain = 10**-6
+    elif unit in ['mA', 'mV']:
+        gain = 10**-3
+    elif unit in ['A', 'V']:
+        gain = 10**0
+    return float(gain)
+
+
 # Get basic NWB metadata for Icephys
 def get_nwb_metadata(neo_reader, metadata: dict = None):
     """
@@ -102,7 +126,11 @@ def get_nwb_metadata(neo_reader, metadata: dict = None):
             identifier=str(uuid.uuid4()),
             session_start_time=datetime(1970, 1, 1),
         ),
-        Icephys=dict(Device=[dict(name="Device", description="no description")]),
+        Icephys=dict(
+            Device=[
+                dict(name="Device", description="no description")
+            ]
+        ),
     )
     return metadata
 
@@ -178,58 +206,112 @@ def add_icephys_electrode(neo_reader, nwbfile=None, metadata: dict = None):
             nwbfile.create_icephys_electrode(**electrode_kwargs)
 
 
-# Add Icephys recording: stimulus/response pair
-def add_icephys_recording(neo_reader, nwbfile=None, metadata: dict = None):
+# Add Icephys recordings: stimulus/response pair
+def add_icephys_recordings(
+    neo_reader, 
+    nwbfile=None, 
+    metadata: dict = None, 
+    icephys_experiment_type: Optional[str] = None
+):
     """
-    Adds icephys recording (stimulus/response pair) to nwbfile object.
+    Adds icephys recordings (stimulus/response pairs) to nwbfile object.
 
     Args:
         neo_reader ([type]): [description]
         nwbfile ([type], optional): [description]. Defaults to None.
         metadata (dict, optional): [description]. Defaults to None.
+        icephys_experiment_type (str, optional):
+            Type of Icephys experiment. Allowed types are: 'voltage_clamp', 'current_clamp' and 'izero'. 
+            If no value is passed, 'voltage_clamp' is used as default.
     """
 
     n_segments = get_number_of_segments(neo_reader, block=0)
     n_electrodes = get_number_of_electrodes(neo_reader)
     protocol = neo_reader.read_raw_protocol()
 
+    if icephys_experiment_type is None:
+        icephys_experiment_type = 'voltage_clamp'
+
     n_commands = len(protocol[0])
     if n_commands == 0:
-        experiment_type = "i_zero"
+        icephys_experiment_type = "izero"
+        warnings.warn("No command data found by neo reader. Saving experiment as 'i_zero'...")
     else:
         assert (
             n_commands == n_segments
         ), f"File contains inconsistent number of segments ({n_segments}) and commands ({n_commands})"
 
+    assert (
+        icephys_experiment_type in ['voltage_clamp', 'current_clamp', 'izero']
+    ), f"'icephys_experiment_type' should be 'voltage_clamp', 'current_clamp' or 'izero', but received value {icephys_experiment_type}"
+
     # TODO - check and auto-create devices and electrodes, in case those items don't existe yet on nwbfile
 
     # Loop through segments - sequential icephys recordings
+    simultaneous_recordings = list()
     for si in range(n_segments):
         # Loop through electrodes - parallel icephys recordings
+        recordings = list()
         for ei, electrode in enumerate(nwbfile.icephys_electrodes.values()):
+            
             # Voltage-clamp
-            response = pynwb.icephys.VoltageClampSeries(
-                name=f"response-{si}-ch-{ei}",
-                electrode=electrode,
-                data=neo_reader.get_analogsignal_chunk(block_index=0, seg_index=si, channel_indexes=ei),
-                starting_time=neo_reader.get_signal_t_start(block_index=0, seg_index=si),
-                rate=neo_reader.get_signal_sampling_rate(),
-                gain=1000.0,  # TODO - get correct gain to Ampere
-                # conversion=1e-12,
-            )
+            if icephys_experiment_type == 'voltage_clamp':
+                sampling_rate = neo_reader.get_signal_sampling_rate()
+                starting_time = neo_reader.get_signal_t_start(block_index=0, seg_index=si)
 
-            stimulus = pynwb.icephys.VoltageClampStimulusSeries(
-                name=f"stimulus-{si}-ch-{ei}",
-                electrode=electrode,
-                data=protocol[0][si][ei],
-                rate=neo_reader.get_signal_sampling_rate(),
-                starting_time=123.6,
-                gain=1000.0,  # TODO - get correct gain to Volt
-            )
+                response_unit = neo_reader.header['signal_channels']['units'][ei]
+                response_gain = get_gain_from_unit(unit=response_unit)
+                response = pynwb.icephys.VoltageClampSeries(
+                    name=f"response-{si}-ch-{ei}",
+                    electrode=electrode,
+                    data=neo_reader.get_analogsignal_chunk(block_index=0, seg_index=si, channel_indexes=ei),
+                    starting_time=starting_time,
+                    rate=sampling_rate,
+                    gain=response_gain,  # gain to Ampere
+                )
 
-            icephys_recording = nwbfile.add_intracellular_recording(
-                electrode=electrode, stimulus=stimulus, response=response
-            )
+                stim_unit = protocol[2][ei]
+                stim_gain = get_gain_from_unit(unit=stim_unit)
+                stimulus = pynwb.icephys.VoltageClampStimulusSeries(
+                    name=f"stimulus-{si}-ch-{ei}",
+                    electrode=electrode,
+                    data=protocol[0][si][ei],
+                    rate=sampling_rate,
+                    starting_time=starting_time,
+                    gain=stim_gain,  # gain to Volt
+                )
+
+                icephys_recording = nwbfile.add_intracellular_recording(
+                    electrode=electrode, 
+                    stimulus=stimulus, 
+                    response=response
+                )
+            
+            # Current-clamp -- TODO
+            elif icephys_experiment_type == 'current_clamp':
+                raise NotImplementedError()
+
+            # Current-clamp -- TODO
+            elif icephys_experiment_type == 'izero':
+                raise NotImplementedError()
+
+            recordings.append(icephys_recording)
+
+        # Add a list of sweeps to the simultaneous recordings table
+        sim_rec = nwbfile.add_icephys_simultaneous_recording(recordings=recordings)
+        simultaneous_recordings.append(sim_rec)
+    
+    # Add a list of simultaneous recordings table indices as a sequential recording
+    seq_rec = nwbfile.add_icephys_sequential_recording(
+        simultaneous_recordings=simultaneous_recordings,
+        stimulus_type='square'
+    )
+
+    # Add a list of sequential recordings table indices as a repetition
+    run_index = nwbfile.add_icephys_repetition(sequential_recordings=[seq_rec, ])
+
+    # (E) Add a list of repetition table indices as a experimental condition
+    nwbfile.add_icephys_experimental_condition(repetitions=[run_index, ])
 
 
 def add_all_to_nwbfile(
@@ -244,6 +326,7 @@ def add_all_to_nwbfile(
     compression_opts: Optional[int] = None,
     iterator_type: Optional[str] = None,
     iterator_opts: Optional[dict] = None,
+    icephys_experiment_type: Optional[str] = None,
 ):
     """
     Auxiliary static method for nwbextractor.
@@ -289,9 +372,15 @@ def add_all_to_nwbfile(
             chunk_mb : float (optional, defaults to 1 MB, only available for 'v2')
                 Should be below 1 MB. Automatically calculates suitable chunk shape.
         If manual specification of buffer_shape and chunk_shape are desired, these may be specified as well.
+    icephys_experiment_type: str (optional)
+        Type of Icephys experiment. Allowed types are: 'voltage_clamp', 'current_clamp' and 'izero'. 
+        If no value is passed, 'voltage_clamp' is used as default.
     """
     if nwbfile is not None:
         assert isinstance(nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
+
+    if icephys_experiment_type is None:
+        icephys_experiment_type = 'voltage_clamp'
 
     add_devices(nwbfile=nwbfile, data_type="Icephys", metadata=metadata)
     add_icephys_electrode(
@@ -299,26 +388,12 @@ def add_all_to_nwbfile(
         nwbfile=nwbfile,
         metadata=metadata,
     )
-    add_icephys_recording(
+    add_icephys_recordings(
         neo_reader=neo_reader,
         nwbfile=nwbfile,
         metadata=metadata,
+        icephys_experiment_type=icephys_experiment_type
     )
-
-    # add_electrical_series(
-    #     recording=recording,
-    #     nwbfile=nwbfile,
-    #     use_times=use_times,
-    #     metadata=metadata,
-    #     write_as=write_as,
-    #     es_key=es_key,
-    #     write_scaled=write_scaled,
-    #     compression=compression,
-    #     compression_opts=compression_opts,
-    #     iterator_type=iterator_type,
-    #     iterator_opts=iterator_opts,
-    # )
-    # add_epochs(recording=recording, nwbfile=nwbfile, metadata=metadata)
 
 
 def write_neo_to_nwb(
@@ -337,7 +412,7 @@ def write_neo_to_nwb(
     iterator_opts: Optional[dict] = None,
 ):
     """
-    Primary method for writing a RecordingExtractor object to an NWBFile.
+    Primary method for writing a Neo reader object to an NWBFile.
 
     Parameters
     ----------
@@ -349,17 +424,11 @@ def write_neo_to_nwb(
         If using save_path, whether or not to overwrite the NWBFile if it already exists.
     nwbfile: NWBFile
         Required if a save_path is not specified. If passed, this function
-        will fill the relevant fields within the nwbfile. E.g., calling
-        spikeextractors.NwbRecordingExtractor.write_recording(
-            my_recording_extractor, my_nwbfile
-        )
-        will result in the appropriate changes to the my_nwbfile object.
+        will fill the relevant fields within the nwbfile.
     use_times: bool
-        If True, the times are saved to the nwb file using recording.frame_to_time(). If False (defualut),
-        the sampling rate is used.
+        If True, the times are saved to the nwb file. If False (default), the sampling rate is used.
     metadata: dict
-        metadata info for constructing the nwb file (optional). Should be
-        of the format
+        metadata info for constructing the nwb file (optional). Should be of the format
             metadata['Ecephys'] = {}
         with keys of the forms
             metadata['Ecephys']['Device'] = [
