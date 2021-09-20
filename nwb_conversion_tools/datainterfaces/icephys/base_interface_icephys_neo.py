@@ -90,6 +90,7 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
         overwrite: bool = False,
         write_as: str = "raw",
         es_key: str = None,
+        icephys_experiment_type: Optional[str] = None,
     ):
         """
         Primary function for converting raw (unprocessed) RecordingExtractor data to the NWB standard.
@@ -119,6 +120,9 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
             Options: 'raw', 'lfp' or 'processed'
         es_key: str (optional)
             Key in metadata dictionary containing metadata info for the specific electrical series
+        icephys_experiment_type: str (optional)
+            Type of Icephys experiment. Allowed types are: 'voltage_clamp', 'current_clamp' and 'izero'. 
+            If no value is passed, 'voltage_clamp' is used as default.
         """
         # TODO - stub test
         # if stub_test or self.subset_channels is not None:
@@ -135,4 +139,5 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
             es_key=es_key,
             save_path=save_path,
             overwrite=overwrite,
+            icephys_experiment_type=icephys_experiment_type
         )
