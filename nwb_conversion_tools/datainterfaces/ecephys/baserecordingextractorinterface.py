@@ -1,22 +1,20 @@
-"""Authors: Cody Baker and Ben Dichter."""
+"""Authors: Cody Baker, Ben Dichter, Saksham Sharda."""
 from abc import ABC
 from typing import Union, Optional
 from pathlib import Path
 import numpy as np
 
-import spikeextractors as se
-from pynwb import NWBFile
+from pynwb import NWBFile, NWBHDF5IO
 from pynwb.device import Device
-from pynwb.ecephys import ElectrodeGroup, ElectricalSeries
+from pynwb.ecephys import ElectrodeGroup
 
 from ...basedatainterface import BaseDataInterface
 from ...utils.json_schema import (
     get_schema_from_hdmf_class,
     get_schema_from_method_signature,
-    fill_defaults,
     get_base_schema,
 )
-from ...utils import export_ecephys_to_nwb, map_si_object_to_writer
+from ...utils import map_si_object_to_writer
 
 OptionalPathType = Optional[Union[str, Path]]
 
@@ -34,7 +32,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
     def __init__(self, **source_data):
         super().__init__(**source_data)
         self.recording_extractor = self.RX(**source_data)
-        self.writer_class = map_si_object_to_writer(self.recording_extractor)
+        self.writer_class = map_si_object_to_writer(self.recording_extractor)(self.recording_extractor)
         self.subset_channels = None
         self.source_data = source_data
 
@@ -84,7 +82,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         )
         return metadata
 
-    def subset_recording(self, stub_test: bool = False):
+    def subset_recording(self, nwbfile, metadata, **kwargs):
         """
         Subset a recording extractor according to stub and channel subset options.
 
@@ -92,18 +90,12 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         ----------
         stub_test : bool, optional (default False)
         """
-        kwargs = dict()
-
-        if stub_test:
-            num_frames = 100
-            end_frame = min([num_frames, self.recording_extractor.get_num_frames()])
-            kwargs.update(end_frame=end_frame)
-
-        if self.subset_channels is not None:
-            kwargs.update(channel_ids=self.subset_channels)
-
-        recording_extractor = se.SubRecordingExtractor(self.recording_extractor, **kwargs)
-        return recording_extractor
+        self.writer_class = map_si_object_to_writer(self.recording_extractor)(self.recording_extractor,
+                                                                              nwbfile=nwbfile,
+                                                                              metadata=metadata,
+                                                                              stub=True,
+                                                                              stub_channels=self.subset_channels,
+                                                                              **kwargs)
 
     def run_conversion(
         self,
@@ -147,18 +139,18 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
             Key in metadata dictionary containing metadata info for the specific electrical series
         """
         if stub_test or self.subset_channels is not None:
-            recording = self.subset_recording(stub_test=stub_test)
-        else:
-            recording = self.recording_extractor
+            self.subset_recording(nwbfile,
+                                  metadata,
+                                  use_times=use_times,
+                                  buffer_mb=buffer_mb,
+                                  write_as=write_as,
+                                  es_key=es_key,
+            )
 
-        export_ecephys_to_nwb(
-            recording=recording,
-            nwbfile=nwbfile,
-            metadata=metadata,
-            use_times=use_times,
-            write_as=write_as,
-            es_key=es_key,
-            save_path=save_path,
-            overwrite=overwrite,
-            buffer_mb=buffer_mb,
-        )
+        self.writer_class.write_to_nwb()
+        if save_path is not None:
+            if overwrite:
+                if Path(save_path).exists():
+                    Path(save_path).unlink()
+                with NWBHDF5IO(str(save_path), mode="w") as io:
+                    io.write(self.writer_class.nwbfile)
