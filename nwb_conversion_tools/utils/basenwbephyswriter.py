@@ -636,7 +636,7 @@ class BaseNwbEphysWriter(ABC):
                 )
 
     def add_units_waveforms(self):
-        if self._get_unit_waveforms_templates(unit_id=0) is not None:
+        if self._get_unit_waveforms_templates(unit_id=0):
             if len(self.nwbfile.units) == 0:
                 warnings.warn('create a units table before adding waveforms. Skipping operation')
                 return

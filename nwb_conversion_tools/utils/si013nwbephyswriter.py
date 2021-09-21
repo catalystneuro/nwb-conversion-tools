@@ -167,9 +167,9 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
     def _get_unit_waveforms_templates(self, unit_id, mode='mean'):
         if "template" in self._get_unit_property_names():
             template = self._get_unit_property_values("template")
-            if template is not None:
+            if len(template)>0:
                 if mode == "mean":
-                    return template.T
+                    return template.T  #(samples, no_channels)
                 elif mode == "std":
                     return
 
