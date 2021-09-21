@@ -33,7 +33,7 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
 
     def __init__(
             self,
-            object_to_write: Union[si.BaseRecording, si.BaseSorting, si.BaseEvent, si.WaveformExtractor],
+            object_to_write,
             nwb_file_path: PathType = None,
             nwbfile: pynwb.NWBFile = None,
             metadata: dict = None,

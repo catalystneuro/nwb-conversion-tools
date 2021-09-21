@@ -29,7 +29,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
 
     def __init__(
             self,
-            object_to_write: Union[se.RecordingExtractor, se.SortingExtractor],
+            object_to_write,
             nwbfile: pynwb.NWBFile = None,
             metadata: dict = None,
             **kwargs,
