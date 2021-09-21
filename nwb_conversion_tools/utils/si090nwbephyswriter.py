@@ -128,11 +128,10 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
         return self._get_unit_spike_train_ids(unit_id, segment_index)/self._get_unit_sampling_frequency()
 
     def _get_unit_property_names(self):
-        if 'max_channel' not in self.sorting._properties:
-            prop_names = list(self.sorting._properties.keys()).extend('max_channel')
-        else:
-            prop_names = list(self.sorting._properties.keys())
-        return prop_names
+        properties = self.sorting.get_property_keys()
+        if 'max_channel' not in properties:
+            properties = properties.extend('max_channel')
+        return properties
 
     @default_return([])
     def _get_unit_property_values(self, prop):
