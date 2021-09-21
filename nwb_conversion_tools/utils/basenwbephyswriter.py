@@ -571,12 +571,17 @@ class BaseNwbEphysWriter(ABC):
         for prop in property_names:
             if prop not in exclude_names:
                 data = self._get_unit_property_values(prop)
+                if len(data) == 0:
+                    continue
                 index = isinstance(data[0], (list, np.ndarray))
                 unit_columns[prop].update(description=property_descriptions.get(prop, "No description."),
                                           data=data, index=index)
                 if prop in ["max_channel", "max_electrode"]:
                     if self.nwbfile.electrodes is None:
-                        self.add_electrodes()
+                        warnings.warn('first link a RX to the nwb file to create correct electrodes')
+                        continue
+                    assert set(data).issubset(set(self.nwbfile.electrodes.id.data)), \
+                        'sorting and recording extractor should be for the same data'
                     unit_columns[prop].update(table=self.nwbfile.electrodes)
 
         # 2. fill with provided custom descriptions
