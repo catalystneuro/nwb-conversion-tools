@@ -166,6 +166,7 @@ def default_export_ops():
         skip_electrode_properties=[],
         unit_property_descriptions=dict(),
         write_electrical_series=True,
+        stub=False,
     )
 
 
@@ -186,6 +187,7 @@ def default_export_ops_schema():
         skip_electrode_properties=dict(type="array", items=dict(type="string")),
         unit_property_descriptions=dict(type="object"),
         write_electrical_series=dict(type="bool"),
+        stub=dict(type="bool"),
     )
 
 

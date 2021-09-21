@@ -1,5 +1,5 @@
 import distutils.version
-from abc import ABC
+from abc import ABC, abstractmethod
 
 import numpy as np
 import pynwb
@@ -17,7 +17,19 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
             **kwargs,
     ):
         self.recording, self.sorting, self.waveforms, self.event = None, None, None, None
+        if 'stub' in kwargs:
+            self.stub = kwargs['stub']
+        else:
+            self.stub = False
         BaseNwbEphysWriter.__init__(self, object_to_write, nwbfile=nwbfile, metadata=metadata, **kwargs)
+
+    @abstractmethod
+    def _make_recording_stub(self):
+        pass
+
+    @abstractmethod
+    def _make_sorting_stub(self):
+        pass
 
     @default_return(None)
     def _get_sampling_frequency(self):

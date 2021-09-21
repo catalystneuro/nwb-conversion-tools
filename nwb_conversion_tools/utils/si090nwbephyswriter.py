@@ -45,14 +45,35 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
         )
         if isinstance(self.object_to_write, si.BaseRecording):
             self.recording = self.object_to_write
+            if self.stub:
+                self._make_recording_stub()
         elif isinstance(self.object_to_write, si.BaseRecording):
             self.sorting = self.object_to_write
+            if self.stub:
+                self._make_sorting_stub()
         elif isinstance(self.object_to_write, si.BaseEvent):
             self.event = self.object_to_write
         elif isinstance(self.object_to_write, si.WaveformExtractor):
             self.recording = self.object_to_write.recording
             self.sorting = self.object_to_write.sorting
             self.waveforms = self.object_to_write
+            if self.stub:
+                self._make_sorting_stub()
+                self._make_recording_stub()
+
+    def _make_recording_stub(self):
+        channel_stub = min(10, self.recording.get_num_channels())
+        frame_stub = min(100, self.recording.get_num_frames())
+        self.recording = si.ChannelSliceRecording(self.recording,
+                                                  channel_ids=self.recording.get_channel_ids()[:channel_stub])
+        self.recording = si.FrameSliceRecording(self.recording,
+                                                end_frame=frame_stub)
+
+    def _make_sorting_stub(self):
+        unit_ids = self.sorting.get_unit_ids()
+        units_stub = max(10, len(unit_ids))
+        self.sorting = si.UnitsSelectionSorting(self.sorting,
+                                                unit_ids=unit_ids[:units_stub])
 
     @staticmethod
     def supported_types():
