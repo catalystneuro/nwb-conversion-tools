@@ -33,8 +33,7 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
 
     @default_return([])
     def _get_unit_ids(self):
-        if self.sorting is not None:
-            return self.sorting.get_unit_ids()
+        return self.sorting.get_unit_ids()
 
     @default_return([])
     def _check_valid_property(self, prop_values):

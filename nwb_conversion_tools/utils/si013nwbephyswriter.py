@@ -126,10 +126,9 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
 
     @default_return([])
     def _get_recording_times(self, segment_index=0):
-        if self.recording is not None:
-            if self.recording._times is None:
-                return np.arange(0, self._get_num_frames()*self._get_sampling_frequency(), self._get_sampling_frequency())
-            return self.recording._times
+        if self.recording._times is None:
+            return np.arange(0, self._get_num_frames()*self._get_sampling_frequency(), self._get_sampling_frequency())
+        return self.recording._times
 
     def _get_unit_feature_names(self):
         unit_ids = self._get_unit_ids()

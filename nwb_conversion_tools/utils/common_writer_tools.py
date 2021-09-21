@@ -114,9 +114,11 @@ def default_return(value):
     def return_dec(func):
         def wrapper(**args):
             try:
-                func(**args)
-                if func(**args) is None:
+                out = func(**args)
+                if out is None:
                     return value
+                else:
+                    return out
             except Exception as e:
                 if 'NoneType' in str(e):
                     return value

@@ -68,12 +68,11 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
 
     @default_return([])
     def _get_traces(self, channel_ids=None, start_frame=None, end_frame=None, return_scaled=True, segment_index=0):
-        if self.recording is not None:
-            return self.recording.get_traces(channel_ids=channel_ids,
-                                             start_frame=start_frame,
-                                             end_frame=end_frame,
-                                             return_scaled=return_scaled,
-                                             segment_index=segment_index)
+        return self.recording.get_traces(channel_ids=channel_ids,
+                                         start_frame=start_frame,
+                                         end_frame=end_frame,
+                                         return_scaled=return_scaled,
+                                         segment_index=segment_index)
 
     @default_return([])
     def _get_channel_property_names(self):
@@ -121,9 +120,8 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
 
     @default_return([])
     def _get_unit_spike_train_ids(self, unit_id, start_frame=None, end_frame=None, segment_index=None):
-        if self.sorting is not None:
-            return self.sorting.get_unit_spike_train(unit_id, start_frame=start_frame,
-                                                     end_frame=end_frame, segment_index=segment_index)
+        return self.sorting.get_unit_spike_train(unit_id, start_frame=start_frame,
+                                                 end_frame=end_frame, segment_index=segment_index)
 
     @default_return([])
     def _get_unit_spike_train_times(self, unit_id, segment_index=0):
