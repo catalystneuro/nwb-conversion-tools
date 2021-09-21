@@ -62,18 +62,28 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
                 self._make_recording_stub()
 
     def _make_recording_stub(self):
-        channel_stub = min(10, self.recording.get_num_channels())
+        if self.stub_channels is not None:
+            channel_stub = self.stub_channels
+        else:
+            num_channels = min(10, self.recording.get_num_channels())
+            channel_stub = self.recording.get_channel_ids()[:num_channels]
         frame_stub = min(100, self.recording.get_num_frames())
         self.recording = si.ChannelSliceRecording(self.recording,
-                                                  channel_ids=self.recording.get_channel_ids()[:channel_stub])
+                                                  channel_ids=channel_stub)
         self.recording = si.FrameSliceRecording(self.recording,
                                                 end_frame=frame_stub)
 
     def _make_sorting_stub(self):
-        unit_ids = self.sorting.get_unit_ids()
-        units_stub = max(10, len(unit_ids))
-        self.sorting = si.UnitsSelectionSorting(self.sorting,
-                                                unit_ids=unit_ids[:units_stub])
+        max_min_spike_time = max(
+            [
+                min(x)
+                for y in self.sorting.get_unit_ids()
+                for x in [self.sorting.get_unit_spike_train(y)]
+                if any(x)
+            ]
+        )
+        self.sorting = si.FrameSliceSorting(start_frame=0,
+                                            end_frame=1.1 * max_min_spike_time)
 
     @staticmethod
     def supported_types():

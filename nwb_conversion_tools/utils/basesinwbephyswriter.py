@@ -17,10 +17,8 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
             **kwargs,
     ):
         self.recording, self.sorting, self.waveforms, self.event = None, None, None, None
-        if 'stub' in kwargs:
-            self.stub = kwargs['stub']
-        else:
-            self.stub = False
+        self.stub = kwargs.get('stub',False)
+        self.stub_channels = kwargs.get('stub_channels',None)
         BaseNwbEphysWriter.__init__(self, object_to_write, nwbfile=nwbfile, metadata=metadata, **kwargs)
 
     @abstractmethod

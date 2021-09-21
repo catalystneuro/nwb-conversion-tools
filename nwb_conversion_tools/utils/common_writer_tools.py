@@ -167,6 +167,7 @@ def default_export_ops():
         unit_property_descriptions=dict(),
         write_electrical_series=True,
         stub=False,
+        stub_channels=[],
     )
 
 
@@ -188,6 +189,7 @@ def default_export_ops_schema():
         unit_property_descriptions=dict(type="object"),
         write_electrical_series=dict(type="bool"),
         stub=dict(type="bool"),
+        stub_channels=dict(type="array", items=dict(type="int"))
     )
 
 
