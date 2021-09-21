@@ -5,7 +5,7 @@ import numpy as np
 import pynwb
 
 from .basesinwbephyswriter import BaseSINwbEphysWriter
-from common_writer_tools import default_return
+from .common_writer_tools import default_return
 try:
     import spikeextractors as se
 

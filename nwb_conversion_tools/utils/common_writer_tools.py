@@ -112,9 +112,9 @@ def reshape_dynamictable(dt, prop_dict, defaults):
 
 def default_return(value):
     def return_dec(func):
-        def wrapper(**args):
+        def wrapper(*args, **kwargs):
             try:
-                out = func(**args)
+                out = func(*args, **kwargs)
                 if out is None:
                     return value
                 else:
@@ -175,22 +175,23 @@ def default_export_ops_schema():
     schema = get_base_schema()
     schema["required"] = []
     schema["properties"] = dict(
-        use_times=dict(type="bool"),
+        use_times=dict(type="boolean"),
         write_as=dict(type="string", enum=["raw", "lfp", "processed"]),
         es_key=dict(type="string"),
         buffer_mb=dict(type="number", minimum=10),
-        write_scaled=dict(type="bool"),
+        write_scaled=dict(type="boolean"),
         compression=dict(type="string", enum=["gzip", "lzf"]),
         compression_opts=dict(type="number", minimun=0, maximum=9),
-        iterate=dict(type="bool"),
+        iterate=dict(type="boolean"),
         skip_unit_properties=dict(type="array", items=dict(type="string")),
         skip_unit_features=dict(type="array", items=dict(type="string")),
         skip_electrode_properties=dict(type="array", items=dict(type="string")),
         unit_property_descriptions=dict(type="object"),
-        write_electrical_series=dict(type="bool"),
-        stub=dict(type="bool"),
-        stub_channels=dict(type="array", items=dict(type="int"))
+        write_electrical_series=dict(type="boolean"),
+        stub=dict(type="boolean"),
+        stub_channels=dict(type="array", items=dict(type="integer"))
     )
+    return schema
 
 
 _default_sorting_property_descriptions = dict(

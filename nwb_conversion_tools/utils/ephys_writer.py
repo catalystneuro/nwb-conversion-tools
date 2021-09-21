@@ -32,15 +32,16 @@ def map_si_object_to_writer(object_to_write):
         raise Exception(f"Could not write object of type {type(object_to_write)}")
     return writer_class
 
+
 def export_ecephys_to_nwb(
-    objects_to_write,
+    object_to_write,
     nwb_file_path=None,
     nwbfile=None,
     metadata=None,
     **kwargs,
 ):
     """
-    Writes one or multiple objects to NWB.
+    Writes one object to NWB.
 
     Supported objects are:
         - spikeinterface version <= 0.13 extractors
@@ -52,7 +53,7 @@ def export_ecephys_to_nwb(
 
     Parameters
     ----------
-    objects_to_write
+    object_to_write
     nwb_file_path
     metadata
     kwargs
@@ -62,9 +63,8 @@ def export_ecephys_to_nwb(
 
     """
     conversion_ops = dict(**default_export_ops(), **kwargs)
-    validate(instance=conversion_ops, schema=default_export_ops_schema())
-    if not isinstance(objects_to_write, list):
-        objects_to_write = [objects_to_write]
+    conversion_opt_schema = default_export_ops_schema()
+    validate(instance=conversion_ops, schema=conversion_opt_schema)
 
     if nwb_file_path is not None:
         nwb_file_path = Path(nwb_file_path)
@@ -80,12 +80,13 @@ def export_ecephys_to_nwb(
         converter = TempNWBConverter({})
         nwbfile = converter.run_conversion(metadata=metadata, save_to_file=False)
 
-    for object_to_write in objects_to_write:
-        writer_class = map_si_object_to_writer(objects_to_write)
-        writer = writer_class(object_to_write, nwbfile=nwbfile, metadata=metadata, **conversion_ops)
-        writer.write_to_nwb()
+    writer_class = map_si_object_to_writer(object_to_write)
+    writer = writer_class(object_to_write, nwbfile=nwbfile, metadata=metadata, **conversion_ops)
+    writer.add_to_nwb()
 
-        # handle modes and overwrite
-        if nwb_file_path is not None:
-            with pynwb.NWBHDF5IO(str(nwb_file_path), mode="w") as io:
-                io.write(nwbfile)
+    # handle modes and overwrite
+    if nwb_file_path is not None:
+        with pynwb.NWBHDF5IO(str(nwb_file_path), mode="w") as io:
+            io.write(nwbfile)
+
+    return nwbfile

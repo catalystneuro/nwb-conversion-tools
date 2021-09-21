@@ -25,7 +25,7 @@ class BaseNwbEphysWriter(ABC):
         assert nwbfile is not None and isinstance(nwbfile, pynwb.NWBFile), "Instantiate an NWBFile and pass as argument"
         self.metadata = metadata if metadata is not None else dict()
         self.nwbfile = nwbfile
-        self._conversion_ops = dict(**default_export_ops(), **kwargs)
+        self._conversion_ops = kwargs
         self.dt_column_defaults = DynamicTableSupportedDtypes
 
     @abstractmethod
@@ -294,7 +294,7 @@ class BaseNwbEphysWriter(ABC):
             elec_columns[x["name"]]["description"] = x["description"]
 
         # 3. For existing electrodes table, add the additional columns and fill with default data:
-        add_properties_to_dynamictable(self.nwbfile,'electrodes', elec_columns, defaults)
+        add_properties_to_dynamictable(self.nwbfile, 'electrodes', elec_columns, defaults)
 
         # 4. add info to electrodes table:
         for j, channel_id in enumerate(self._get_channel_ids()):
@@ -303,14 +303,17 @@ class BaseNwbEphysWriter(ABC):
                 electrode_kwargs.update(id=channel_id)
                 for name, desc in elec_columns.items():
                     if name == "group_name":
+                        print(name, desc["data"][j])
                         # this should always be present as an electrode column, electrode_groups with that group name
                         # also should be present and created on the call to create_electrode_groups()
                         electrode_kwargs.update(
-                            dict(group=self.nwbfile.electrode_groups[name], group_name=name)
+                            dict(group=self.nwbfile.electrode_groups[str(desc["data"][j])], group_name=name)
                         )
                     else:
                         electrode_kwargs[name] = desc["data"][j]
                 self.nwbfile.add_electrode(**electrode_kwargs)
+
+
 
     def add_electrical_series(self, segment_index):
         """
