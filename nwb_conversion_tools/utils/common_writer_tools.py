@@ -68,7 +68,9 @@ def add_properties_to_dynamictable(nwbfile, dt_name, prop_dict, defaults):
     if dt is None:
         for prop_name, prop_args in prop_dict.items():
             if prop_name not in defaults:
-                add_method(prop_name, **prop_args)
+                add_dict = dict(prop_args)
+                _ = add_dict.pop("data")
+                add_method(prop_name, **add_dict)
     else:
         reshape_dynamictable(dt, prop_dict, defaults)
 

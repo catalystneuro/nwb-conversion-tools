@@ -233,6 +233,6 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                     )
 
     def add_recording(self):
-        super().add_recording()
+        super().add_recording(segment_index=0)
         if self._conversion_ops["write_electrical_series"]:
             self.add_epochs()

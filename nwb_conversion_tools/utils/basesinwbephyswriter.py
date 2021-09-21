@@ -56,7 +56,7 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
         else:
             return prop_values
 
-    def add_recording(self):
+    def add_recording(self, segment_index=0):
         assert (
                 distutils.version.LooseVersion(pynwb.__version__) >= "1.3.3"
         ), "'write_recording' not supported for version < 1.3.3. Run pip install --upgrade pynwb"
@@ -65,7 +65,7 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
         self.add_electrode_groups()
         self.add_electrodes()
         if self._conversion_ops["write_electrical_series"]:
-            self.add_electrical_series()
+            self.add_electrical_series(segment_index=segment_index)
 
     def add_sorting(self):
         self.add_units()

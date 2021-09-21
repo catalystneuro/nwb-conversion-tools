@@ -138,8 +138,6 @@ class BaseNwbEphysWriter(ABC):
             if dev.get("name", defaults["name"]) not in self.nwbfile.devices:
                 self.nwbfile.create_device(**dict(defaults, **dev))
 
-        print(self.nwbfile.devices)
-
     def add_electrode_groups(self):
         """
         Auxiliary method to write electrode groups.
@@ -303,7 +301,6 @@ class BaseNwbEphysWriter(ABC):
                 electrode_kwargs.update(id=channel_id)
                 for name, desc in elec_columns.items():
                     if name == "group_name":
-                        print(name, desc["data"][j])
                         # this should always be present as an electrode column, electrode_groups with that group name
                         # also should be present and created on the call to create_electrode_groups()
                         electrode_kwargs.update(
@@ -312,7 +309,6 @@ class BaseNwbEphysWriter(ABC):
                     else:
                         electrode_kwargs[name] = desc["data"][j]
                 self.nwbfile.add_electrode(**electrode_kwargs)
-
 
 
     def add_electrical_series(self, segment_index):
@@ -408,12 +404,14 @@ class BaseNwbEphysWriter(ABC):
             if "LFP" not in ecephys_mod.data_interfaces:
                 ecephys_mod.add(pynwb.ecephys.LFP(name="LFP"))
 
+        # this is not needed anymore because metadata ar ehandled at class level
         # If user passed metadata info, overwrite defaults
-        if self.metadata is not None and "Ecephys" in self.metadata:
-            assert (
-                    self._conversion_ops["es_key"] in self.metadata["Ecephys"]
-            ), f"metadata['Ecephys'] dictionary does not contain key '{self._conversion_ops['es_key']}'"
-            eseries_kwargs.update(self.metadata["Ecephys"][self._conversion_ops["es_key"]])
+        # if self.metadata is not None and "Ecephys" in self.metadata:
+        #     assert (
+        #             self._conversion_ops["es_key"] in self.metadata["Ecephys"]
+        #     ), f"metadata['Ecephys'] dictionary does not contain key '{self._conversion_ops['es_key']}'"
+        #     eseries_kwargs.update(self.metadata["Ecephys"][self._conversion_ops["es_key"]])
+
         # update name for segment:
         name = eseries_kwargs.get('name')
         eseries_kwargs.update(name=f'{name}_segment_{segment_index}')
@@ -444,9 +442,9 @@ class BaseNwbEphysWriter(ABC):
         # channels gains - for RecordingExtractor, these are values to cast traces to uV.
         # For nwb, the conversions (gains) cast the data to Volts.
         # To get traces in Volts we take data*channel_conversion*conversion.
-        channel_conversion = self._get_channel_property_values("gain", channel_ids)
-        channel_offset = self._get_channel_property_values("offset", channel_ids)
-        unsigned_coercion = channel_offset/channel_conversion
+        channel_conversion = self._get_channel_property_values("gain")
+        channel_offset = self._get_channel_property_values("offset")
+        unsigned_coercion = channel_offset / channel_conversion
         if not np.all([x.is_integer() for x in unsigned_coercion]):
             raise NotImplementedError(
                 "Unable to coerce underlying unsigned data type to signed type, which is currently required for NWB "
@@ -551,8 +549,8 @@ class BaseNwbEphysWriter(ABC):
         if fs is None:
             raise ValueError("Writing a SortingExtractor to an NWBFile requires a known sampling frequency!")
 
-        if 'Units' not in self.metadata:
-            self.metadata['Units'] = []
+        if 'units' not in self.metadata:
+            self.metadata['units'] = []
 
         if self._conversion_ops["unit_property_descriptions"] is None:
             property_descriptions = dict(_default_sorting_property_descriptions)
@@ -561,10 +559,10 @@ class BaseNwbEphysWriter(ABC):
                 _default_sorting_property_descriptions, **self._conversion_ops["unit_property_descriptions"]
             )
 
-        if self.nwbfile.Units is None:
+        if self.nwbfile.units is None:
             nwb_units_ids = []
         else:
-            nwb_units_ids = self.nwbfile.Units.id.data[:]
+            nwb_units_ids = self.nwbfile.units.id.data[:]
 
         defaults = dict()
         # 1. Build column details from unit properties: dict(name: dict(description='',data=data, index=False))
@@ -588,7 +586,7 @@ class BaseNwbEphysWriter(ABC):
                     unit_columns[prop].update(table=self.nwbfile.electrodes)
 
         # 2. fill with provided custom descriptions
-        for x in self.metadata["Units"]:
+        for x in self.metadata["units"]:
             if x["name"] not in list(unit_columns):
                 raise ValueError(f'"{x["name"]}" not a property of sorting object, set it first and rerun')
             unit_columns[x["name"]]["description"] = x["description"]
