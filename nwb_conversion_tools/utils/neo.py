@@ -15,7 +15,7 @@ PathType = Union[str, Path, None]
 response_classes = {
     "voltage_clamp": pynwb.icephys.VoltageClampSeries,
     "current_clamp": pynwb.icephys.CurrentClampSeries,
-    "izero": pynwb.icephys.IZeroClampSeries
+    "izero": pynwb.icephys.IZeroClampSeries,
 }
 
 stim_classes = {
@@ -287,15 +287,10 @@ def add_icephys_recordings(
                     gain=stim_gain,
                 )
                 icephys_recording = nwbfile.add_intracellular_recording(
-                    electrode=electrode, 
-                    response=response,
-                    stimulus=stimulus
+                    electrode=electrode, response=response, stimulus=stimulus
                 )
             else:
-                icephys_recording = nwbfile.add_intracellular_recording(
-                    electrode=electrode, 
-                    response=response
-                )
+                icephys_recording = nwbfile.add_intracellular_recording(electrode=electrode, response=response)
 
             # Add channel sweep to list
             recordings.append(icephys_recording)
