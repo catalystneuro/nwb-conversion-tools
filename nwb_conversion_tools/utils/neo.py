@@ -12,6 +12,18 @@ from .conversion_tools import add_devices
 PathType = Union[str, Path, None]
 
 
+response_classes = {
+    "voltage_clamp": pynwb.icephys.VoltageClampSeries,
+    "current_clamp": pynwb.icephys.CurrentClampSeries,
+    "izero": pynwb.icephys.IZeroClampSeries
+}
+
+stim_classes = {
+    "voltage_clamp": pynwb.icephys.VoltageClampStimulusSeries,
+    "current_clamp": pynwb.icephys.CurrentClampStimulusSeries,
+}
+
+
 # TODO - get electrodes metadata
 def get_electrodes_metadata(neo_reader, electrodes_ids: list, block: int = 0) -> list:
     """
@@ -248,46 +260,44 @@ def add_icephys_recordings(
         # Loop through electrodes - parallel icephys recordings
         recordings = list()
         for ei, electrode in enumerate(nwbfile.icephys_electrodes.values()):
+            sampling_rate = neo_reader.get_signal_sampling_rate()
+            starting_time = neo_reader.get_signal_t_start(block_index=0, seg_index=si)
+            response_unit = neo_reader.header["signal_channels"]["units"][ei]
+            response_gain = get_gain_from_unit(unit=response_unit)
+            response_name = f"{icephys_experiment_type}_response_{si}_ch_{ei}"
 
-            # Voltage-clamp
-            if icephys_experiment_type == "voltage_clamp":
-                sampling_rate = neo_reader.get_signal_sampling_rate()
-                starting_time = neo_reader.get_signal_t_start(block_index=0, seg_index=si)
+            response = response_classes[icephys_experiment_type](
+                name=response_name,
+                electrode=electrode,
+                data=neo_reader.get_analogsignal_chunk(block_index=0, seg_index=si, channel_indexes=ei),
+                starting_time=starting_time,
+                rate=sampling_rate,
+                gain=response_gain,
+            )
 
-                response_unit = neo_reader.header["signal_channels"]["units"][ei]
-                response_gain = get_gain_from_unit(unit=response_unit)
-                response = pynwb.icephys.VoltageClampSeries(
-                    name=f"response-{si}-ch-{ei}",
-                    electrode=electrode,
-                    data=neo_reader.get_analogsignal_chunk(block_index=0, seg_index=si, channel_indexes=ei),
-                    starting_time=starting_time,
-                    rate=sampling_rate,
-                    gain=response_gain,  # gain to Ampere
-                )
-
+            if icephys_experiment_type is not "izero":
                 stim_unit = protocol[2][ei]
                 stim_gain = get_gain_from_unit(unit=stim_unit)
-                stimulus = pynwb.icephys.VoltageClampStimulusSeries(
+                stimulus = stim_classes[icephys_experiment_type](
                     name=f"stimulus-{si}-ch-{ei}",
                     electrode=electrode,
                     data=protocol[0][si][ei],
                     rate=sampling_rate,
                     starting_time=starting_time,
-                    gain=stim_gain,  # gain to Volt
+                    gain=stim_gain,
                 )
-
                 icephys_recording = nwbfile.add_intracellular_recording(
-                    electrode=electrode, stimulus=stimulus, response=response
+                    electrode=electrode, 
+                    response=response,
+                    stimulus=stimulus
+                )
+            else:
+                icephys_recording = nwbfile.add_intracellular_recording(
+                    electrode=electrode, 
+                    response=response
                 )
 
-            # Current-clamp -- TODO
-            elif icephys_experiment_type == "current_clamp":
-                raise NotImplementedError()
-
-            # Current-clamp -- TODO
-            elif icephys_experiment_type == "izero":
-                raise NotImplementedError()
-
+            # Add channel sweep to list
             recordings.append(icephys_recording)
 
         # Add a list of sweeps to the simultaneous recordings table
