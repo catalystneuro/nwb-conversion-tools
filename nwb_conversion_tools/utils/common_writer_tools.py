@@ -191,6 +191,7 @@ def default_export_ops_schema():
         unit_property_descriptions=dict(type="object"),
         write_electrical_series=dict(type="boolean"),
         stub=dict(type="boolean"),
+        overwrite=dict(type="boolean"),
         stub_channels=dict(type="array", items=dict(type="integer"))
     )
     return schema

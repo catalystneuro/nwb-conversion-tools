@@ -77,7 +77,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
     def get_num_segments(self):
         return 1
 
-    @default_return([])
+    #@default_return([])
     def _get_traces(self, channel_ids=None, start_frame=None, end_frame=None, return_scaled=True, segment_index=0):
         return self.recording.get_traces(channel_ids=channel_ids,
                                          start_frame=start_frame,
@@ -114,7 +114,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                 id_data = get_prop_func(id, prop)
                 proptype = [proptype for proptype in self.dt_column_defaults if isinstance(id_data, proptype)]
                 if len(proptype) > 0:
-                    found_property_types = proptype[0] if len(proptype) > 1 else proptype
+                    found_property_types = proptype[0]
                     break
                 else:  # if property not found in the supported self.dt_column_defaults, then return None
                     return
@@ -122,7 +122,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                 continue
         # build data array:
         data = []
-        for id in ids():
+        for id in ids:
             try:
                 id_data = get_prop_func(id, prop)
             except:
@@ -133,7 +133,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                 data.append(id_data)
         return np.array(data)
 
-    @default_return([])
+    # #@default_return([])
     def _get_channel_property_values(self, prop):
         if prop == "location":
             return self.recording.get_channel_locations()
@@ -148,11 +148,11 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                 self._get_channel_ids(), prop, self.recording.get_channel_property)
             return self._check_valid_property(prop_values)
 
-    @default_return(None)
+    #@default_return(None)
     def _get_num_frames(self, segment_index=0):
         return self.recording.get_num_frames()
 
-    @default_return([])
+    #@default_return([])
     def _get_recording_times(self, segment_index=0):
         if self.recording._times is None:
             return np.arange(0, self._get_num_frames()*self._get_sampling_frequency(), self._get_sampling_frequency())
@@ -165,16 +165,16 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
             all_features.update(self.sorting.get_unit_spike_feature_names(unit_id))
         return list(all_features)
 
-    @default_return([])
+    #@default_return([])
     def _get_unit_feature_values(self, prop):
         feat_values = self._fill_missing_property_values(self._get_unit_ids(), prop, self.sorting.get_unit_property)
         return self._check_valid_property(feat_values)
 
-    @default_return([])
+    #@default_return([])
     def _get_unit_spike_train_ids(self, unit_id, start_frame=None, end_frame=None, segment_index=None):
         return self.sorting.get_unit_spike_train(unit_id, start_frame=start_frame, end_frame=end_frame)
 
-    @default_return([])
+    #@default_return([])
     def _get_unit_spike_train_times(self, unit_id, segment_index=0):
         return self.sorting.frame_to_time(self.sorting.get_unit_spike_train(unit_id=unit_id))
 
@@ -185,13 +185,13 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                 property_names.add(i)
         return list(property_names)
 
-    @default_return([])
+    #@default_return([])
     def _get_unit_property_values(self, prop):
         prop_values = self._fill_missing_property_values(
             self._get_unit_ids(), prop, self.sorting.get_unit_property)
         return self._check_valid_property(prop_values)
 
-    @default_return(np.array([]))
+    #@default_return(np.array([]))
     def _get_unit_waveforms_templates(self, unit_id, mode='mean'):
         if "template" in self._get_unit_property_names():
             template = self._get_unit_property_values("template")
@@ -236,3 +236,87 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
         super().add_recording(segment_index=0)
         if self._conversion_ops["write_electrical_series"]:
             self.add_epochs()
+
+
+def create_si013_example(seed):
+    channel_ids = [0, 1, 2, 3]
+    num_channels = 4
+    num_frames = 10000
+    num_ttls = 30
+    sampling_frequency = 30000
+    X = np.random.RandomState(seed=seed).normal(0, 1, (num_channels, num_frames))
+    geom = np.random.RandomState(seed=seed).normal(0, 1, (num_channels, 2))
+    X = (X * 100).astype(int)
+    ttls = np.sort(np.random.permutation(num_frames)[:num_ttls])
+
+    RX = se.NumpyRecordingExtractor(timeseries=X, sampling_frequency=sampling_frequency, geom=geom)
+    RX.set_ttls(ttls)
+    RX.set_channel_locations([0, 0], channel_ids=0)
+    RX.add_epoch("epoch1", 0, 10)
+    RX.add_epoch("epoch2", 10, 20)
+    for i, channel_id in enumerate(RX.get_channel_ids()):
+        RX.set_channel_property(channel_id=channel_id, property_name="shared_channel_prop", value=i)
+
+    RX2 = se.NumpyRecordingExtractor(timeseries=X, sampling_frequency=sampling_frequency, geom=geom)
+    RX2.copy_epochs(RX)
+    times = np.arange(RX.get_num_frames()) / RX.get_sampling_frequency() + 5
+    RX2.set_times(times)
+
+    RX3 = se.NumpyRecordingExtractor(timeseries=X, sampling_frequency=sampling_frequency, geom=geom)
+
+    SX = se.NumpySortingExtractor()
+    SX.set_sampling_frequency(sampling_frequency)
+    spike_times = [200, 300, 400]
+    train1 = np.sort(np.rint(np.random.RandomState(seed=seed).uniform(0, num_frames, spike_times[0])).astype(int))
+    SX.add_unit(unit_id=1, times=train1)
+    SX.add_unit(unit_id=2, times=np.sort(np.random.RandomState(seed=seed).uniform(0, num_frames, spike_times[1])))
+    SX.add_unit(unit_id=3, times=np.sort(np.random.RandomState(seed=seed).uniform(0, num_frames, spike_times[2])))
+    SX.set_unit_property(unit_id=1, property_name="stability", value=80)
+    SX.add_epoch("epoch1", 0, 10)
+    SX.add_epoch("epoch2", 10, 20)
+
+    SX2 = se.NumpySortingExtractor()
+    SX2.set_sampling_frequency(sampling_frequency)
+    spike_times2 = [100, 150, 450]
+    train2 = np.rint(np.random.RandomState(seed=seed).uniform(0, num_frames, spike_times2[0])).astype(int)
+    SX2.add_unit(unit_id=3, times=train2)
+    SX2.add_unit(unit_id=4, times=np.random.RandomState(seed=seed).uniform(0, num_frames, spike_times2[1]))
+    SX2.add_unit(unit_id=5, times=np.random.RandomState(seed=seed).uniform(0, num_frames, spike_times2[2]))
+    SX2.set_unit_property(unit_id=4, property_name="stability", value=80)
+    SX2.set_unit_spike_features(unit_id=3, feature_name="widths", value=np.asarray([3] * spike_times2[0]))
+    SX2.copy_epochs(SX)
+    SX2.copy_times(RX2)
+    for i, unit_id in enumerate(SX2.get_unit_ids()):
+        SX2.set_unit_property(unit_id=unit_id, property_name="shared_unit_prop", value=i)
+        SX2.set_unit_spike_features(
+            unit_id=unit_id, feature_name="shared_unit_feature", value=np.asarray([i] * spike_times2[i])
+        )
+
+    SX3 = se.NumpySortingExtractor()
+    train3 = np.asarray([1, 20, 21, 35, 38, 45, 46, 47])
+    SX3.add_unit(unit_id=0, times=train3)
+    features3 = np.asarray([0, 5, 10, 15, 20, 25, 30, 35])
+    features4 = np.asarray([0, 10, 20, 30])
+    feature4_idx = np.asarray([0, 2, 4, 6])
+    SX3.set_unit_spike_features(unit_id=0, feature_name="dummy", value=features3)
+    SX3.set_unit_spike_features(unit_id=0, feature_name="dummy2", value=features4, indexes=feature4_idx)
+
+    example_info = dict(
+        channel_ids=channel_ids,
+        num_channels=num_channels,
+        num_frames=num_frames,
+        sampling_frequency=sampling_frequency,
+        unit_ids=[1, 2, 3],
+        train1=train1,
+        train2=train2,
+        train3=train3,
+        features3=features3,
+        unit_prop=80,
+        channel_prop=(0, 0),
+        ttls=ttls,
+        epochs_info=((0, 10), (10, 20)),
+        geom=geom,
+        times=times,
+    )
+
+    return (RX, RX2, RX3, SX, SX2, SX3, example_info)

@@ -1,11 +1,11 @@
-from unittest import TestCase
+from unittest import TestCase, skip
 import numpy as np
 
 from pynwb.base import ProcessingModule
 from spikeextractors import NumpyRecordingExtractor
 
 from nwb_conversion_tools.utils.conversion_tools import check_regular_timestamps, get_module, make_nwbfile_from_metadata
-from nwb_conversion_tools.utils.conversion_tools import estimate_recording_conversion_time
+# from nwb_conversion_tools.utils.conversion_tools import estimate_recording_conversion_time
 
 
 class TestConversionTools(TestCase):
@@ -29,6 +29,7 @@ class TestConversionTools(TestCase):
         assert mod_2.description == description_2
         self.assertWarns(UserWarning, get_module, **dict(nwbfile=nwbfile, name=name_1, description=description_2))
 
+    @skip("to be implemented")
     def test_estimate_recording_conversion_time(self):
         num_channels = 4
         sampling_frequency = 30000

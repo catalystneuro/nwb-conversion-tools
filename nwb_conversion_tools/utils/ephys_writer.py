@@ -62,13 +62,14 @@ def export_ecephys_to_nwb(
     -------
 
     """
-    conversion_ops = dict(**default_export_ops(), **kwargs)
+    conversion_ops = default_export_ops()
+    conversion_ops.update(kwargs)
     conversion_opt_schema = default_export_ops_schema()
     validate(instance=conversion_ops, schema=conversion_opt_schema)
 
     if nwb_file_path is not None:
         nwb_file_path = Path(nwb_file_path)
-        if nwb_file_path.is_file():
+        if nwb_file_path.is_file() and not conversion_ops["overwrite"]:
             raise FileExistsError(f"{nwb_file_path} is already existing!")
         assert nwb_file_path.suffix == ".nwb", f"{nwb_file_path} needs to be an .nwb file"
 
@@ -86,7 +87,13 @@ def export_ecephys_to_nwb(
 
     # handle modes and overwrite
     if nwb_file_path is not None:
-        with pynwb.NWBHDF5IO(str(nwb_file_path), mode="w") as io:
-            io.write(nwbfile)
+        if nwb_file_path.is_file() and not conversion_ops["overwrite"]:
+            with pynwb.NWBHDF5IO(str(nwb_file_path), mode="a") as io:
+                io.write(nwbfile)
+        else:
+            if nwb_file_path.is_file():
+                nwb_file_path.unlink()
+            with pynwb.NWBHDF5IO(str(nwb_file_path), mode="w") as io:
+                io.write(nwbfile)
 
     return nwbfile

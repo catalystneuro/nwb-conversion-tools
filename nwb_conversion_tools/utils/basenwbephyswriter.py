@@ -294,6 +294,7 @@ class BaseNwbEphysWriter(ABC):
         # 3. For existing electrodes table, add the additional columns and fill with default data:
         add_properties_to_dynamictable(self.nwbfile, 'electrodes', elec_columns, defaults)
 
+        print(self.nwbfile.electrode_groups)
         # 4. add info to electrodes table:
         for j, channel_id in enumerate(self._get_channel_ids()):
             if channel_id not in nwb_elec_ids:
@@ -301,6 +302,7 @@ class BaseNwbEphysWriter(ABC):
                 electrode_kwargs.update(id=channel_id)
                 for name, desc in elec_columns.items():
                     if name == "group_name":
+                        print(name, desc)
                         # this should always be present as an electrode column, electrode_groups with that group name
                         # also should be present and created on the call to create_electrode_groups()
                         electrode_kwargs.update(
