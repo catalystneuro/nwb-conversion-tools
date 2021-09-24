@@ -9,7 +9,7 @@ from .common_writer_tools import PathType, default_return
 
 try:
     import spikeinterface as si
-
+    from spikeinterface.core.testing_tools import generate_recording, generate_sorting
     if StrictVersion(si.__version__[:4]) >= StrictVersion("0.90"):
         HAVE_SI_090 = True
     else:
@@ -179,3 +179,15 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
 
     def add_epochs(self):
         return
+
+
+def create_si090_example():
+    RX = generate_recording()
+    RX.set_property("prop1", np.arange(RX.get_num_channels()))
+    RX.set_property("prop2", np.arange(RX.get_num_channels())*2)
+
+    SX = generate_sorting()
+    SX.set_property("prop1", np.arange(SX.get_num_units()))
+    SX.set_property("prop2", np.arange(SX.get_num_units())*2)
+
+    return RX, SX
