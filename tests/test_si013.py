@@ -44,62 +44,44 @@ class TestExtractors(unittest.TestCase):
         check_dumping(RX_nwb)
 
         # Writing multiple recordings using metadata
-        metadata = get_default_nwbfile_metadata()
         path_multi = self.test_dir + "/test_multiple.nwb"
-        export_ecephys_to_nwb(
-            object_to_write=self.RX,
-            nwb_file_path=path_multi,
-            metadata=metadata,
-            write_as="raw",
-            es_key="ElectricalSeries_raw",
-        )
-        export_ecephys_to_nwb(
-            object_to_write=self.RX2,
-            nwb_file_path=path_multi,
-            metadata=metadata,
-            write_as="processed",
-            es_key="ElectricalSeries_processed",
-        )
-        export_ecephys_to_nwb(
-            object_to_write=self.RX3,
-            nwb_file_path=path_multi,
-            metadata=metadata,
-            write_as="lfp",
-            es_key="ElectricalSeries_lfp",
-        )
-
-        RX_nwb = se.NwbRecordingExtractor(file_path=path_multi, electrical_series_name="raw_traces")
+        nwbfile = export_ecephys_to_nwb(
+                    object_to_write=self.RX,
+                    nwb_file_path=path_multi,
+                    write_as="raw",
+                    es_key="ElectricalSeries_raw",
+                    )
+        nwbfile = export_ecephys_to_nwb(
+                    object_to_write=self.RX2,
+                    nwbfile=nwbfile,
+                    write_as="processed",
+                    es_key="ElectricalSeries_processed",
+                    overwrite=False
+                )
+        nwbfile = export_ecephys_to_nwb(
+                    object_to_write=self.RX3,
+                    nwbfile=nwbfile,
+                    write_as="lfp",
+                    es_key="ElectricalSeries_lfp",
+                    overwrite=False
+                )
+        es_raw_name = "ElectricalSeries_raw_segment_0"
+        RX_nwb = se.NwbRecordingExtractor(file_path=path_multi, electrical_series_name=es_raw_name)
         check_recording_return_types(RX_nwb)
         check_recordings_equal(self.RX, RX_nwb)
         check_dumping(RX_nwb)
         del RX_nwb
 
-        export_ecephys_to_nwb(
-            object_to_write=self.RX, nwb_file_path=path, overwrite=True
-        )  # Testing default compression, should be "gzip"
-        compression = "gzip"
+        nwbfile = export_ecephys_to_nwb(
+                    object_to_write=self.RX, nwb_file_path=path, overwrite=True
+                )  # Testing default compression, should be "gzip"
         with NWBHDF5IO(path=path, mode="r") as io:
             nwbfile = io.read()
-            compression_out = nwbfile.acquisition["ElectricalSeries_raw"].data.compression
+            compression_out = nwbfile.acquisition[es_raw_name].data.compression
         self.assertEqual(
             compression_out,
-            compression,
-            f"Intended compression type does not match what was written! (Out: {compression_out}, should be: {compression})",
-        )
-        RX_nwb = se.NwbRecordingExtractor(path)
-        check_recording_return_types(RX_nwb)
-        check_recordings_equal(self.RX, RX_nwb)
-        check_dumping(RX_nwb)
-        del RX_nwb
-
-        export_ecephys_to_nwb(object_to_write=self.RX, nwb_file_path=path, overwrite=True, compression=compression)
-        with NWBHDF5IO(path=path, mode="r") as io:
-            nwbfile = io.read()
-            compression_out = nwbfile.acquisition["ElectricalSeries_raw"].data.compression
-        self.assertEqual(
-            compression_out,
-            compression,
-            f"Intended compression type does not match what was written! (Out: {compression_out}, should be: {compression})",
+            "gzip",
+            f"Intended compression type does not match what was written! (Out: {compression_out}, should be: gzip)",
         )
         RX_nwb = se.NwbRecordingExtractor(path)
         check_recording_return_types(RX_nwb)
@@ -111,40 +93,7 @@ class TestExtractors(unittest.TestCase):
         export_ecephys_to_nwb(object_to_write=self.RX, nwb_file_path=path, overwrite=True, compression=compression)
         with NWBHDF5IO(path=path, mode="r") as io:
             nwbfile = io.read()
-            compression_out = nwbfile.acquisition["ElectricalSeries_raw"].data.compression
-        self.assertEqual(
-            compression_out,
-            compression,
-            f"Intended compression type does not match what was written! (Out: {compression_out}, should be: {compression})",
-        )
-        RX_nwb = se.NwbRecordingExtractor(path)
-        check_recording_return_types(RX_nwb)
-        check_recordings_equal(self.RX, RX_nwb)
-        check_dumping(RX_nwb)
-        del RX_nwb
-
-        compression = None
-        export_ecephys_to_nwb(object_to_write=self.RX, nwb_file_path=path, overwrite=True, compression=compression)
-        with NWBHDF5IO(path=path, mode="r") as io:
-            nwbfile = io.read()
-            compression_out = nwbfile.acquisition["ElectricalSeries_raw"].data.compression
-        self.assertEqual(
-            compression_out,
-            compression,
-            f"Intended compression type does not match what was written! (Out: {compression_out}, should be: {compression})",
-        )
-        RX_nwb = se.NwbRecordingExtractor(path)
-        check_recording_return_types(RX_nwb)
-        check_recordings_equal(self.RX, RX_nwb)
-        check_dumping(RX_nwb)
-        del RX_nwb
-
-        export_ecephys_to_nwb(
-            object_to_write=self.RX, nwb_file_path=path, overwrite=True, compression=compression, iterate=False
-        )
-        with NWBHDF5IO(path=path, mode="r") as io:
-            nwbfile = io.read()
-            compression_out = nwbfile.acquisition["ElectricalSeries_raw"].data.compression
+            compression_out = nwbfile.acquisition[es_raw_name].data.compression
         self.assertEqual(
             compression_out,
             compression,

@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from numbers import Real
 from warnings import warn
-
+from copy import deepcopy
 import numpy as np
 import psutil
 import pynwb
@@ -23,7 +23,7 @@ class BaseNwbEphysWriter(ABC):
     def __init__(self, object_to_write, nwbfile=None, metadata=None, **kwargs):
         self.object_to_write = object_to_write
         assert nwbfile is not None and isinstance(nwbfile, pynwb.NWBFile), "Instantiate an NWBFile and pass as argument"
-        self.metadata = metadata if metadata is not None else dict()
+        self.metadata = deepcopy(metadata) if metadata is not None else dict()
         self.nwbfile = nwbfile
         self._conversion_ops = kwargs
         self.dt_column_defaults = DynamicTableSupportedDtypes
@@ -294,7 +294,6 @@ class BaseNwbEphysWriter(ABC):
         # 3. For existing electrodes table, add the additional columns and fill with default data:
         add_properties_to_dynamictable(self.nwbfile, 'electrodes', elec_columns, defaults)
 
-        print(self.nwbfile.electrode_groups)
         # 4. add info to electrodes table:
         for j, channel_id in enumerate(self._get_channel_ids()):
             if channel_id not in nwb_elec_ids:
@@ -302,11 +301,11 @@ class BaseNwbEphysWriter(ABC):
                 electrode_kwargs.update(id=channel_id)
                 for name, desc in elec_columns.items():
                     if name == "group_name":
-                        print(name, desc)
                         # this should always be present as an electrode column, electrode_groups with that group name
                         # also should be present and created on the call to create_electrode_groups()
+                        group_name = str(desc["data"][j])
                         electrode_kwargs.update(
-                            dict(group=self.nwbfile.electrode_groups[str(desc["data"][j])], group_name=name)
+                            dict(group=self.nwbfile.electrode_groups[group_name], group_name=group_name)
                         )
                     else:
                         electrode_kwargs[name] = desc["data"][j]
@@ -518,7 +517,8 @@ class BaseNwbEphysWriter(ABC):
             data=H5DataIO(
                 ephys_data,
                 compression=self._conversion_ops["compression"],
-                compression_opts=self._conversion_ops["compression_opts"],
+                compression_opts=self._conversion_ops["compression_opts"]
+                if self._conversion_ops["compression"] != 'lzf' else None,
             )
         )
         if not self._conversion_ops["use_times"]:

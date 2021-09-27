@@ -169,6 +169,7 @@ def default_export_ops():
         unit_property_descriptions=dict(),
         write_electrical_series=True,
         stub=False,
+        overwrite=True,
         stub_channels=[],
     )
 
