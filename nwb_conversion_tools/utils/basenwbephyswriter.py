@@ -630,10 +630,8 @@ class BaseNwbEphysWriter(ABC):
                         # all_feat_vals[feature_idxs] = feat_vals
                     else:
                         values.append(feat_vals[no])
-
-                flatten_vals = [item for sublist in values for item in sublist]
-                nspks_list = [sp for sp in nspikes.values()]
-                spikes_index = np.cumsum(nspks_list).astype("int64")
+                if len(values) != len(unit_ids):
+                    break
                 if ft in self.nwbfile.units:  # If property already exists, skip it
                     warnings.warn(f"Feature {ft} already present in units table, skipping it")
                     continue
@@ -641,8 +639,8 @@ class BaseNwbEphysWriter(ABC):
                     dynamic_table=self.nwbfile.units,
                     row_ids=[int(k) for k in unit_ids],
                     property_name=ft,
-                    values=flatten_vals,
-                    index=spikes_index,
+                    values=values,
+                    index=True,
                 )
 
     def add_units_waveforms(self):
