@@ -50,8 +50,8 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
         if not isinstance(prop_values[0], tuple(self.dt_column_defaults)):
             return
         if isinstance(prop_values[0], np.ndarray):
-            shapes = [value.shape[1:] for value in prop_values]
-            if np.all([shape == shape[0] for shape in shapes]):
+            shapes = [value.shape[1:] if len(value.shape)>1 else 1 for value in prop_values]
+            if np.all([shape == shapes[0] for shape in shapes]):
                 return prop_values
         else:
             return prop_values

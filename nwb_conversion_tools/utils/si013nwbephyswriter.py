@@ -167,7 +167,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
 
     #@default_return([])
     def _get_unit_feature_values(self, prop):
-        feat_values = self._fill_missing_property_values(self._get_unit_ids(), prop, self.sorting.get_unit_property)
+        feat_values = self._fill_missing_property_values(self._get_unit_ids(), prop, self.sorting.get_unit_spike_features)
         return self._check_valid_property(feat_values)
 
     #@default_return([])
