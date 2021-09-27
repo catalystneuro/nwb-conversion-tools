@@ -110,9 +110,9 @@ class TestExtractors(unittest.TestCase):
         sf = self.RX.get_sampling_frequency()
 
         # Append sorting to existing file
-        nwbfile = export_ecephys_to_nwb(object_to_write=self.RX, nwb_file_path=path, overwrite=True)
-        nwbfile = export_ecephys_to_nwb(object_to_write=self.SX, nwbfile=nwbfile, overwrite=False)
-        with NWBHDF5IO(str(path), mode="a") as io:
+        nwbfile = export_ecephys_to_nwb(object_to_write=self.RX)
+        _ = export_ecephys_to_nwb(object_to_write=self.SX, nwbfile=nwbfile)
+        with NWBHDF5IO(str(path), mode="w") as io:
             io.write(nwbfile)
         SX_nwb = se.NwbSortingExtractor(path)
         check_sortings_equal(self.SX, SX_nwb)
@@ -121,14 +121,14 @@ class TestExtractors(unittest.TestCase):
         # Test for handling unit property descriptions argument
         property_descriptions = dict(stability="This is a description of stability.")
         nwbfile = export_ecephys_to_nwb(
-            object_to_write=self.SX, nwb_file_path=path, property_descriptions=property_descriptions, overwrite=True
+            object_to_write=self.SX, nwb_file_path=path, unit_property_descriptions=property_descriptions, overwrite=True
         )
         SX_nwb = se.NwbSortingExtractor(path, sampling_frequency=sf)
         check_sortings_equal(self.SX, SX_nwb)
         check_dumping(SX_nwb)
 
         # Test for handling skip_properties argument
-        nwbfile = export_ecephys_to_nwb(object_to_write=self.SX, nwb_file_path=path, skip_properties=["stability"],
+        nwbfile = export_ecephys_to_nwb(object_to_write=self.SX, nwb_file_path=path, skip_unit_properties=["stability"],
                                         overwrite=True)
         SX_nwb = se.NwbSortingExtractor(path, sampling_frequency=sf)
         assert "stability" not in SX_nwb.get_shared_unit_property_names()
@@ -138,7 +138,7 @@ class TestExtractors(unittest.TestCase):
         # Test for handling skip_features argument
         # SX2 has timestamps, so loading it back from Nwb will not recover the same spike frames. Set use_times=False
         nwbfile = export_ecephys_to_nwb(
-            object_to_write=self.SX2, nwb_file_path=path, skip_features=["widths"], use_times=False, overwrite=True
+            object_to_write=self.SX2, nwb_file_path=path, skip_unit_features=["widths"], use_times=False, overwrite=True
         )
         SX_nwb = se.NwbSortingExtractor(path, sampling_frequency=sf)
         assert "widths" not in SX_nwb.get_shared_unit_spike_feature_names()

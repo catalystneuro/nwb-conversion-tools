@@ -1,7 +1,7 @@
 import distutils.version
 import warnings
 from abc import ABC, abstractmethod
-from collections import defaultdict
+from collections import defaultdict, Iterable
 from numbers import Real
 from warnings import warn
 from copy import deepcopy
@@ -617,8 +617,10 @@ class BaseNwbEphysWriter(ABC):
             values = []
             if not ft.endswith("_idxs"):
                 feat_vals = self._get_unit_feature_values(ft)
+                if not isinstance(feat_vals[0], Iterable):
+                    feat_vals = [[val] for val in feat_vals]
                 for no, unit_id in enumerate(unit_ids):
-                    if len(feat_vals[no]) < nspikes[no]:  # TODO: why is this necessary
+                    if len(feat_vals[no]) < nspikes[unit_id]:  # TODO: why is this necessary
                         self._conversion_ops["skip_unit_features"].append(ft)
                         print(f"Skipping feature '{ft}' because it is not defined for all spikes.")
                         break
