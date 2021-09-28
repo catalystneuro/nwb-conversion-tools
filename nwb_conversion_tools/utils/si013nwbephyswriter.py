@@ -6,6 +6,7 @@ import pynwb
 
 from .basesinwbephyswriter import BaseSINwbEphysWriter
 from .common_writer_tools import default_return
+
 try:
     import spikeextractors as se
 
@@ -28,11 +29,11 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
     """
 
     def __init__(
-            self,
-            object_to_write,
-            nwbfile: pynwb.NWBFile = None,
-            metadata: dict = None,
-            **kwargs,
+        self,
+        object_to_write,
+        nwbfile: pynwb.NWBFile = None,
+        metadata: dict = None,
+        **kwargs,
     ):
         assert HAVE_SI013, "spikeextractors 0.13 version not installed"
         BaseSINwbEphysWriter.__init__(self, object_to_write, nwbfile=nwbfile, metadata=metadata, **kwargs)
@@ -52,22 +53,13 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
             num_channels = min(10, self.recording.get_num_channels())
             channel_stub = self.recording.get_channel_ids()[:num_channels]
         frame_stub = min(100, self.recording.get_num_frames())
-        self.recording = se.SubRecordingExtractor(self.recording,
-                                                  channel_ids=channel_stub,
-                                                  end_frame=frame_stub)
+        self.recording = se.SubRecordingExtractor(self.recording, channel_ids=channel_stub, end_frame=frame_stub)
 
     def _make_sorting_stub(self):
         max_min_spike_time = max(
-            [
-                min(x)
-                for y in self.sorting.get_unit_ids()
-                for x in [self.sorting.get_unit_spike_train(y)]
-                if any(x)
-            ]
+            [min(x) for y in self.sorting.get_unit_ids() for x in [self.sorting.get_unit_spike_train(y)] if any(x)]
         )
-        self.sorting = se.SubSortingExtractor(self.sorting,
-                                              start_frame=0,
-                                              end_frame=1.1 * max_min_spike_time)
+        self.sorting = se.SubSortingExtractor(self.sorting, start_frame=0, end_frame=1.1 * max_min_spike_time)
 
     @staticmethod
     def supported_types():
@@ -77,12 +69,11 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
     def get_num_segments(self):
         return 1
 
-    #@default_return([])
+    # @default_return([])
     def _get_traces(self, channel_ids=None, start_frame=None, end_frame=None, return_scaled=True, segment_index=0):
-        return self.recording.get_traces(channel_ids=channel_ids,
-                                         start_frame=start_frame,
-                                         end_frame=end_frame,
-                                         return_scaled=return_scaled).T
+        return self.recording.get_traces(
+            channel_ids=channel_ids, start_frame=start_frame, end_frame=end_frame, return_scaled=return_scaled
+        ).T
 
     def _get_channel_property_names(self):
         property_names = set()
@@ -92,16 +83,13 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
         return list(property_names)
 
     def _fill_missing_property_values(self, ids, prop, get_prop_func):
-        self.dt_column_defaults = {list: [],
-                                   str: "",
-                                   Real: np.nan,
-                                   np.ndarray: np.array([np.nan])}
+        self.dt_column_defaults = {list: [], str: "", Real: np.nan, np.ndarray: np.array([np.nan])}
         # find the size of ndarray dtype:
         for id in ids:
             try:
                 id_data = get_prop_func(id, prop)
                 if isinstance(id_data, np.ndarray):
-                    self.dt_column_defaults.update({np.ndarray: np.nan*np.ones(shape=[1, id_data.shape[1:]])})
+                    self.dt_column_defaults.update({np.ndarray: np.nan * np.ones(shape=[1, id_data.shape[1:]])})
                     break
                 else:
                     break
@@ -145,17 +133,18 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
             return self.recording.get_channel_groups()
         else:
             prop_values = self._fill_missing_property_values(
-                self._get_channel_ids(), prop, self.recording.get_channel_property)
+                self._get_channel_ids(), prop, self.recording.get_channel_property
+            )
             return self._check_valid_property(prop_values)
 
-    #@default_return(None)
+    # @default_return(None)
     def _get_num_frames(self, segment_index=0):
         return self.recording.get_num_frames()
 
-    #@default_return([])
+    # @default_return([])
     def _get_recording_times(self, segment_index=0):
         if self.recording._times is None:
-            return np.arange(0, self._get_num_frames()*self._get_sampling_frequency(), self._get_sampling_frequency())
+            return np.arange(0, self._get_num_frames() * self._get_sampling_frequency(), self._get_sampling_frequency())
         return self.recording._times
 
     def _get_unit_feature_names(self):
@@ -165,16 +154,18 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
             all_features.update(self.sorting.get_unit_spike_feature_names(unit_id))
         return list(all_features)
 
-    #@default_return([])
+    # @default_return([])
     def _get_unit_feature_values(self, prop):
-        feat_values = self._fill_missing_property_values(self._get_unit_ids(), prop, self.sorting.get_unit_spike_features)
+        feat_values = self._fill_missing_property_values(
+            self._get_unit_ids(), prop, self.sorting.get_unit_spike_features
+        )
         return self._check_valid_property(feat_values)
 
-    #@default_return([])
+    # @default_return([])
     def _get_unit_spike_train_ids(self, unit_id, start_frame=None, end_frame=None, segment_index=None):
         return self.sorting.get_unit_spike_train(unit_id, start_frame=start_frame, end_frame=end_frame)
 
-    #@default_return([])
+    # @default_return([])
     def _get_unit_spike_train_times(self, unit_id, segment_index=0):
         return self.sorting.frame_to_time(self.sorting.get_unit_spike_train(unit_id=unit_id))
 
@@ -185,19 +176,18 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                 property_names.add(i)
         return list(property_names)
 
-    #@default_return([])
+    # @default_return([])
     def _get_unit_property_values(self, prop):
-        prop_values = self._fill_missing_property_values(
-            self._get_unit_ids(), prop, self.sorting.get_unit_property)
+        prop_values = self._fill_missing_property_values(self._get_unit_ids(), prop, self.sorting.get_unit_property)
         return self._check_valid_property(prop_values)
 
-    #@default_return(np.array([]))
-    def _get_unit_waveforms_templates(self, unit_id, mode='mean'):
+    # @default_return(np.array([]))
+    def _get_unit_waveforms_templates(self, unit_id, mode="mean"):
         if "template" in self._get_unit_property_names():
             template = self._get_unit_property_values("template")
-            if len(template)>0:
+            if len(template) > 0:
                 if mode == "mean":
-                    return template.T  #(samples, no_channels)
+                    return template.T  # (samples, no_channels)
                 elif mode == "std":
                     return
 

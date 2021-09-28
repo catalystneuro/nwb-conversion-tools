@@ -19,14 +19,14 @@ def list_get(li: list, idx: int, default):
 
 
 def set_dynamic_table_property(
-        dynamic_table,
-        row_ids,
-        property_name,
-        values,
-        index=False,
-        default_value=np.nan,
-        table=False,
-        description="no description",
+    dynamic_table,
+    row_ids,
+    property_name,
+    values,
+    index=False,
+    default_value=np.nan,
+    table=False,
+    description="no description",
 ):
     if not isinstance(row_ids, list) or not all(isinstance(x, int) for x in row_ids):
         raise TypeError("'ids' must be a list of integers")
@@ -43,7 +43,7 @@ def set_dynamic_table_property(
             for (row_id, value) in zip(row_ids, values):
                 dynamic_table[property_name].data[ids.index(row_id)] = value
         else:
-            col_data = [default_value]*len(ids)  # init with default val
+            col_data = [default_value] * len(ids)  # init with default val
             for (row_id, value) in zip(row_ids, values):
                 col_data[ids.index(row_id)] = value
             dynamic_table.add_column(
@@ -58,7 +58,7 @@ def set_dynamic_table_property(
 
 
 def add_properties_to_dynamictable(nwbfile, dt_name, prop_dict, defaults):
-    if dt_name == 'electrodes':
+    if dt_name == "electrodes":
         add_method = nwbfile.add_electrode_column
         dt = nwbfile.electrodes
     else:
@@ -97,18 +97,17 @@ def reshape_dynamictable(dt, prop_dict, defaults):
     for colname in dt.colnames:
         if colname not in defaults:
             samp_data = dt[colname].data[0]
-            default_datatype = [
-                proptype for proptype in property_default_data if isinstance(samp_data, proptype)
-            ][0]
+            default_datatype = [proptype for proptype in property_default_data if isinstance(samp_data, proptype)][0]
             defaults_updated.update({colname: property_default_data[default_datatype]})
     # for all columns that are new for the given RX, they will
     for name, des_dict in prop_dict.items():
         des_args = dict(des_dict)
         if name not in defaults_updated:
             # build default junk values for data and add that as column directly later:
-            default_datatype_list = [proptype for proptype in property_default_data
-                                     if isinstance(des_dict["data"][0], proptype)][0]
-            des_args["data"] = [property_default_data[default_datatype_list]]*len(dt.id)
+            default_datatype_list = [
+                proptype for proptype in property_default_data if isinstance(des_dict["data"][0], proptype)
+            ][0]
+            des_args["data"] = [property_default_data[default_datatype_list]] * len(dt.id)
             dt.add_column(name, **des_args)
 
 
@@ -122,11 +121,13 @@ def default_return(value):
                 else:
                     return out
             except Exception as e:
-                if 'NoneType' in str(e):
+                if "NoneType" in str(e):
                     return value
                 else:
                     return e
+
         return wrapper
+
     return return_dec
 
 
@@ -193,7 +194,7 @@ def default_export_ops_schema():
         write_electrical_series=dict(type="boolean"),
         stub=dict(type="boolean"),
         overwrite=dict(type="boolean"),
-        stub_channels=dict(type="array", items=dict(type="integer"))
+        stub_channels=dict(type="array", items=dict(type="integer")),
     )
     return schema
 

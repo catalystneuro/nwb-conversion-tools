@@ -10,15 +10,15 @@ from .common_writer_tools import default_return
 
 class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
     def __init__(
-            self,
-            object_to_write,
-            nwbfile: pynwb.NWBFile = None,
-            metadata: dict = None,
-            **kwargs,
+        self,
+        object_to_write,
+        nwbfile: pynwb.NWBFile = None,
+        metadata: dict = None,
+        **kwargs,
     ):
         self.recording, self.sorting, self.waveforms, self.event = None, None, None, None
-        self.stub = kwargs.get('stub',False)
-        self.stub_channels = kwargs.get('stub_channels',None)
+        self.stub = kwargs.get("stub", False)
+        self.stub_channels = kwargs.get("stub_channels", None)
         BaseNwbEphysWriter.__init__(self, object_to_write, nwbfile=nwbfile, metadata=metadata, **kwargs)
 
     @abstractmethod
@@ -29,28 +29,28 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
     def _make_sorting_stub(self):
         pass
 
-    #@default_return(None)
+    # @default_return(None)
     def _get_sampling_frequency(self):
         return self.recording.get_sampling_frequency()
 
-    #@default_return([])
+    # @default_return([])
     def _get_channel_ids(self):
         return self.recording.get_channel_ids()
 
-    #@default_return(None)
+    # @default_return(None)
     def _get_unit_sampling_frequency(self):
         return self.sorting.get_sampling_frequency()
 
-    #@default_return([])
+    # @default_return([])
     def _get_unit_ids(self):
         return self.sorting.get_unit_ids()
 
-    #@default_return([])
+    # @default_return([])
     def _check_valid_property(self, prop_values):
         if not isinstance(prop_values[0], tuple(self.dt_column_defaults)):
             return
         if isinstance(prop_values[0], np.ndarray):
-            shapes = [value.shape[1:] if len(value.shape)>1 else 1 for value in prop_values]
+            shapes = [value.shape[1:] if len(value.shape) > 1 else 1 for value in prop_values]
             if np.all([shape == shapes[0] for shape in shapes]):
                 return prop_values
         else:
@@ -58,7 +58,7 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
 
     def add_recording(self, segment_index=0):
         assert (
-                distutils.version.LooseVersion(pynwb.__version__) >= "1.3.3"
+            distutils.version.LooseVersion(pynwb.__version__) >= "1.3.3"
         ), "'write_recording' not supported for version < 1.3.3. Run pip install --upgrade pynwb"
 
         self.add_devices()

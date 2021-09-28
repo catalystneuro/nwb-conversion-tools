@@ -77,7 +77,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
             Device=[dict(name="Device_ecephys", description="no description")],
             ElectrodeGroup=[
                 dict(name=str(group_id), description="no description", location="unknown", device="Device_ecephys")
-                for group_id in np.unique(self.writer_class._get_channel_property_values('group'))
+                for group_id in np.unique(self.writer_class._get_channel_property_values("group"))
             ],
         )
         return metadata
@@ -90,12 +90,14 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         ----------
         stub_test : bool, optional (default False)
         """
-        self.writer_class = map_si_object_to_writer(self.recording_extractor)(self.recording_extractor,
-                                                                              nwbfile=nwbfile,
-                                                                              metadata=metadata,
-                                                                              stub=True,
-                                                                              stub_channels=self.subset_channels,
-                                                                              **kwargs)
+        self.writer_class = map_si_object_to_writer(self.recording_extractor)(
+            self.recording_extractor,
+            nwbfile=nwbfile,
+            metadata=metadata,
+            stub=True,
+            stub_channels=self.subset_channels,
+            **kwargs,
+        )
 
     def run_conversion(
         self,
@@ -139,12 +141,13 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
             Key in metadata dictionary containing metadata info for the specific electrical series
         """
         if stub_test or self.subset_channels is not None:
-            self.subset_recording(nwbfile,
-                                  metadata,
-                                  use_times=use_times,
-                                  buffer_mb=buffer_mb,
-                                  write_as=write_as,
-                                  es_key=es_key,
+            self.subset_recording(
+                nwbfile,
+                metadata,
+                use_times=use_times,
+                buffer_mb=buffer_mb,
+                write_as=write_as,
+                es_key=es_key,
             )
 
         self.writer_class.write_to_nwb()

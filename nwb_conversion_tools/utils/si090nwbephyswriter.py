@@ -10,6 +10,7 @@ from .common_writer_tools import PathType, default_return
 try:
     import spikeinterface as si
     from spikeinterface.core.testing_tools import generate_recording, generate_sorting
+
     if StrictVersion(si.__version__[:4]) >= StrictVersion("0.90"):
         HAVE_SI_090 = True
     else:
@@ -32,12 +33,12 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
     """
 
     def __init__(
-            self,
-            object_to_write,
-            nwb_file_path: PathType = None,
-            nwbfile: pynwb.NWBFile = None,
-            metadata: dict = None,
-            **kwargs,
+        self,
+        object_to_write,
+        nwb_file_path: PathType = None,
+        nwbfile: pynwb.NWBFile = None,
+        metadata: dict = None,
+        **kwargs,
     ):
         assert HAVE_SI_090
         BaseSINwbEphysWriter.__init__(
@@ -68,22 +69,14 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
             num_channels = min(10, self.recording.get_num_channels())
             channel_stub = self.recording.get_channel_ids()[:num_channels]
         frame_stub = min(100, self.recording.get_num_frames())
-        self.recording = si.ChannelSliceRecording(self.recording,
-                                                  channel_ids=channel_stub)
-        self.recording = si.FrameSliceRecording(self.recording,
-                                                end_frame=frame_stub)
+        self.recording = si.ChannelSliceRecording(self.recording, channel_ids=channel_stub)
+        self.recording = si.FrameSliceRecording(self.recording, end_frame=frame_stub)
 
     def _make_sorting_stub(self):
         max_min_spike_time = max(
-            [
-                min(x)
-                for y in self.sorting.get_unit_ids()
-                for x in [self.sorting.get_unit_spike_train(y)]
-                if any(x)
-            ]
+            [min(x) for y in self.sorting.get_unit_ids() for x in [self.sorting.get_unit_spike_train(y)] if any(x)]
         )
-        self.sorting = si.FrameSliceSorting(start_frame=0,
-                                            end_frame=1.1 * max_min_spike_time)
+        self.sorting = si.FrameSliceSorting(start_frame=0, end_frame=1.1 * max_min_spike_time)
 
     @staticmethod
     def supported_types():
@@ -99,11 +92,13 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
 
     @default_return([])
     def _get_traces(self, channel_ids=None, start_frame=None, end_frame=None, return_scaled=True, segment_index=0):
-        return self.recording.get_traces(channel_ids=channel_ids,
-                                         start_frame=start_frame,
-                                         end_frame=end_frame,
-                                         return_scaled=return_scaled,
-                                         segment_index=segment_index)
+        return self.recording.get_traces(
+            channel_ids=channel_ids,
+            start_frame=start_frame,
+            end_frame=end_frame,
+            return_scaled=return_scaled,
+            segment_index=segment_index,
+        )
 
     @default_return([])
     def _get_channel_property_names(self):
@@ -116,7 +111,7 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
             try:
                 return self.recording.get_channel_locations()
             except:
-                return np.nan*np.ones(len(self._get_channel_ids()), 2)
+                return np.nan * np.ones(len(self._get_channel_ids()), 2)
         elif prop == "gain":
             if self.recording.get_channel_gains() is None:
                 return np.ones(len(self._get_channel_ids()))
@@ -138,8 +133,11 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
 
     @default_return([])
     def _get_recording_times(self, segment_index=0):
-        return np.range(0, self._get_num_frames(segment_index=segment_index)
-                        *self._get_sampling_frequency(), self._get_sampling_frequency())
+        return np.range(
+            0,
+            self._get_num_frames(segment_index=segment_index) * self._get_sampling_frequency(),
+            self._get_sampling_frequency(),
+        )
 
     @default_return([])
     def _get_unit_feature_names(self):
@@ -151,30 +149,32 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
 
     @default_return([])
     def _get_unit_spike_train_ids(self, unit_id, start_frame=None, end_frame=None, segment_index=None):
-        return self.sorting.get_unit_spike_train(unit_id, start_frame=start_frame,
-                                                 end_frame=end_frame, segment_index=segment_index)
+        return self.sorting.get_unit_spike_train(
+            unit_id, start_frame=start_frame, end_frame=end_frame, segment_index=segment_index
+        )
 
     @default_return([])
     def _get_unit_spike_train_times(self, unit_id, segment_index=0):
-        return self._get_unit_spike_train_ids(unit_id, segment_index)/self._get_unit_sampling_frequency()
+        return self._get_unit_spike_train_ids(unit_id, segment_index) / self._get_unit_sampling_frequency()
 
     def _get_unit_property_names(self):
         properties = self.sorting.get_property_keys()
-        if 'max_channel' not in properties:
-            properties = properties.extend('max_channel')
+        if "max_channel" not in properties:
+            properties = properties.extend("max_channel")
         return properties
 
     @default_return([])
     def _get_unit_property_values(self, prop):
         prop_values = self.sorting.get_unit_property(prop)
-        if prop_values is None and prop == 'max_channel':
+        if prop_values is None and prop == "max_channel":
             from spikeinterface.toolkit import get_template_extremum_channel
+
             channels_dict = get_template_extremum_channel(self.waveforms)
             prop_values = [channels_dict.get(id, np.nan) for id in self._get_unit_ids()]
         return self._check_valid_property(prop_values)
 
     @default_return([])
-    def _get_unit_waveforms_templates(self, unit_id, mode='mean'):
+    def _get_unit_waveforms_templates(self, unit_id, mode="mean"):
         return self.waveforms.get_template(unit_id, mode=mode)
 
     def add_epochs(self):
@@ -184,10 +184,10 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
 def create_si090_example():
     RX = generate_recording()
     RX.set_property("prop1", np.arange(RX.get_num_channels()))
-    RX.set_property("prop2", np.arange(RX.get_num_channels())*2)
+    RX.set_property("prop2", np.arange(RX.get_num_channels()) * 2)
 
     SX = generate_sorting()
     SX.set_property("prop1", np.arange(SX.get_num_units()))
-    SX.set_property("prop2", np.arange(SX.get_num_units())*2)
+    SX.set_property("prop2", np.arange(SX.get_num_units()) * 2)
 
     return RX, SX
