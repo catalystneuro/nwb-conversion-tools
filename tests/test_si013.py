@@ -18,6 +18,7 @@ from pynwb import NWBHDF5IO, NWBFile
 
 from nwb_conversion_tools.utils import export_ecephys_to_nwb, SI013NwbEphysWriter, create_si013_example
 
+
 class TestExtractors(unittest.TestCase):
     def setUp(self):
         self.RX, self.RX2, self.RX3, self.SX, self.SX2, self.SX3, self.example_info = create_si013_example(seed=0)
@@ -46,25 +47,21 @@ class TestExtractors(unittest.TestCase):
         # Writing multiple recordings using metadata
         path_multi = self.test_dir + "/test_multiple.nwb"
         nwbfile = export_ecephys_to_nwb(
-                    object_to_write=self.RX,
-                    nwb_file_path=path_multi,
-                    write_as="raw",
-                    es_key="ElectricalSeries_raw",
-                    )
+            object_to_write=self.RX,
+            nwb_file_path=path_multi,
+            write_as="raw",
+            es_key="ElectricalSeries_raw",
+        )
         nwbfile = export_ecephys_to_nwb(
-                    object_to_write=self.RX2,
-                    nwbfile=nwbfile,
-                    write_as="processed",
-                    es_key="ElectricalSeries_processed",
-                    overwrite=False
-                )
+            object_to_write=self.RX2,
+            nwbfile=nwbfile,
+            write_as="processed",
+            es_key="ElectricalSeries_processed",
+            overwrite=False,
+        )
         nwbfile = export_ecephys_to_nwb(
-                    object_to_write=self.RX3,
-                    nwbfile=nwbfile,
-                    write_as="lfp",
-                    es_key="ElectricalSeries_lfp",
-                    overwrite=False
-                )
+            object_to_write=self.RX3, nwbfile=nwbfile, write_as="lfp", es_key="ElectricalSeries_lfp", overwrite=False
+        )
         es_raw_name = "ElectricalSeries_raw_segment_0"
         RX_nwb = se.NwbRecordingExtractor(file_path=path_multi, electrical_series_name=es_raw_name)
         check_recording_return_types(RX_nwb)
@@ -73,8 +70,8 @@ class TestExtractors(unittest.TestCase):
         del RX_nwb
 
         nwbfile = export_ecephys_to_nwb(
-                    object_to_write=self.RX, nwb_file_path=path, overwrite=True
-                )  # Testing default compression, should be "gzip"
+            object_to_write=self.RX, nwb_file_path=path, overwrite=True
+        )  # Testing default compression, should be "gzip"
         with NWBHDF5IO(path=path, mode="r") as io:
             nwbfile = io.read()
             compression_out = nwbfile.acquisition[es_raw_name].data.compression
@@ -121,15 +118,19 @@ class TestExtractors(unittest.TestCase):
         # Test for handling unit property descriptions argument
         property_descriptions = dict(stability="This is a description of stability.")
         nwbfile = export_ecephys_to_nwb(
-            object_to_write=self.SX, nwb_file_path=path, unit_property_descriptions=property_descriptions, overwrite=True
+            object_to_write=self.SX,
+            nwb_file_path=path,
+            unit_property_descriptions=property_descriptions,
+            overwrite=True,
         )
         SX_nwb = se.NwbSortingExtractor(path, sampling_frequency=sf)
         check_sortings_equal(self.SX, SX_nwb)
         check_dumping(SX_nwb)
 
         # Test for handling skip_properties argument
-        nwbfile = export_ecephys_to_nwb(object_to_write=self.SX, nwb_file_path=path, skip_unit_properties=["stability"],
-                                        overwrite=True)
+        nwbfile = export_ecephys_to_nwb(
+            object_to_write=self.SX, nwb_file_path=path, skip_unit_properties=["stability"], overwrite=True
+        )
         SX_nwb = se.NwbSortingExtractor(path, sampling_frequency=sf)
         assert "stability" not in SX_nwb.get_shared_unit_property_names()
         check_sortings_equal(self.SX, SX_nwb)
@@ -200,8 +201,8 @@ class TestExtractors(unittest.TestCase):
                         self.assertTrue(
                             column["data"][j] == getattr(nwbfile.electrodes[j], column_name).values[0]
                             or (
-                                    np.isnan(column["data"][j])
-                                    and np.isnan(getattr(nwbfile.electrodes[j], column_name).values[0])
+                                np.isnan(column["data"][j])
+                                and np.isnan(getattr(nwbfile.electrodes[j], column_name).values[0])
                             )
                         )
 
@@ -274,10 +275,12 @@ class TestWriteElectrodes(unittest.TestCase):
                 self.RX.set_channel_property(chan_id1, "prop3", str(chan_id1))
 
     def test_append_same_properties(self):
-        export_ecephys_to_nwb(object_to_write=self.RX, nwbfile=self.nwbfile1, metadata=self.metadata_list[0],
-                              es_key="es1")
-        export_ecephys_to_nwb(object_to_write=self.RX2, nwbfile=self.nwbfile1, metadata=self.metadata_list[1],
-                              es_key="es2")
+        export_ecephys_to_nwb(
+            object_to_write=self.RX, nwbfile=self.nwbfile1, metadata=self.metadata_list[0], es_key="es1"
+        )
+        export_ecephys_to_nwb(
+            object_to_write=self.RX2, nwbfile=self.nwbfile1, metadata=self.metadata_list[1], es_key="es2"
+        )
         with NWBHDF5IO(str(self.path1), "w") as io:
             io.write(self.nwbfile1)
         with NWBHDF5IO(str(self.path1), "r") as io:
@@ -305,10 +308,12 @@ class TestWriteElectrodes(unittest.TestCase):
         for chan_id in self.RX2.get_channel_ids():
             self.RX2.clear_channel_property(chan_id, "prop2")
             self.RX2.set_channel_property(chan_id, "prop_new", chan_id)
-        export_ecephys_to_nwb(object_to_write=self.RX, nwbfile=self.nwbfile1, metadata=self.metadata_list[0],
-                              es_key="es1")
-        export_ecephys_to_nwb(object_to_write=self.RX2, nwbfile=self.nwbfile1, metadata=self.metadata_list[1],
-                              es_key="es2")
+        export_ecephys_to_nwb(
+            object_to_write=self.RX, nwbfile=self.nwbfile1, metadata=self.metadata_list[0], es_key="es1"
+        )
+        export_ecephys_to_nwb(
+            object_to_write=self.RX2, nwbfile=self.nwbfile1, metadata=self.metadata_list[1], es_key="es2"
+        )
         with NWBHDF5IO(str(self.path1), "w") as io:
             io.write(self.nwbfile1)
         with NWBHDF5IO(str(self.path1), "r") as io:
@@ -329,10 +334,12 @@ class TestWriteElectrodes(unittest.TestCase):
             self.metadata_list[i]["Ecephys"].update(
                 ElectrodeGroup=[dict(name=grp_name, description=grp_name + " description")]
             )
-        export_ecephys_to_nwb(object_to_write=self.RX, nwbfile=self.nwbfile1, metadata=self.metadata_list[0],
-                              es_key="es1")
-        export_ecephys_to_nwb(object_to_write=self.RX2, nwbfile=self.nwbfile1, metadata=self.metadata_list[1],
-                              es_key="es2")
+        export_ecephys_to_nwb(
+            object_to_write=self.RX, nwbfile=self.nwbfile1, metadata=self.metadata_list[0], es_key="es1"
+        )
+        export_ecephys_to_nwb(
+            object_to_write=self.RX2, nwbfile=self.nwbfile1, metadata=self.metadata_list[1], es_key="es2"
+        )
         with NWBHDF5IO(str(self.path1), "w") as io:
             io.write(self.nwbfile1)
         with NWBHDF5IO(str(self.path1), "r") as io:

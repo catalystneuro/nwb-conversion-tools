@@ -5,6 +5,7 @@ from pynwb.base import ProcessingModule
 from spikeextractors import NumpyRecordingExtractor
 
 from nwb_conversion_tools.utils.conversion_tools import check_regular_timestamps, get_module, make_nwbfile_from_metadata
+
 # from nwb_conversion_tools.utils.conversion_tools import estimate_recording_conversion_time
 
 
