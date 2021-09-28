@@ -1,33 +1,27 @@
 """Authors: Alessio Buccino."""
-import spikeextractors as se
+from spikeextractors import load_extractor_from_pickle
 
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ..basesortingextractorinterface import BaseSortingExtractorInterface
-from ....utils.json_schema import get_base_schema
+from ....utils.json_schema import FilePathType
 
 
 class SIPickleRecordingExtractorInterface(BaseRecordingExtractorInterface):
-    """Primary interface for reading and converting SpikeInterface objects through Pickle files."""
+    """Primary interface for reading and converting SpikeInterface Recording objects through .pkl files."""
 
-    @classmethod
-    def get_source_schema(cls):
-        """Return partial json schema for expected input arguments."""
-        return get_base_schema(required=["pkl_file"], properties=dict(pkl_file=dict(type="string")))
+    RX = None
 
-    def __init__(self, **source_data):
-        self.source_data = source_data
+    def __init__(self, pkl_file: FilePathType):
+        self.recording_extractor = load_extractor_from_pickle(pkl_file=pkl_file)
         self.subset_channels = None
-        self.recording_extractor = se.load_extractor_from_pickle(**source_data)
+        self.source_data = dict(pkl_file=pkl_file)
 
 
 class SIPickleSortingExtractorInterface(BaseSortingExtractorInterface):
-    """Primary interface for reading and converting SpikeInterface objects through Pickle files."""
+    """Primary interface for reading and converting SpikeInterface Sorting objects through .pkl files."""
 
-    @classmethod
-    def get_source_schema(cls):
-        """Return partial json schema for expected input arguments."""
-        return get_base_schema(required=["pkl_file"], properties=dict(pkl_file=dict(type="string")))
+    SX = None
 
-    def __init__(self, **source_data):
-        self.source_data = source_data
-        self.sorting_extractor = se.load_extractor_from_pickle(**source_data)
+    def __init__(self, pkl_file: FilePathType):
+        self.sorting_extractor = load_extractor_from_pickle(pkl_file=pkl_file)
+        self.source_data = dict(pkl_file=pkl_file)
