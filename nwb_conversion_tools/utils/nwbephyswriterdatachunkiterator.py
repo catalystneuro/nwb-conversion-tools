@@ -21,8 +21,7 @@ class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
         self.segment_index = segment_index
         self.ephys_writer = ephys_writer
         self.channel_ids = ephys_writer._get_channel_ids()
-        super().__init__(buffer_gb=buffer_gb, buffer_shape=buffer_shape,
-                         chunk_mb=chunk_mb, chunk_shape=chunk_shape)
+        super().__init__(buffer_gb=buffer_gb, buffer_shape=buffer_shape, chunk_mb=chunk_mb, chunk_shape=chunk_shape)
 
     def _get_data(self, selection: Tuple[slice]) -> Iterable:
         return self.ephys_writer._get_traces(
@@ -30,7 +29,7 @@ class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
             start_frame=selection[0].start,
             end_frame=selection[0].stop,
             return_scaled=True,
-            segment_index=self.segment_index
+            segment_index=self.segment_index,
         )
 
     def _get_dtype(self):
@@ -39,9 +38,8 @@ class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
             start_frame=0,
             end_frame=1,
             return_scaled=True,
-            segment_index=self.segment_index
+            segment_index=self.segment_index,
         ).dtype
 
     def _get_maxshape(self):
-        return (self.ephys_writer._get_num_frames(self.segment_index),
-                len(self.ephys_writer._get_channel_ids()))
+        return (self.ephys_writer._get_num_frames(self.segment_index), len(self.ephys_writer._get_channel_ids()))

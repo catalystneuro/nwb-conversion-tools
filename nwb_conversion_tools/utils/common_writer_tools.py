@@ -185,7 +185,7 @@ def default_export_ops_schema():
         use_times=dict(type="boolean"),
         write_as=dict(type="string", enum=["raw", "lfp", "processed"]),
         es_key=dict(type="string"),
-        buffer_mb=dict(type=["null","number"]),
+        buffer_mb=dict(type=["null", "number"]),
         buffer_shape=dict(type=["null", "array"]),
         chunk_mb=dict(type=["null", "number"]),
         chunk_shape=dict(type=["null", "array"]),

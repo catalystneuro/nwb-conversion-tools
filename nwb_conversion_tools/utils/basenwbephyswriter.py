@@ -474,12 +474,15 @@ class BaseNwbEphysWriter(ABC):
             warn("iteration was disabled, but not enough memory to load traces! Forcing iterate=True.")
             iterate = True
         if self._conversion_ops["iterate"]:
-            if isinstance(
-                self._get_traces(
-                    end_frame=5, return_scaled=self._conversion_ops["write_scaled"], segment_index=segment_index
-                ),
-                np.memmap,
-            ) and np.all(channel_offset == 0):
+            if (
+                isinstance(
+                    self._get_traces(
+                        end_frame=5, return_scaled=self._conversion_ops["write_scaled"], segment_index=segment_index
+                    ),
+                    np.memmap,
+                )
+                and np.all(channel_offset == 0)
+            ):
                 n_bytes = np.dtype(self.recording.get_dtype()).itemsize
                 buffer_size = int(self._conversion_ops["buffer_mb"] * 1e6) // (len(self._get_channel_ids()) * n_bytes)
                 ephys_data = DataChunkIterator(
