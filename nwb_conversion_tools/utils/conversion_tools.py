@@ -117,3 +117,11 @@ def estimate_recording_conversion_time(
 
     rmtree(temp_dir)
     return total_time, speed
+
+
+def dict_to_converter(d: dict):
+    initial_metadata = d["metadata"]
+    
+    for experiment_type in d["experiment_types"]:
+        session_metadata = d["metadata"]
+        
