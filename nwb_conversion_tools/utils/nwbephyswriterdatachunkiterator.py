@@ -1,8 +1,6 @@
 """Authors: Saksham Sharda."""
 from typing import Tuple, Iterable
 
-from .basenwbephyswriter import BaseNwbEphysWriter
-
 from .genericdatachunkiterator import GenericDataChunkIterator
 
 
@@ -11,14 +9,18 @@ class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
 
     def __init__(
         self,
-        ephys_writer: BaseNwbEphysWriter,
+        ephys_writer,
         segment_index: int = 0,
+        unsigned_coercion: int = 0,
+        write_scaled: bool = True,
         buffer_gb: float = None,
         buffer_shape: tuple = None,
         chunk_mb: float = None,
         chunk_shape: tuple = None,
     ):
         self.segment_index = segment_index
+        self.unsigned_coercion = unsigned_coercion
+        self.write_scaled = write_scaled
         self.ephys_writer = ephys_writer
         self.channel_ids = ephys_writer._get_channel_ids()
         super().__init__(buffer_gb=buffer_gb, buffer_shape=buffer_shape, chunk_mb=chunk_mb, chunk_shape=chunk_shape)
@@ -28,9 +30,9 @@ class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
             channel_ids=self.channel_ids[selection[1]],
             start_frame=selection[0].start,
             end_frame=selection[0].stop,
-            return_scaled=True,
+            return_scaled=self.write_scaled,
             segment_index=self.segment_index,
-        )
+        ) + self.unsigned_coercion
 
     def _get_dtype(self):
         return self.ephys_writer._get_traces(
