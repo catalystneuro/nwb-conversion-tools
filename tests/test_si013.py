@@ -223,8 +223,8 @@ class TestWriteElectrodes(unittest.TestCase):
         self.RX2 = se.subrecordingextractor.SubRecordingExtractor(
             self.RX2, renamed_channel_ids=np.array(self.RX2.get_channel_ids()) + id_offset + 1
         )
-        self.RX2.set_channel_groups(np.ones(shape=self.RX2.get_num_channels(),dtype='int'))
-        self.RX.set_channel_groups(np.zeros(shape=self.RX.get_num_channels(),dtype='int'))
+        self.RX2.set_channel_groups(np.ones(shape=self.RX2.get_num_channels(), dtype="int"))
+        self.RX.set_channel_groups(np.zeros(shape=self.RX.get_num_channels(), dtype="int"))
         # add common properties:
         for no, (chan_id1, chan_id2) in enumerate(zip(self.RX.get_channel_ids(), self.RX2.get_channel_ids())):
             self.RX2.set_channel_property(chan_id2, "prop1", "10Hz")
@@ -295,7 +295,7 @@ class TestWriteElectrodes(unittest.TestCase):
                     assert nwb.electrodes["prop_new"][i] == chan_id
 
     def test_group_set_custom_description(self):
-        for i, (grp_name,grp_desc) in enumerate(zip(["0", "1"],["PMd","M1"])):
+        for i, (grp_name, grp_desc) in enumerate(zip(["0", "1"], ["PMd", "M1"])):
             self.metadata_list[i]["Ecephys"].update(
                 ElectrodeGroup=[dict(name=grp_name, description=grp_desc + " description")]
             )

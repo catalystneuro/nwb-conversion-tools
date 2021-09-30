@@ -26,13 +26,16 @@ class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
         super().__init__(buffer_gb=buffer_gb, buffer_shape=buffer_shape, chunk_mb=chunk_mb, chunk_shape=chunk_shape)
 
     def _get_data(self, selection: Tuple[slice]) -> Iterable:
-        return self.ephys_writer._get_traces(
-            channel_ids=self.channel_ids[selection[1]],
-            start_frame=selection[0].start,
-            end_frame=selection[0].stop,
-            return_scaled=self.write_scaled,
-            segment_index=self.segment_index,
-        ) + self.unsigned_coercion
+        return (
+            self.ephys_writer._get_traces(
+                channel_ids=self.channel_ids[selection[1]],
+                start_frame=selection[0].start,
+                end_frame=selection[0].stop,
+                return_scaled=self.write_scaled,
+                segment_index=self.segment_index,
+            )
+            + self.unsigned_coercion
+        )
 
     def _get_dtype(self):
         return self.ephys_writer._get_traces(

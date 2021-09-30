@@ -76,8 +76,7 @@ class BaseNwbEphysWriter(ABC):
         pass
 
     @abstractmethod
-    def _get_unit_spike_train_ids(self, unit_id, start_frame=None,
-                                  end_frame=None, segment_index=None):
+    def _get_unit_spike_train_ids(self, unit_id, start_frame=None, end_frame=None, segment_index=None):
         pass
 
     @abstractmethod
@@ -97,7 +96,7 @@ class BaseNwbEphysWriter(ABC):
         pass
 
     @abstractmethod
-    def _get_unit_waveforms_templates(self, unit_id, mode='mean'):
+    def _get_unit_waveforms_templates(self, unit_id, mode="mean"):
         """
         Parameters
         ----------
@@ -161,7 +160,7 @@ class BaseNwbEphysWriter(ABC):
         if "Ecephys" not in self.metadata:
             self.metadata["Ecephys"] = dict()
 
-        channel_groups_unique = np.unique(self._get_channel_property_values('group'))
+        channel_groups_unique = np.unique(self._get_channel_property_values("group"))
 
         defaults = [
             dict(
@@ -240,7 +239,7 @@ class BaseNwbEphysWriter(ABC):
             location="unknown",
             filtering="none",
             group=list(self.nwbfile.electrode_groups.values())[0],
-            group_name=list(self.nwbfile.electrode_groups.values())[0].name
+            group_name=list(self.nwbfile.electrode_groups.values())[0].name,
         )
         if self.metadata is None:  # TODO: build complete metadata from a separate class/method and fill defaults
             self.metadata = dict(Ecephys=dict())
@@ -296,7 +295,7 @@ class BaseNwbEphysWriter(ABC):
             elec_columns[x["name"]]["description"] = x["description"]
 
         # 3. For existing electrodes table, add the additional columns and fill with default data:
-        add_properties_to_dynamictable(self.nwbfile, 'electrodes', elec_columns, defaults)
+        add_properties_to_dynamictable(self.nwbfile, "electrodes", elec_columns, defaults)
 
         # 4. add info to electrodes table:
         for j, channel_id in enumerate(self._get_channel_ids()):
@@ -314,7 +313,6 @@ class BaseNwbEphysWriter(ABC):
                     else:
                         electrode_kwargs[name] = desc["data"][j]
                 self.nwbfile.add_electrode(**electrode_kwargs)
-
 
     def add_electrical_series(self, segment_index):
         """
@@ -410,28 +408,30 @@ class BaseNwbEphysWriter(ABC):
         # If user passed metadata info, overwrite defaults
         if self.metadata is not None and "Ecephys" in self.metadata:
             if self._conversion_ops["es_key"] not in self.metadata["Ecephys"]:
-                warnings.warn(f"metadata['Ecephys'] dictionary does not contain key '{self._conversion_ops['es_key']}'"
-                              f"picking default arguments")
+                warnings.warn(
+                    f"metadata['Ecephys'] dictionary does not contain key '{self._conversion_ops['es_key']}'"
+                    f"picking default arguments"
+                )
             else:
                 eseries_kwargs.update(self.metadata["Ecephys"][self._conversion_ops["es_key"]])
 
         # update name for segment:
-        name = eseries_kwargs.get('name')
-        eseries_kwargs.update(name=f'{name}_segment_{segment_index}')
+        name = eseries_kwargs.get("name")
+        eseries_kwargs.update(name=f"{name}_segment_{segment_index}")
         # Check for existing names in nwbfile
         if self._conversion_ops["write_as"] == "raw":
             assert (
-                    eseries_kwargs["name"] not in self.nwbfile.acquisition
+                eseries_kwargs["name"] not in self.nwbfile.acquisition
             ), f"Raw ElectricalSeries '{eseries_kwargs['name']}' is already written in the NWBFile!"
         elif self._conversion_ops["write_as"] == "processed":
             assert (
-                    eseries_kwargs["name"]
-                    not in self.nwbfile.processing["ecephys"].data_interfaces["Processed"].electrical_series
+                eseries_kwargs["name"]
+                not in self.nwbfile.processing["ecephys"].data_interfaces["Processed"].electrical_series
             ), f"Processed ElectricalSeries '{eseries_kwargs['name']}' is already written in the NWBFile!"
         elif self._conversion_ops["write_as"] == "lfp":
             assert (
-                    eseries_kwargs["name"]
-                    not in self.nwbfile.processing["ecephys"].data_interfaces["LFP"].electrical_series
+                eseries_kwargs["name"]
+                not in self.nwbfile.processing["ecephys"].data_interfaces["LFP"].electrical_series
             ), f"LFP ElectricalSeries '{eseries_kwargs['name']}' is already written in the NWBFile!"
 
         # Electrodes table region
@@ -463,39 +463,47 @@ class BaseNwbEphysWriter(ABC):
             eseries_kwargs.update(conversion=1e-6)
         else:
             if len(np.unique(channel_conversion)) == 1:  # if all gains are equal
-                eseries_kwargs.update(conversion=channel_conversion[0]*1e-6)
+                eseries_kwargs.update(conversion=channel_conversion[0] * 1e-6)
             else:
                 eseries_kwargs.update(conversion=1e-6)
                 eseries_kwargs.update(channel_conversion=channel_conversion)
 
-        iterator_opts = {i: self._conversion_ops[i]
-                         for i in ['write_scaled', 'buffer_gb', 'buffer_shape', 'chunk_mb', 'chunk_shape']}
+        iterator_opts = {
+            i: self._conversion_ops[i] for i in ["write_scaled", "buffer_gb", "buffer_shape", "chunk_mb", "chunk_shape"]
+        }
         if self._conversion_ops["iterator_type"] == "v2":
-            ephys_data = NwbEphysWriterDataChunkIterator(ephys_writer=self,segment_index=segment_index,
-                                                         unsigned_coercion=unsigned_coercion,**iterator_opts)
+            ephys_data = NwbEphysWriterDataChunkIterator(
+                ephys_writer=self, segment_index=segment_index, unsigned_coercion=unsigned_coercion, **iterator_opts
+            )
         elif self._conversion_ops["iterator_type"] == "v1":
-            if isinstance(self._get_traces(end_frame=5, return_scaled=iterator_opts.get("write_scaled")), np.memmap) and np.all(
-                    channel_offset == 0
-            ):
-                trace_dtype = self._get_traces(channel_ids=channel_ids[:1], end_frame=1,
-                                               segment_index=segment_index).dtype
+            if isinstance(
+                self._get_traces(end_frame=5, return_scaled=iterator_opts.get("write_scaled")), np.memmap
+            ) and np.all(channel_offset == 0):
+                trace_dtype = self._get_traces(
+                    channel_ids=channel_ids[:1], end_frame=1, segment_index=segment_index
+                ).dtype
                 n_bytes = trace_dtype.itemsize
-                buffer_size = int(iterator_opts.get("buffer_gb", 1)*1e9)//n_bytes
+                buffer_size = int(iterator_opts.get("buffer_gb", 1) * 1e9) // n_bytes
                 ephys_data = DataChunkIterator(
-                    data=self._get_traces(return_scaled=iterator_opts.get("write_scaled")).T,  # nwb standard is time as zero axis
+                    data=self._get_traces(
+                        return_scaled=iterator_opts.get("write_scaled")
+                    ),  # nwb standard is time as zero axis
                     buffer_size=buffer_size,
                 )
             else:
                 raise ValueError(
-                    "iterator_type='v1' only supports memmapable trace types! Use iterator_type='v2' instead.")
+                    "iterator_type='v1' only supports memmapable trace types! Use iterator_type='v2' instead."
+                )
         else:
-            raise NotImplementedError(f"iterator_type ({self._conversion_ops['iterator_type']}) should be either 'v1' or 'v2' (recommended)!")
+            raise NotImplementedError(
+                f"iterator_type ({self._conversion_ops['iterator_type']}) should be either 'v1' or 'v2' (recommended)!"
+            )
 
         eseries_kwargs.update(
             data=H5DataIO(
                 ephys_data,
                 compression=self._conversion_ops["compression"],
-                compression_opts=self._conversion_ops["compression_opts"]
+                compression_opts=self._conversion_ops["compression_opts"],
             )
         )
         if not self._conversion_ops["use_times"]:
@@ -528,8 +536,8 @@ class BaseNwbEphysWriter(ABC):
         if fs is None:
             raise ValueError("Writing a SortingExtractor to an NWBFile requires a known sampling frequency!")
 
-        if 'units' not in self.metadata:
-            self.metadata['units'] = []
+        if "units" not in self.metadata:
+            self.metadata["units"] = []
 
         if self._conversion_ops["unit_property_descriptions"] is None:
             property_descriptions = dict(_default_sorting_property_descriptions)
@@ -554,14 +562,16 @@ class BaseNwbEphysWriter(ABC):
                 if len(data) == 0:
                     continue
                 index = isinstance(data[0], (list, np.ndarray))
-                unit_columns[prop].update(description=property_descriptions.get(prop, "No description."),
-                                          data=data, index=index)
+                unit_columns[prop].update(
+                    description=property_descriptions.get(prop, "No description."), data=data, index=index
+                )
                 if prop in ["max_channel", "max_electrode"]:
                     if self.nwbfile.electrodes is None:
-                        warnings.warn('first link a RX to the nwb file to create correct electrodes')
+                        warnings.warn("first link a RX to the nwb file to create correct electrodes")
                         continue
-                    assert set(data).issubset(set(self.nwbfile.electrodes.id.data)), \
-                        'sorting and recording extractor should be for the same data'
+                    assert set(data).issubset(
+                        set(self.nwbfile.electrodes.id.data)
+                    ), "sorting and recording extractor should be for the same data"
                     unit_columns[prop].update(table=self.nwbfile.electrodes)
 
         # 2. fill with provided custom descriptions
@@ -571,7 +581,7 @@ class BaseNwbEphysWriter(ABC):
             unit_columns[x["name"]]["description"] = x["description"]
 
         # 3. For existing electrodes table, add the additional columns and fill with default data:
-        add_properties_to_dynamictable(self.nwbfile, 'units', unit_columns, defaults)
+        add_properties_to_dynamictable(self.nwbfile, "units", unit_columns, defaults)
 
         # 4. Add info to units table:
         for j, unit_id in enumerate(unit_ids):
@@ -580,7 +590,7 @@ class BaseNwbEphysWriter(ABC):
                 if self._conversion_ops["use_times"]:
                     spkt = self._get_unit_spike_train_times(unit_id)
                 else:
-                    spkt = self._get_unit_spike_train_ids(unit_id)/self._get_unit_sampling_frequency()
+                    spkt = self._get_unit_spike_train_ids(unit_id) / self._get_unit_sampling_frequency()
                 unit_kwargs.update(spike_times=spkt, id=unit_id)
                 for name, desc in unit_columns.items():
                     unit_kwargs[name] = desc["data"][j]
@@ -626,10 +636,10 @@ class BaseNwbEphysWriter(ABC):
     def add_units_waveforms(self):
         if self._get_unit_waveforms_templates(unit_id=0):
             if len(self.nwbfile.units) == 0:
-                warnings.warn('create a units table before adding waveforms. Skipping operation')
+                warnings.warn("create a units table before adding waveforms. Skipping operation")
                 return
             units = self.nwbfile.units
-            waveform_metrics = {'mean': 'mean', 'std': 'sd'}
+            waveform_metrics = {"mean": "mean", "std": "sd"}
             for mode in waveform_metrics:
                 # construct wavforms for all units:
                 templates_all = []
@@ -638,7 +648,7 @@ class BaseNwbEphysWriter(ABC):
                 set_dynamic_table_property(
                     dynamic_table=units,
                     row_ids=units.id.data,
-                    property_name=f'waveform_{waveform_metrics[mode]}',
+                    property_name=f"waveform_{waveform_metrics[mode]}",
                     values=templates_all,
                 )
 
