@@ -206,42 +206,6 @@ class TestExtractors(unittest.TestCase):
                             )
                         )
 
-    # def test_nwb_metadata(self):
-    #     path = self.test_dir + "/test_metadata.nwb"
-    #
-    #     nwbfile = export_ecephys_to_nwb(object_to_write=self.RX, nwb_file_path=path, overwrite=True)
-    #     writer = SI013NwbEphysWriter(self.RX, nwbfile=nwbfile)
-    #     metadata = writer.get_nwb_metadata()
-    #     self.check_metadata_write(metadata=metadata, nwbfile_path=path, recording=self.RX)
-    #
-    #     # Manually adjusted device name - must properly adjust electrode_group reference
-    #     writer = SI013NwbEphysWriter(self.RX, nwbfile=nwbfile)
-    #     metadata2 = writer.get_nwb_metadata()
-    #     metadata2["Ecephys"]["Device"] = [dict(name="TestDevice", description="A test device.", manufacturer="unknown")]
-    #     metadata2["Ecephys"]["ElectrodeGroup"][0]["device"] = "TestDevice"
-    #     nwbfile = export_ecephys_to_nwb(object_to_write=self.RX, metadata=metadata2, nwb_file_path=path,
-    #                                     overwrite=True)
-    #     self.check_metadata_write(metadata=metadata2, nwbfile_path=path, recording=self.RX)
-    #
-    #     # Two devices in metadata
-    #     writer = SI013NwbEphysWriter(self.RX, nwbfile=nwbfile)
-    #     metadata3 = writer.get_nwb_metadata()
-    #     metadata3["Ecephys"]["Device"].append(
-    #         dict(name="Device2", description="A second device.", manufacturer="unknown")
-    #     )
-    #     nwbfile = export_ecephys_to_nwb(object_to_write=self.RX, metadata=metadata3, nwb_file_path=path,
-    #                                     overwrite=True)
-    #     self.check_metadata_write(metadata=metadata3, nwbfile_path=path, recording=self.RX)
-    #
-    #     # Forcing default auto-population from add_electrode_groups, and not get_nwb_metdata
-    #     writer = SI013NwbEphysWriter(self.RX, nwbfile=nwbfile)
-    #     metadata4 = writer.get_nwb_metadata()
-    #     metadata4["Ecephys"]["Device"] = [dict(name="TestDevice", description="A test device.", manufacturer="unknown")]
-    #     metadata4["Ecephys"].pop("ElectrodeGroup")
-    #     nwbfile = export_ecephys_to_nwb(object_to_write=self.RX, metadata=metadata4, nwb_file_path=path,
-    #                                     overwrite=True)
-    #     self.check_metadata_write(metadata=metadata4, nwbfile_path=path, recording=self.RX)
-
 
 class TestWriteElectrodes(unittest.TestCase):
     def setUp(self):
@@ -259,7 +223,8 @@ class TestWriteElectrodes(unittest.TestCase):
         self.RX2 = se.subrecordingextractor.SubRecordingExtractor(
             self.RX2, renamed_channel_ids=np.array(self.RX2.get_channel_ids()) + id_offset + 1
         )
-        self.RX2.set_channel_groups([2 * i for i in self.RX.get_channel_groups()])
+        self.RX2.set_channel_groups(np.ones(shape=self.RX2.get_num_channels(),dtype='int'))
+        self.RX.set_channel_groups(np.zeros(shape=self.RX.get_num_channels(),dtype='int'))
         # add common properties:
         for no, (chan_id1, chan_id2) in enumerate(zip(self.RX.get_channel_ids(), self.RX2.get_channel_ids())):
             self.RX2.set_channel_property(chan_id2, "prop1", "10Hz")
@@ -291,12 +256,12 @@ class TestWriteElectrodes(unittest.TestCase):
                 assert nwb.electrodes["prop1"][i] == "10Hz"
                 if chan_id in self.RX.get_channel_ids():
                     assert nwb.electrodes["location"][i] == "PMd"
-                    assert nwb.electrodes["group_name"][i] == "PMd"
-                    assert nwb.electrodes["group"][i].name == "PMd"
+                    assert nwb.electrodes["group_name"][i] == "0"
+                    assert nwb.electrodes["group"][i].name == "0"
                 else:
                     assert nwb.electrodes["location"][i] == "M1"
-                    assert nwb.electrodes["group_name"][i] == "M1"
-                    assert nwb.electrodes["group"][i].name == "M1"
+                    assert nwb.electrodes["group_name"][i] == "1"
+                    assert nwb.electrodes["group"][i].name == "1"
                 if i % 2 == 0:
                     assert nwb.electrodes["prop2"][i] == chan_id
                     assert nwb.electrodes["prop3"][i] == str(chan_id)
@@ -330,9 +295,9 @@ class TestWriteElectrodes(unittest.TestCase):
                     assert nwb.electrodes["prop_new"][i] == chan_id
 
     def test_group_set_custom_description(self):
-        for i, grp_name in enumerate(["PMd", "M1"]):
+        for i, (grp_name,grp_desc) in enumerate(zip(["0", "1"],["PMd","M1"])):
             self.metadata_list[i]["Ecephys"].update(
-                ElectrodeGroup=[dict(name=grp_name, description=grp_name + " description")]
+                ElectrodeGroup=[dict(name=grp_name, description=grp_desc + " description")]
             )
         export_ecephys_to_nwb(
             object_to_write=self.RX, nwbfile=self.nwbfile1, metadata=self.metadata_list[0], es_key="es1"
@@ -346,10 +311,10 @@ class TestWriteElectrodes(unittest.TestCase):
             nwb = io.read()
             for i, chan_id in enumerate(nwb.electrodes.id.data):
                 if i < len(nwb.electrodes.id.data) / 2:
-                    assert nwb.electrodes["group_name"][i] == "PMd"
+                    assert nwb.electrodes["group_name"][i] == "0"
                     assert nwb.electrodes["group"][i].description == "PMd description"
                 else:
-                    assert nwb.electrodes["group_name"][i] == "M1"
+                    assert nwb.electrodes["group_name"][i] == "1"
                     assert nwb.electrodes["group"][i].description == "M1 description"
 
 

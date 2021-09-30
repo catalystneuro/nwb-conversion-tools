@@ -239,7 +239,8 @@ class BaseNwbEphysWriter(ABC):
             imp=-1.0,
             location="unknown",
             filtering="none",
-            group_name="0",
+            group=list(self.nwbfile.electrode_groups.values())[0],
+            group_name=list(self.nwbfile.electrode_groups.values())[0].name
         )
         if self.metadata is None:  # TODO: build complete metadata from a separate class/method and fill defaults
             self.metadata = dict(Ecephys=dict())
@@ -407,11 +408,11 @@ class BaseNwbEphysWriter(ABC):
 
         # this is not needed anymore because metadata ar ehandled at class level
         # If user passed metadata info, overwrite defaults
-        # if self.metadata is not None and "Ecephys" in self.metadata:
-        #     assert (
-        #             self._conversion_ops["es_key"] in self.metadata["Ecephys"]
-        #     ), f"metadata['Ecephys'] dictionary does not contain key '{self._conversion_ops['es_key']}'"
-        #     eseries_kwargs.update(self.metadata["Ecephys"][self._conversion_ops["es_key"]])
+        if self.metadata is not None and "Ecephys" in self.metadata:
+            assert (
+                    self._conversion_ops["es_key"] in self.metadata["Ecephys"]
+            ), f"metadata['Ecephys'] dictionary does not contain key '{self._conversion_ops['es_key']}'"
+            eseries_kwargs.update(self.metadata["Ecephys"][self._conversion_ops["es_key"]])
 
         # update name for segment:
         name = eseries_kwargs.get('name')
