@@ -409,10 +409,11 @@ class BaseNwbEphysWriter(ABC):
         # this is not needed anymore because metadata ar ehandled at class level
         # If user passed metadata info, overwrite defaults
         if self.metadata is not None and "Ecephys" in self.metadata:
-            assert (
-                    self._conversion_ops["es_key"] in self.metadata["Ecephys"]
-            ), f"metadata['Ecephys'] dictionary does not contain key '{self._conversion_ops['es_key']}'"
-            eseries_kwargs.update(self.metadata["Ecephys"][self._conversion_ops["es_key"]])
+            if self._conversion_ops["es_key"] not in self.metadata["Ecephys"]:
+                warnings.warn(f"metadata['Ecephys'] dictionary does not contain key '{self._conversion_ops['es_key']}'"
+                              f"picking default arguments")
+            else:
+                eseries_kwargs.update(self.metadata["Ecephys"][self._conversion_ops["es_key"]])
 
         # update name for segment:
         name = eseries_kwargs.get('name')
