@@ -5,6 +5,8 @@ from collections import defaultdict, Iterable
 from numbers import Real
 from warnings import warn
 from copy import deepcopy
+import uuid
+from datetime import datetime
 import numpy as np
 import psutil
 import pynwb
@@ -19,6 +21,7 @@ from .common_writer_tools import (
     check_module,
     DynamicTableSupportedDtypes,
 )
+from .json_schema import dict_deep_update
 from .nwbephyswriterdatachunkiterator import NwbEphysWriterDataChunkIterator
 
 
@@ -26,7 +29,8 @@ class BaseNwbEphysWriter(ABC):
     def __init__(self, object_to_write, nwbfile=None, metadata=None, **kwargs):
         self.object_to_write = object_to_write
         assert nwbfile is not None and isinstance(nwbfile, pynwb.NWBFile), "Instantiate an NWBFile and pass as argument"
-        self.metadata = deepcopy(metadata) if metadata is not None else dict()
+        metadata = dict() if metadata is None else metadata
+        self.metadata = dict_deep_update(self.get_default_nwbfile_metadata(), metadata)
         self.nwbfile = nwbfile
         self._conversion_ops = kwargs
         self.dt_column_defaults = DynamicTableSupportedDtypes
@@ -110,6 +114,40 @@ class BaseNwbEphysWriter(ABC):
         """
         pass
 
+    def get_default_nwbfile_metadata(self):
+        """
+        Returns structure with defaulted metadata values required for a NWBFile.
+        """
+        metadata = dict(
+            NWBFile=dict(
+                session_description="no description",
+                session_start_time=datetime(1970, 1, 1),
+                identifier=str(uuid.uuid4()),
+            ),
+            Ecephys=dict(
+                Device=[dict(name="Device", description="Ecephys probe. Automatically generated.")],
+                Electrodes=[],
+                ElectrodeGroup=[],
+                ElectricalSeries_raw=dict(
+                    name="ElectricalSeries_raw",
+                    description="Raw acquired data",
+                    comments="Generated from SpikeInterface::NwbRecordingExtractor",
+                ),
+                ElectricalSeries_processed=dict(
+                    name="ElectricalSeries_processed",
+                    description="Processed data",
+                    comments="Generated from SpikeInterface::NwbRecordingExtractor",
+                ),
+                ElectricalSeries_lfp=dict(
+                    name="ElectricalSeries_lfp",
+                    description="Processed data - LFP",
+                    comments="Generated from SpikeInterface::NwbRecordingExtractor",
+                ),
+            ),
+            units=[],
+        )
+        return metadata
+
     @abstractmethod
     def add_to_nwb(self):
         pass
@@ -127,18 +165,9 @@ class BaseNwbEphysWriter(ABC):
         if self.nwbfile is not None:
             assert isinstance(self.nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
 
-        # Default Device metadata
-        defaults = dict(name="Device", description="Ecephys probe. Automatically generated.")
-
-        if "Ecephys" not in self.metadata:
-            self.metadata["Ecephys"] = dict()
-
-        if "Device" not in self.metadata["Ecephys"]:
-            self.metadata["Ecephys"]["Device"] = [defaults]
-
         for dev in self.metadata["Ecephys"]["Device"]:
-            if dev.get("name", defaults["name"]) not in self.nwbfile.devices:
-                self.nwbfile.create_device(**dict(defaults, **dev))
+            if dev.get("name") not in self.nwbfile.devices:
+                self.nwbfile.create_device(**dev)
 
     def add_electrode_groups(self):
         """
@@ -157,31 +186,24 @@ class BaseNwbEphysWriter(ABC):
             warnings.warn("When adding ElectrodeGroup, no Devices were found on nwbfile. Creating a Device now...")
             self.add_devices()
 
-        if "Ecephys" not in self.metadata:
-            self.metadata["Ecephys"] = dict()
-
         channel_groups_unique = np.unique(self._get_channel_property_values("group"))
-
-        defaults = [
+        electrode_group_defaults = [
             dict(
                 name=str(group_id),
                 description="no description",
                 location="unknown",
-                device=[i.name for i in self.nwbfile.devices.values()][0],
+                device="Device",
             )
             for group_id in channel_groups_unique
         ]
+        for elec_dict in self.metadata["Ecephys"]["ElectrodeGroup"]:
+            for def_elec_dict in electrode_group_defaults:
+                if elec_dict["name"] == def_elec_dict["name"]:
+                    def_elec_dict.update(elec_dict)
 
-        if "ElectrodeGroup" not in self.metadata["Ecephys"]:
-            self.metadata["Ecephys"]["ElectrodeGroup"] = defaults
-
-        assert all(
-            [isinstance(x, dict) for x in self.metadata["Ecephys"]["ElectrodeGroup"]]
-        ), "Expected metadata['Ecephys']['ElectrodeGroup'] to be a list of dictionaries!"
-
-        for grp in self.metadata["Ecephys"]["ElectrodeGroup"]:
-            if grp.get("name", defaults[0]["name"]) not in self.nwbfile.electrode_groups:
-                device_name = grp.get("device", defaults[0]["device"])
+        for grp in electrode_group_defaults:
+            if grp.get("name") not in self.nwbfile.electrode_groups:
+                device_name = grp.get("device")
                 if device_name not in self.nwbfile.devices:
                     self.metadata["Ecephys"]["Device"].append(dict(name=device_name))
                     self.add_devices()
@@ -189,7 +211,7 @@ class BaseNwbEphysWriter(ABC):
                         f"Device '{device_name}' not detected in "
                         "attempted link to electrode group! Automatically generating."
                     )
-                electrode_group_kwargs = dict(defaults[0], **grp)
+                electrode_group_kwargs = dict(**grp)
                 electrode_group_kwargs.update(device=self.nwbfile.devices[device_name])
                 self.nwbfile.create_electrode_group(**electrode_group_kwargs)
 
@@ -241,27 +263,19 @@ class BaseNwbEphysWriter(ABC):
             group=list(self.nwbfile.electrode_groups.values())[0],
             group_name=list(self.nwbfile.electrode_groups.values())[0].name,
         )
-        if self.metadata is None:  # TODO: build complete metadata from a separate class/method and fill defaults
-            self.metadata = dict(Ecephys=dict())
-
-        if "Ecephys" not in self.metadata:
-            self.metadata["Ecephys"] = dict()
-
-        if "Electrodes" not in self.metadata["Ecephys"]:
-            self.metadata["Ecephys"]["Electrodes"] = []
-
-        assert all(
-            [
-                isinstance(x, dict) and set(x.keys()) == set(["name", "description"])
-                for x in self.metadata["Ecephys"]["Electrodes"]
-            ]
-        ), (
-            "Expected metadata['Ecephys']['Electrodes'] to be a list of dictionaries, "
-            "containing the keys 'name' and 'description'"
-        )
-        assert all(
-            [x["name"] != "group" for x in self.metadata["Ecephys"]["Electrodes"]]
-        ), "Passing metadata field 'group' is deprecated; pass group_name instead!"
+        if len(self.metadata["Ecephys"]["Electrodes"]) > 0:
+            assert all(
+                [
+                    isinstance(x, dict) and set(x.keys()) == set(["name", "description"])
+                    for x in self.metadata["Ecephys"]["Electrodes"]
+                ]
+            ), (
+                "Expected metadata['Ecephys']['Electrodes'] to be a list of dictionaries, "
+                "containing the keys 'name' and 'description'"
+            )
+            assert all(
+                [x["name"] != "group" for x in self.metadata["Ecephys"]["Electrodes"]]
+            ), "Passing metadata field 'group' is deprecated; pass group_name instead!"
 
         if self.nwbfile.electrodes is None:
             nwb_elec_ids = []
@@ -289,10 +303,11 @@ class BaseNwbEphysWriter(ABC):
                     elec_columns[prop].update(description=prop, data=data, index=index)
 
         # 2. fill with provided custom descriptions
-        for x in self.metadata["Ecephys"]["Electrodes"]:
-            if x["name"] not in list(elec_columns):
-                raise ValueError(f'"{x["name"]}" not a property of se object, set it first and rerun')
-            elec_columns[x["name"]]["description"] = x["description"]
+        if len(self.metadata["Ecephys"]["Electrodes"]) > 0:
+            for x in self.metadata["Ecephys"]["Electrodes"]:
+                if x["name"] not in list(elec_columns):
+                    raise ValueError(f'"{x["name"]}" not a property of se object, set it first and rerun')
+                elec_columns[x["name"]]["description"] = x["description"]
 
         # 3. For existing electrodes table, add the additional columns and fill with default data:
         add_properties_to_dynamictable(self.nwbfile, "electrodes", elec_columns, defaults)
@@ -369,38 +384,21 @@ class BaseNwbEphysWriter(ABC):
             )
             self._conversion_ops["compression_opts"] = None
 
+        # Check for existing processing module and data interface
+        ecephys_mod = check_module(
+            nwbfile=self.nwbfile,
+            name="ecephys",
+            description="Intermediate data from extracellular electrophysiology recordings, e.g., LFP.",
+        )
+
         if self._conversion_ops["write_as"] == "raw":
-            eseries_kwargs = dict(
-                name="ElectricalSeries_raw",
-                description="Raw acquired data",
-                comments="Generated from SpikeInterface::NwbRecordingExtractor",
-            )
+            eseries_kwargs = self.metadata["Ecephys"]["ElectricalSeries_raw"]
         elif self._conversion_ops["write_as"] == "processed":
-            eseries_kwargs = dict(
-                name="ElectricalSeries_processed",
-                description="Processed data",
-                comments="Generated from SpikeInterface::NwbRecordingExtractor",
-            )
-            # Check for existing processing module and data interface
-            ecephys_mod = check_module(
-                nwbfile=self.nwbfile,
-                name="ecephys",
-                description="Intermediate data from extracellular electrophysiology recordings, e.g., LFP.",
-            )
+            eseries_kwargs = self.metadata["Ecephys"]["ElectricalSeries_processed"]
             if "Processed" not in ecephys_mod.data_interfaces:
                 ecephys_mod.add(pynwb.ecephys.FilteredEphys(name="Processed"))
         elif self._conversion_ops["write_as"] == "lfp":
-            eseries_kwargs = dict(
-                name="ElectricalSeries_lfp",
-                description="Processed data - LFP",
-                comments="Generated from SpikeInterface::NwbRecordingExtractor",
-            )
-            # Check for existing processing module and data interface
-            ecephys_mod = check_module(
-                nwbfile=self.nwbfile,
-                name="ecephys",
-                description="Intermediate data from extracellular electrophysiology recordings, e.g., LFP.",
-            )
+            eseries_kwargs = self.metadata["Ecephys"]["ElectricalSeries_lfp"]
             if "LFP" not in ecephys_mod.data_interfaces:
                 ecephys_mod.add(pynwb.ecephys.LFP(name="LFP"))
 
@@ -535,9 +533,6 @@ class BaseNwbEphysWriter(ABC):
         fs = self._get_unit_sampling_frequency()
         if fs is None:
             raise ValueError("Writing a SortingExtractor to an NWBFile requires a known sampling frequency!")
-
-        if "units" not in self.metadata:
-            self.metadata["units"] = []
 
         if self._conversion_ops["unit_property_descriptions"] is None:
             property_descriptions = dict(_default_sorting_property_descriptions)
