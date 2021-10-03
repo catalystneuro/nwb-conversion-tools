@@ -50,13 +50,11 @@ class TestExtractors(unittest.TestCase):
             object_to_write=self.RX,
             nwb_file_path=path_multi,
             write_as="raw",
-            es_key="ElectricalSeries_raw",
         )
         nwbfile = export_ecephys_to_nwb(
             object_to_write=self.RX2,
             nwbfile=nwbfile,
             write_as="processed",
-            es_key="ElectricalSeries_processed",
             overwrite=False,
         )
         nwbfile = export_ecephys_to_nwb(

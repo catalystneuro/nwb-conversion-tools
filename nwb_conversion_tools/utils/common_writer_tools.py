@@ -158,7 +158,7 @@ def default_export_ops():
     return dict(
         use_times=False,
         write_as="raw",
-        es_key="ElectricalSeries",
+        es_key=None,
         buffer_gb=None,
         buffer_shape=None,
         chunk_mb=None,
@@ -183,7 +183,7 @@ def default_export_ops_schema():
     schema["properties"] = dict(
         use_times=dict(type="boolean"),
         write_as=dict(type="string", enum=["raw", "lfp", "processed"]),
-        es_key=dict(type="string"),
+        es_key=dict(type=["null", "string"]),
         buffer_gb=dict(type=["null", "number"]),
         buffer_shape=dict(type=["null", "array"]),
         chunk_mb=dict(type=["null", "number"]),

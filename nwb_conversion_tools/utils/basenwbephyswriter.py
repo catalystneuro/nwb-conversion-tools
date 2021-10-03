@@ -372,7 +372,7 @@ class BaseNwbEphysWriter(ABC):
 
         if self._conversion_ops["write_as"] == "raw":
             eseries_kwargs = dict(
-                name="ElectricalSeries_raw",
+                name="ElectricalSeries",
                 description="Raw acquired data",
                 comments="Generated from SpikeInterface::NwbRecordingExtractor",
             )
@@ -408,7 +408,8 @@ class BaseNwbEphysWriter(ABC):
         # this is not needed anymore because metadata ar ehandled at class level
         # If user passed metadata info, overwrite defaults
         if self.metadata is not None and "Ecephys" in self.metadata:
-            if self._conversion_ops["es_key"] not in self.metadata["Ecephys"]:
+            es_key = self._conversion_ops["es_key"]
+            if es_key is not None and es_key not in self.metadata["Ecephys"]:
                 warnings.warn(
                     f"metadata['Ecephys'] dictionary does not contain key '{self._conversion_ops['es_key']}'"
                     f"picking default arguments"
