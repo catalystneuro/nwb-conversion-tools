@@ -14,7 +14,9 @@ from ...utils.json_schema import (
     get_schema_from_method_signature,
     get_base_schema,
 )
+from jsonschema import validate
 from ...utils import map_si_object_to_writer
+from ...utils.common_writer_tools import default_export_ops, default_export_ops_schema
 
 OptionalPathType = Optional[Union[str, Path]]
 
@@ -62,7 +64,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
             Electrodes=dict(
                 type="object",
                 additionalProperties=False,
-                required=["name"],
+                required=["name","description"],
                 properties=dict(
                     name=dict(type="string", description="name of this electrodes column"),
                     description=dict(type="string", description="description of this electrodes column"),
@@ -82,7 +84,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         )
         return metadata
 
-    def subset_recording(self, nwbfile, metadata, **kwargs):
+    def subset_recording(self):
         """
         Subset a recording extractor according to stub and channel subset options.
 
@@ -92,11 +94,8 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         """
         self.writer_class = map_si_object_to_writer(self.recording_extractor)(
             self.recording_extractor,
-            nwbfile=nwbfile,
-            metadata=metadata,
             stub=True,
             stub_channels=self.subset_channels,
-            **kwargs,
         )
 
     def run_conversion(
@@ -104,12 +103,9 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         nwbfile: NWBFile,
         metadata: dict = None,
         stub_test: bool = False,
-        use_times: bool = False,
         save_path: OptionalPathType = None,
         overwrite: bool = False,
-        buffer_mb: int = 500,
-        write_as: str = "raw",
-        es_key: str = None,
+        **kwargs
     ):
         """
         Primary function for converting raw (unprocessed) RecordingExtractor data to the NWB standard.
@@ -132,25 +128,22 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
             If using save_path, whether or not to overwrite the NWBFile if it already exists.
         stub_test: bool, optional (default False)
             If True, will truncate the data to run the conversion faster and take up less memory.
-        buffer_mb: int (optional, defaults to 500MB)
-            Maximum amount of memory (in MB) to use per iteration of the internal DataChunkIterator.
-            Requires trace data in the RecordingExtractor to be a memmap object.
+        buffer_gb: float (optional, defaults to 1.0GB)
+            Maximum amount of memory (in GB) to use per iteration of the internal DataChunkIterator.
         write_as: str (optional, defaults to 'raw')
             Options: 'raw', 'lfp' or 'processed'
         es_key: str (optional)
             Key in metadata dictionary containing metadata info for the specific electrical series
         """
         if stub_test or self.subset_channels is not None:
-            self.subset_recording(
-                nwbfile,
-                metadata,
-                use_times=use_times,
-                buffer_mb=buffer_mb,
-                write_as=write_as,
-                es_key=es_key,
-            )
+            self.subset_recording()
 
-        self.writer_class.write_to_nwb()
+        conversion_opts = default_export_ops()
+        conversion_opts.update(**kwargs)
+        conversion_opt_schema = default_export_ops_schema()
+        validate(instance=conversion_opts, schema=conversion_opt_schema)
+
+        self.writer_class.write_to_nwb(nwbfile, metadata, **conversion_opts)
         if save_path is not None:
             if overwrite:
                 if Path(save_path).exists():

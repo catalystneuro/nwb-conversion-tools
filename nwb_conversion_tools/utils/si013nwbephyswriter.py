@@ -30,13 +30,10 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
 
     def __init__(
         self,
-        object_to_write,
-        nwbfile: pynwb.NWBFile = None,
-        metadata: dict = None,
-        **kwargs,
+        object_to_write, stub=False, stub_channels=None
     ):
         assert HAVE_SI013, "spikeextractors 0.13 version not installed"
-        BaseSINwbEphysWriter.__init__(self, object_to_write, nwbfile=nwbfile, metadata=metadata, **kwargs)
+        BaseSINwbEphysWriter.__init__(self, object_to_write, stub=stub, stub_channels=stub_channels)
         if isinstance(self.object_to_write, se.RecordingExtractor):
             self.recording = self.object_to_write
             if self.stub:
@@ -222,8 +219,8 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                         tags=epoch_name,
                     )
 
-    def add_recording(self):
-        super().add_recording(segment_index=0)
+    def add_recording(self, segment_index=0):
+        super().add_recording(segment_index=segment_index)
         if self._conversion_ops["write_electrical_series"]:
             self.add_epochs()
 

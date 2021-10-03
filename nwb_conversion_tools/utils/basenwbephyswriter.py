@@ -23,13 +23,14 @@ from .nwbephyswriterdatachunkiterator import NwbEphysWriterDataChunkIterator
 
 
 class BaseNwbEphysWriter(ABC):
-    def __init__(self, object_to_write, nwbfile=None, metadata=None, **kwargs):
+    def __init__(self, object_to_write, stub, stub_channels):
         self.object_to_write = object_to_write
-        assert nwbfile is not None and isinstance(nwbfile, pynwb.NWBFile), "Instantiate an NWBFile and pass as argument"
-        self.metadata = deepcopy(metadata) if metadata is not None else dict()
-        self.nwbfile = nwbfile
-        self._conversion_ops = kwargs
+        self.stub = stub
+        self.stub_channels = stub_channels
         self.dt_column_defaults = DynamicTableSupportedDtypes
+        self.nwbfile = None
+        self._conversion_ops = dict()
+        self.metadata = dict()
 
     @abstractmethod
     def get_num_segments(self):
@@ -111,7 +112,7 @@ class BaseNwbEphysWriter(ABC):
         pass
 
     @abstractmethod
-    def add_to_nwb(self):
+    def add_to_nwb(self, nwbfile:pynwb.NWBFile, metadata=None):
         pass
 
     def add_devices(self):

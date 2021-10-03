@@ -82,8 +82,8 @@ def export_ecephys_to_nwb(
         nwbfile = converter.run_conversion(metadata=metadata, save_to_file=False)
 
     writer_class = map_si_object_to_writer(object_to_write)
-    writer = writer_class(object_to_write, nwbfile=nwbfile, metadata=metadata, **conversion_ops)
-    writer.add_to_nwb()
+    writer = writer_class(object_to_write)
+    writer.add_to_nwb(nwbfile=nwbfile, metadata=metadata, **conversion_ops)
 
     # handle modes and overwrite
     if nwb_file_path is not None:

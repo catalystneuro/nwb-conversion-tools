@@ -12,14 +12,10 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
     def __init__(
         self,
         object_to_write,
-        nwbfile: pynwb.NWBFile = None,
-        metadata: dict = None,
-        **kwargs,
+        stub, stub_channels
     ):
         self.recording, self.sorting, self.waveforms, self.event = None, None, None, None
-        self.stub = kwargs.get("stub", False)
-        self.stub_channels = kwargs.get("stub_channels", None)
-        BaseNwbEphysWriter.__init__(self, object_to_write, nwbfile=nwbfile, metadata=metadata, **kwargs)
+        BaseNwbEphysWriter.__init__(self, object_to_write, stub=stub, stub_channels=stub_channels)
 
     @abstractmethod
     def _make_recording_stub(self):
@@ -74,7 +70,12 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
         if self.waveforms is not None:
             self.add_units_waveforms()
 
-    def add_to_nwb(self):
+    def add_to_nwb(self, nwbfile: pynwb.NWBFile, metadata=None, **kwargs):
+        assert nwbfile is not None and isinstance(nwbfile, pynwb.NWBFile), \
+            "Instantiate an NWBFile and pass as argument"
+        self.metadata = metadata if metadata is not None else dict()
+        self.nwbfile = nwbfile
+        self._conversion_ops = kwargs
         if self.waveforms is not None:
             self.add_recording()
             self.add_sorting()

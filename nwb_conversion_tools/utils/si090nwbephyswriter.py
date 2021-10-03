@@ -34,16 +34,10 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
 
     def __init__(
         self,
-        object_to_write,
-        nwb_file_path: PathType = None,
-        nwbfile: pynwb.NWBFile = None,
-        metadata: dict = None,
-        **kwargs,
+        object_to_write, stub=False, stub_channels=None
     ):
         assert HAVE_SI_090
-        BaseSINwbEphysWriter.__init__(
-            self, object_to_write, nwb_file_path=nwb_file_path, nwbfile=nwbfile, metadata=metadata, **kwargs
-        )
+        BaseSINwbEphysWriter.__init__(self, object_to_write, stub=stub, stub_channels=stub_channels)
         if isinstance(self.object_to_write, si.BaseRecording):
             self.recording = self.object_to_write
             if self.stub:
