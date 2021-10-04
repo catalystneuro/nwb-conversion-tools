@@ -1,9 +1,9 @@
 """Authors: Cody Baker and Ben Dichter."""
 from abc import ABC
-
+from pathlib import Path
 import spikeextractors as se
 import numpy as np
-from pynwb import NWBFile
+from pynwb import NWBFile, NWBHDF5IO
 from pynwb.ecephys import SpikeEventSeries
 
 from ...basedatainterface import BaseDataInterface
@@ -14,6 +14,7 @@ from ...utils.json_schema import (
     fill_defaults,
 )
 from ...utils import export_ecephys_to_nwb
+from .baserecordingextractorinterface import BaseRecordingExtractorInterface, map_si_object_to_writer, OptionalPathType
 
 
 class BaseSortingExtractorInterface(BaseDataInterface, ABC):
@@ -29,16 +30,29 @@ class BaseSortingExtractorInterface(BaseDataInterface, ABC):
     def __init__(self, **source_data):
         super().__init__(**source_data)
         self.sorting_extractor = self.SX(**source_data)
+        self.writer_class = map_si_object_to_writer(self.sorting_extractor)
 
-    def get_metadata_schema(self):
-        """Compile metadata schema for the RecordingExtractor."""
-        metadata_schema = get_base_schema(
-            properties=dict(SpikeEventSeries=get_schema_from_hdmf_class(SpikeEventSeries))
+    def subset_sorting(self):
+        """
+        Subset a recording extractor according to stub and channel subset options.
+
+        Parameters
+        ----------
+        stub_test : bool, optional (default False)
+        """
+        self.writer_class = map_si_object_to_writer(self.sorting_extractor)(
+            self.sorting_extractor,
+            stub=True,
         )
-        return metadata_schema
 
     def run_conversion(
-        self, nwbfile: NWBFile, metadata: dict, stub_test: bool = False, write_ecephys_metadata: bool = False
+        self,
+        nwbfile: NWBFile,
+        metadata: dict,
+        stub_test: bool = False,
+        write_ecephys_metadata: bool = False,
+        save_path: OptionalPathType = None,
+        overwrite: bool = False,
     ):
         """
         Primary function for converting the data in a SortingExtractor to the NWB standard.
@@ -56,48 +70,22 @@ class BaseSortingExtractorInterface(BaseDataInterface, ABC):
         write_ecephys_metadata: bool (optional, defaults to False)
             Write electrode information contained in the metadata.
         """
-        if "UnitProperties" not in metadata:
-            metadata["UnitProperties"] = []
-        if write_ecephys_metadata and "Ecephys" in metadata:
-            n_channels = max([len(x["data"]) for x in metadata["Ecephys"]["Electrodes"]])
-            recording = se.NumpyRecordingExtractor(timeseries=np.array(range(n_channels)), sampling_frequency=1)
-            export_ecephys_to_nwb(recording, nwbfile=nwbfile, write_electrical_series=False)
-
-        property_descriptions = dict()
         if stub_test:
-            max_min_spike_time = max(
-                [
-                    min(x)
-                    for y in self.sorting_extractor.get_unit_ids()
-                    for x in [self.sorting_extractor.get_unit_spike_train(y)]
-                    if any(x)
-                ]
-            )
-            stub_sorting_extractor = se.SubSortingExtractor(
-                self.sorting_extractor,
-                unit_ids=self.sorting_extractor.get_unit_ids(),
-                start_frame=0,
-                end_frame=1.1 * max_min_spike_time,
-            )
-            sorting_extractor = stub_sorting_extractor
-        else:
-            sorting_extractor = self.sorting_extractor
+            self.subset_sorting()
+        if write_ecephys_metadata and "Ecephys" in metadata:
 
-        for metadata_column in metadata["UnitProperties"]:
-            assert len(metadata_column["data"]) == len(
-                sorting_extractor.get_unit_ids()
-            ), f"The metadata_column '{metadata_column['name']}' data must have the same dimension as the sorting IDs!"
+            class TempEcephysInterface(BaseRecordingExtractorInterface):
+                RX = se.NumpyRecordingExtractor
 
-            property_descriptions.update({metadata_column["name"]: metadata_column["description"]})
-            for unit_idx, unit_id in enumerate(sorting_extractor.get_unit_ids()):
-                if metadata_column["name"] == "electrode_group":
-                    if nwbfile.electrode_groups:
-                        data = nwbfile.electrode_groups[metadata_column["data"][unit_idx]]
-                        sorting_extractor.set_unit_property(unit_id, metadata_column["name"], data)
-                else:
-                    data = metadata_column["data"][unit_idx]
-                    sorting_extractor.set_unit_property(unit_id, metadata_column["name"], data)
+            n_channels = max([len(x["data"]) for x in metadata["Ecephys"]["Electrodes"]])
+            temp_ephys = TempEcephysInterface(timeseries=np.array(range(n_channels)), sampling_frequency=1)
+            temp_ephys.run_conversion(nwbfile=nwbfile, metadata=metadata, write_electrical_series=False)
 
-        se.NwbSortingExtractor.write_sorting(
-            sorting_extractor, property_descriptions=property_descriptions, nwbfile=nwbfile
-        )
+        self.writer_class.write_to_nwb(nwbfile, metadata)
+
+        if save_path is not None:
+            if overwrite:
+                if Path(save_path).exists():
+                    Path(save_path).unlink()
+                with NWBHDF5IO(str(save_path), mode="w") as io:
+                    io.write(self.writer_class.nwbfile)
