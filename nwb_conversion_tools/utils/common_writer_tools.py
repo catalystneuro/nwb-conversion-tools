@@ -180,6 +180,7 @@ def default_export_ops():
 def default_export_ops_schema():
     schema = get_base_schema()
     schema["required"] = []
+    schema["additionalProperties"] = False
     schema["properties"] = dict(
         use_times=dict(type="boolean"),
         write_as=dict(type="string", enum=["raw", "lfp", "processed"]),
