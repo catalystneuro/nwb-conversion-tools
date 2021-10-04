@@ -595,7 +595,12 @@ class BaseNwbEphysWriter(ABC):
                     spkt = self._get_unit_spike_train_ids(unit_id) / self._get_unit_sampling_frequency()
                 unit_kwargs.update(spike_times=spkt, id=unit_id)
                 for name, desc in unit_columns.items():
-                    unit_kwargs[name] = desc["data"][j]
+                    if "electrode_group" in name:
+                        if self.nwbfile.electrode_groups is None or len(self.nwbfile.electrode_groups) == 0:
+                            self.add_electrode_groups()
+                        unit_kwargs["electrode_group"] = self.nwbfile.electrode_groups[["data"][j]]
+                    else:
+                        unit_kwargs[name] = desc["data"][j]
                 self.nwbfile.add_unit(**unit_kwargs)
 
         # ADDING FEATURES:
