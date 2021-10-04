@@ -246,8 +246,7 @@ class TestWriteElectrodes(unittest.TestCase):
         export_ecephys_to_nwb(
             object_to_write=self.RX2, nwbfile=self.nwbfile1, metadata=self.metadata_list[1], es_key="es2"
         )
-        export_ecephys_to_nwb(
-            object_to_write=self.SX, nwbfile=self.nwbfile1)
+        export_ecephys_to_nwb(object_to_write=self.SX, nwbfile=self.nwbfile1)
         with NWBHDF5IO(str(self.path1), "w") as io:
             io.write(self.nwbfile1)
         with NWBHDF5IO(str(self.path1), "r") as io:
