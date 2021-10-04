@@ -15,8 +15,7 @@ from ...utils.json_schema import (
 )
 from ...utils.common_writer_tools import default_export_ops, default_export_ops_schema
 from ...utils import export_ecephys_to_nwb
-from .baserecordingextractorinterface import \
-    BaseRecordingExtractorInterface, map_si_object_to_writer, OptionalPathType
+from .baserecordingextractorinterface import BaseRecordingExtractorInterface, map_si_object_to_writer, OptionalPathType
 
 
 class BaseSortingExtractorInterface(BaseDataInterface, ABC):
@@ -55,7 +54,7 @@ class BaseSortingExtractorInterface(BaseDataInterface, ABC):
         write_ecephys_metadata: bool = False,
         save_path: OptionalPathType = None,
         overwrite: bool = False,
-        **kwargs
+        **kwargs,
     ):
         """
         Primary function for converting the data in a SortingExtractor to the NWB standard.

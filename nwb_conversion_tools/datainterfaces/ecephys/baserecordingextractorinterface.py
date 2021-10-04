@@ -64,7 +64,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
             Electrodes=dict(
                 type="object",
                 additionalProperties=False,
-                required=["name","description"],
+                required=["name", "description"],
                 properties=dict(
                     name=dict(type="string", description="name of this electrodes column"),
                     description=dict(type="string", description="description of this electrodes column"),
@@ -105,7 +105,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         stub_test: bool = False,
         save_path: OptionalPathType = None,
         overwrite: bool = False,
-        **kwargs
+        **kwargs,
     ):
         """
         Primary function for converting raw (unprocessed) RecordingExtractor data to the NWB standard.

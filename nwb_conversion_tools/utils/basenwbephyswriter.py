@@ -112,7 +112,7 @@ class BaseNwbEphysWriter(ABC):
         pass
 
     @abstractmethod
-    def add_to_nwb(self, nwbfile:pynwb.NWBFile, metadata=None):
+    def add_to_nwb(self, nwbfile: pynwb.NWBFile, metadata=None):
         pass
 
     def add_devices(self):

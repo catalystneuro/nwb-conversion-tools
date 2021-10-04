@@ -28,10 +28,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
     **kwargs: list kwargs and meaning
     """
 
-    def __init__(
-        self,
-        object_to_write, stub=False, stub_channels=None
-    ):
+    def __init__(self, object_to_write, stub=False, stub_channels=None):
         assert HAVE_SI013, "spikeextractors 0.13 version not installed"
         BaseSINwbEphysWriter.__init__(self, object_to_write, stub=stub, stub_channels=stub_channels)
         if isinstance(self.object_to_write, se.RecordingExtractor):
