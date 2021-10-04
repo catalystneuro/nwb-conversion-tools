@@ -10,7 +10,7 @@ import psutil
 import pynwb
 from hdmf.backends.hdf5.h5_utils import H5DataIO
 from hdmf.data_utils import DataChunkIterator
-
+from jsonschema import validate
 from .common_writer_tools import (
     default_export_ops,
     _default_sorting_property_descriptions,
@@ -18,6 +18,7 @@ from .common_writer_tools import (
     set_dynamic_table_property,
     check_module,
     DynamicTableSupportedDtypes,
+    default_export_ops_schema
 )
 from .nwbephyswriterdatachunkiterator import NwbEphysWriterDataChunkIterator
 
@@ -31,6 +32,17 @@ class BaseNwbEphysWriter(ABC):
         self.nwbfile = None
         self._conversion_ops = dict()
         self.metadata = dict()
+
+    def set_nwbfile(self, nwbfile:pynwb.NWBFile, metadata:dict, **kwargs):
+        assert nwbfile is not None and isinstance(nwbfile, pynwb.NWBFile), "Instantiate an NWBFile and pass as argument"
+        if metadata is not None:
+            self.metadata.update(metadata)
+        self.nwbfile = nwbfile
+        conversion_ops = default_export_ops()
+        conversion_ops.update(kwargs)
+        self._conversion_ops.update(**conversion_ops)
+        conversion_opt_schema = default_export_ops_schema()
+        validate(instance=self._conversion_ops, schema=conversion_opt_schema)
 
     @abstractmethod
     def get_num_segments(self):

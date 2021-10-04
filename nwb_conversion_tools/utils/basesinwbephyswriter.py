@@ -67,10 +67,8 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
             self.add_units_waveforms()
 
     def add_to_nwb(self, nwbfile: pynwb.NWBFile, metadata=None, **kwargs):
-        assert nwbfile is not None and isinstance(nwbfile, pynwb.NWBFile), "Instantiate an NWBFile and pass as argument"
-        self.metadata = metadata if metadata is not None else dict()
-        self.nwbfile = nwbfile
-        self._conversion_ops = kwargs
+        if self.nwbfile is None:
+            self.set_nwbfile(nwbfile, metadata,**kwargs)
         if self.waveforms is not None:
             self.add_recording()
             self.add_sorting()
