@@ -143,7 +143,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         conversion_opt_schema = default_export_ops_schema()
         validate(instance=conversion_opts, schema=conversion_opt_schema)
 
-        self.writer_class.write_to_nwb(nwbfile, metadata, **conversion_opts)
+        self.writer_class.add_to_nwb(nwbfile, metadata, **conversion_opts)
         if save_path is not None:
             if overwrite:
                 if Path(save_path).exists():
