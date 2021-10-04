@@ -32,10 +32,7 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
     **kwargs: list kwargs and meaning
     """
 
-    def __init__(
-        self,
-        object_to_write, stub=False, stub_channels=None
-    ):
+    def __init__(self, object_to_write, stub=False, stub_channels=None):
         assert HAVE_SI_090
         BaseSINwbEphysWriter.__init__(self, object_to_write, stub=stub, stub_channels=stub_channels)
         if isinstance(self.object_to_write, si.BaseRecording):

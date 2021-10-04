@@ -9,11 +9,7 @@ from .common_writer_tools import default_return
 
 
 class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
-    def __init__(
-        self,
-        object_to_write,
-        stub, stub_channels
-    ):
+    def __init__(self, object_to_write, stub, stub_channels):
         self.recording, self.sorting, self.waveforms, self.event = None, None, None, None
         BaseNwbEphysWriter.__init__(self, object_to_write, stub=stub, stub_channels=stub_channels)
 
@@ -71,8 +67,7 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
             self.add_units_waveforms()
 
     def add_to_nwb(self, nwbfile: pynwb.NWBFile, metadata=None, **kwargs):
-        assert nwbfile is not None and isinstance(nwbfile, pynwb.NWBFile), \
-            "Instantiate an NWBFile and pass as argument"
+        assert nwbfile is not None and isinstance(nwbfile, pynwb.NWBFile), "Instantiate an NWBFile and pass as argument"
         self.metadata = metadata if metadata is not None else dict()
         self.nwbfile = nwbfile
         self._conversion_ops = kwargs
