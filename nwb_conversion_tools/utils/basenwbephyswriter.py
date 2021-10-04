@@ -598,7 +598,7 @@ class BaseNwbEphysWriter(ABC):
                     if "electrode_group" in name:
                         if self.nwbfile.electrode_groups is None or len(self.nwbfile.electrode_groups) == 0:
                             self.add_electrode_groups()
-                        unit_kwargs["electrode_group"] = self.nwbfile.electrode_groups[["data"][j]]
+                        unit_kwargs["electrode_group"] = self.nwbfile.electrode_groups[desc["data"][j]]
                     else:
                         unit_kwargs[name] = desc["data"][j]
                 self.nwbfile.add_unit(**unit_kwargs)

@@ -207,7 +207,7 @@ class TestExtractors(unittest.TestCase):
 
 class TestWriteElectrodes(unittest.TestCase):
     def setUp(self):
-        self.RX, self.RX2, _, _, _, _, _ = create_si013_example(seed=0)
+        self.RX, self.RX2, _, self.SX, _, _, _ = create_si013_example(seed=0)
         self.test_dir = tempfile.mkdtemp()
         self.path1 = self.test_dir + "/test_electrodes1.nwb"
         self.path2 = self.test_dir + "/test_electrodes2.nwb"
@@ -223,6 +223,8 @@ class TestWriteElectrodes(unittest.TestCase):
         )
         self.RX2.set_channel_groups(np.ones(shape=self.RX2.get_num_channels(), dtype="int"))
         self.RX.set_channel_groups(np.zeros(shape=self.RX.get_num_channels(), dtype="int"))
+        for unit_id in self.SX.get_unit_ids():
+            self.SX.set_unit_property(unit_id, "electrode_group", "0")
         # add common properties:
         for no, (chan_id1, chan_id2) in enumerate(zip(self.RX.get_channel_ids(), self.RX2.get_channel_ids())):
             self.RX2.set_channel_property(chan_id2, "prop1", "10Hz")
@@ -244,6 +246,8 @@ class TestWriteElectrodes(unittest.TestCase):
         export_ecephys_to_nwb(
             object_to_write=self.RX2, nwbfile=self.nwbfile1, metadata=self.metadata_list[1], es_key="es2"
         )
+        export_ecephys_to_nwb(
+            object_to_write=self.SX, nwbfile=self.nwbfile1)
         with NWBHDF5IO(str(self.path1), "w") as io:
             io.write(self.nwbfile1)
         with NWBHDF5IO(str(self.path1), "r") as io:
@@ -266,6 +270,11 @@ class TestWriteElectrodes(unittest.TestCase):
                 else:
                     assert np.isnan(nwb.electrodes["prop2"][i])
                     assert nwb.electrodes["prop3"][i] == ""
+
+            # check for units table:
+            assert "electrode_group" in nwb.units
+            for no, unit_id in enumerate(nwb.units.id.data):
+                assert nwb.units["electrode_group"][no].name == "0"
 
     def test_different_channel_properties(self):
         for chan_id in self.RX2.get_channel_ids():
