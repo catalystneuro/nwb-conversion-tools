@@ -18,7 +18,7 @@ from .common_writer_tools import (
     set_dynamic_table_property,
     check_module,
     DynamicTableSupportedDtypes,
-    default_export_ops_schema
+    default_export_ops_schema,
 )
 from .nwbephyswriterdatachunkiterator import NwbEphysWriterDataChunkIterator
 
@@ -33,7 +33,7 @@ class BaseNwbEphysWriter(ABC):
         self._conversion_ops = dict()
         self.metadata = dict()
 
-    def set_nwbfile(self, nwbfile:pynwb.NWBFile, metadata:dict, **kwargs):
+    def set_nwbfile(self, nwbfile: pynwb.NWBFile, metadata: dict, **kwargs):
         assert nwbfile is not None and isinstance(nwbfile, pynwb.NWBFile), "Instantiate an NWBFile and pass as argument"
         if metadata is not None:
             self.metadata.update(metadata)

@@ -68,7 +68,7 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
 
     def add_to_nwb(self, nwbfile: pynwb.NWBFile, metadata=None, **kwargs):
         if self.nwbfile is None:
-            self.set_nwbfile(nwbfile, metadata,**kwargs)
+            self.set_nwbfile(nwbfile, metadata, **kwargs)
         if self.waveforms is not None:
             self.add_recording()
             self.add_sorting()
