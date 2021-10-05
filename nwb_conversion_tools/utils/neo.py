@@ -275,7 +275,7 @@ def add_icephys_recordings(
                 gain=response_gain,
             )
 
-            if icephys_experiment_type is not "izero":
+            if icephys_experiment_type != "izero":
                 stim_unit = protocol[2][ei]
                 stim_gain = get_gain_from_unit(unit=stim_unit)
                 stimulus = stim_classes[icephys_experiment_type](
