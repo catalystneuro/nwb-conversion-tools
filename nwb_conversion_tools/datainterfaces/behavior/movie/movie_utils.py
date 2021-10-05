@@ -123,7 +123,7 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
         buffer_shape: tuple = None,
         chunk_mb: float = None,
         chunk_shape: tuple = None,
-        stub: bool = False
+        stub: bool = False,
     ):
         self.movie_file = movie_file
         self._stub = stub

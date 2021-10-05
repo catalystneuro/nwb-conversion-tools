@@ -127,8 +127,13 @@ class MovieInterface(BaseDataInterface):
                 maxshape.extend(frame_shape)
                 best_gzip_chunk = (1, frame_shape[0], frame_shape[1], 3)
 
-                image_series_kwargs.update(data=H5DataIO(MovieDataChunkIterator(movie_file=file, stub=stub_test),
-                                                         compression="gzip", chunks=best_gzip_chunk))
+                image_series_kwargs.update(
+                    data=H5DataIO(
+                        MovieDataChunkIterator(movie_file=file, stub=stub_test),
+                        compression="gzip",
+                        chunks=best_gzip_chunk,
+                    )
+                )
 
             if module_name is None:
                 nwbfile.add_acquisition(ImageSeries(**image_series_kwargs))
