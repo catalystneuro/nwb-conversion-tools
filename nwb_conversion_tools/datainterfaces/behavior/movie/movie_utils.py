@@ -77,7 +77,7 @@ def get_movie_frame_count(movie_file: PathType):
     else:
         count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     cap.release()
-    return count
+    return int(count)
 
 
 def get_movie_frame(movie_file: PathType, frame_no: int):
@@ -133,7 +133,8 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
 
     def _get_data(self, selection: Tuple[slice]) -> Iterable:
         frames_return = []
-        for frame_no in range(selection[0].start, selection[0].stop, selection[0].step):
+        step = selection[0].step if selection[0].step is not None else 1
+        for frame_no in range(selection[0].start, selection[0].stop, step):
             frame = get_movie_frame(self.movie_file, frame_no)
             frames_return.append(frame[selection[1:]])
         return np.concatenate(frames_return, axis=0)
