@@ -88,7 +88,7 @@ def get_movie_frame(movie_file: PathType, frame_no: int):
     ----------
     movie_file : PathType
     """
-    assert frame_no <= get_movie_frame_count(movie_file)
+    assert frame_no < get_movie_frame_count(movie_file)
     cap = cv2.VideoCapture(str(movie_file))
     if int((cv2.__version__).split(".")[0]) < 3:
         success = cap.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, frame_no)
