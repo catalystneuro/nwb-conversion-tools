@@ -15,7 +15,6 @@ PathType = Union[str, Path]
 
 
 class VideoCaptureContext(cv2.VideoCapture):
-
     def __init__(self, *args, **kwargs):
         super(VideoCaptureContext, self).__init__(*args, **kwargs)
         self.frame = self.get_movie_frame(0)
@@ -89,7 +88,7 @@ class VideoCaptureContext(cv2.VideoCapture):
                 if success:
                     yield frame
                 else:
-                    yield np.nan*np.ones(self.get_frame_shape())
+                    yield np.nan * np.ones(self.get_frame_shape())
             _ = self._set_frame(0)
         except Exception:
             raise StopIteration
@@ -99,7 +98,6 @@ class VideoCaptureContext(cv2.VideoCapture):
 
     def __exit__(self, *args):
         self.release()
-
 
 
 class MovieDataChunkIterator(GenericDataChunkIterator):
@@ -134,6 +132,6 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
     def _get_maxshape(self):
         # if stub the assume a max frame count of 10
         if self._stub:
-            return (min(10, self.video_capture_ob.get_movie_frame_count(), *self.video_capture_ob.get_frame_shape()))
+            return min(10, self.video_capture_ob.get_movie_frame_count(), *self.video_capture_ob.get_frame_shape())
         else:
             return (self.video_capture_ob.get_movie_frame_count(), *self.video_capture_ob.get_frame_shape())
