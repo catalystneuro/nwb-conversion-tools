@@ -14,103 +14,92 @@ except ImportError:
 PathType = Union[str, Path]
 
 
-def get_movie_timestamps(movie_file: PathType):
-    """
-    Return numpy array of the timestamps for a movie file.
+class VideoCaptureContext(cv2.VideoCapture):
 
-    Parameters
-    ----------
-    movie_file : PathType
-    """
-    cap = cv2.VideoCapture(str(movie_file))
-    timestamps = [cap.get(cv2.CAP_PROP_POS_MSEC)]
-    success, frame = cap.read()
-    while success:
-        timestamps.append(cap.get(cv2.CAP_PROP_POS_MSEC))
-        success, frame = cap.read()
-    cap.release()
-    return np.array(timestamps)
+    def __init__(self, *args, **kwargs):
+        super(VideoCaptureContext, self).__init__(*args, **kwargs)
+        self.frame = self.get_movie_frame(0)
+        assert self.frame is not None, "unable to read the movie file provided"
 
+    def get_movie_timestamps(self):
+        """
+        Return numpy array of the timestamps for a movie file.
 
-def get_movie_fps(movie_file: PathType):
-    """
-    Return the internal frames per second (fps) for a movie file.
+        """
+        return [self.get(cv2.self_PROP_POS_MSEC) for _ in self]
 
-    Parameters
-    ----------
-    movie_file : PathType
-    """
-    cap = cv2.VideoCapture(str(movie_file))
-    if int((cv2.__version__).split(".")[0]) < 3:
-        fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)
-    else:
-        fps = cap.get(cv2.CAP_PROP_FPS)
-    cap.release()
-    return fps
+    def get_movie_fps(self):
+        """
+        Return the internal frames per second (fps) for a movie file.
 
+        """
+        if int((cv2.__version__).split(".")[0]) < 3:
+            fps = self.get(cv2.cv.CV_CAP_PROP_FPS)
+        else:
+            fps = self.get(cv2.CAP_PROP_FPS)
+        return fps
 
-def get_frame_shape(movie_file: PathType):
-    """
-    Return the shape of frames from a movie file.
+    def get_frame_shape(self) -> Tuple:
+        """
+        Return the shape of frames from a movie file.
+        """
+        return self.frame.shape
 
-    Parameters
-    ----------
-    movie_file : PathType
-    """
-    cap = cv2.VideoCapture(str(movie_file))
-    success, frame = cap.read()
-    cap.release()
-    return frame.shape
+    def get_movie_frame_count(self):
+        """
+        Return the total number of frames for a movie file.
 
+        """
+        if int((cv2.__version__).split(".")[0]) < 3:
+            count = self.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT)
+        else:
+            count = self.get(cv2.CAP_PROP_FRAME_COUNT)
+        return int(count)
 
-def get_movie_frame_count(movie_file: PathType):
-    """
-    Return the total number of frames for a movie file.
+    def _set_frame(self, frame_no):
+        if int((cv2.__version__).split(".")[0]) < 3:
+            set_arg = cv2.cv.CV_CAP_PROP_POS_FRAMES
+        else:
+            set_arg = cv2.CAP_PROP_POS_FRAMES
+        return self.set(set_arg, frame_no)
 
-    Parameters
-    ----------
-    movie_file : PathType
-    """
-    cap = cv2.VideoCapture(str(movie_file))
-    if int((cv2.__version__).split(".")[0]) < 3:
-        count = cap.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT)
-    else:
-        count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
-    cap.release()
-    return int(count)
+    def get_movie_frame(self, frame_no: int):
+        """
+        Return the specific frame from a movie.
+        """
+        assert frame_no < self.get_movie_frame_count()
+        _ = self._set_frame(frame_no)
+        success, frame = self.read()
+        _ = self._set_frame(0)
+        if success:
+            return frame
+        else:
+            return np.nan * np.ones(self.get_frame_shape())
 
+    def get_movie_frame_dtype(self):
+        """
+        Return the dtype for frame in a movie file.
+        """
+        return self.frame.dtype
 
-def get_movie_frame(movie_file: PathType, frame_no: int):
-    """
-    Return the specific frame from a movie.
+    def __next__(self):
+        try:
+            for frame_no in range(self.get_movie_frame_count()):
+                success, frame = self.read()
+                if success:
+                    yield frame
+                else:
+                    yield np.nan*np.ones(self.get_frame_shape())
+            _ = self._set_frame(0)
+        except Exception:
+            raise StopIteration
 
-    Parameters
-    ----------
-    movie_file : PathType
-    """
-    assert frame_no < get_movie_frame_count(movie_file)
-    cap = cv2.VideoCapture(str(movie_file))
-    if int((cv2.__version__).split(".")[0]) < 3:
-        success = cap.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, frame_no)
-    else:
-        success = cap.set(cv2.CAP_PROP_POS_FRAMES, frame_no)
-    _, frame = cap.read()
-    cap.release()
-    return frame
+    def __enter__(self):
+        return self
 
+    def __exit__(self, *args):
+        self.release()
 
-def get_movie_frame_dtype(movie_file: PathType):
-    """
-    Return the dtype for frame in a movie file.
-
-    Parameters
-    ----------
-    movie_file : PathType
-    """
-    cap = cv2.VideoCapture(str(movie_file))
-    _, frame = cap.read()
-    cap.release()
-    return frame.dtype
 
 
 class MovieDataChunkIterator(GenericDataChunkIterator):
@@ -125,26 +114,26 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
         chunk_shape: tuple = None,
         stub: bool = False,
     ):
-        self.movie_file = movie_file
+        self.video_capture_ob = VideoCaptureContext(movie_file)
         self._stub = stub
         if chunk_shape is None:
-            chunk_shape = (1, *get_frame_shape(self.movie_file))
+            chunk_shape = (1, *self.video_capture_ob.get_frame_shape())
         super().__init__(buffer_gb=buffer_gb, buffer_shape=buffer_shape, chunk_mb=chunk_mb, chunk_shape=chunk_shape)
 
     def _get_data(self, selection: Tuple[slice]) -> Iterable:
         frames_return = []
         step = selection[0].step if selection[0].step is not None else 1
         for frame_no in range(selection[0].start, selection[0].stop, step):
-            frame = get_movie_frame(self.movie_file, frame_no)
+            frame = self.video_capture_ob.get_movie_frame(frame_no)
             frames_return.append(frame[selection[1:]])
         return np.concatenate(frames_return, axis=0)
 
     def _get_dtype(self):
-        return get_movie_frame_dtype(self.movie_file)
+        return self.video_capture_ob.get_movie_frame_dtype()
 
     def _get_maxshape(self):
         # if stub the assume a max frame count of 10
         if self._stub:
-            return (min(10, get_movie_frame_count(self.movie_file)), *get_frame_shape(self.movie_file))
+            return (min(10, self.video_capture_ob.get_movie_frame_count(), *self.video_capture_ob.get_frame_shape()))
         else:
-            return (get_movie_frame_count(self.movie_file), *get_frame_shape(self.movie_file))
+            return (self.video_capture_ob.get_movie_frame_count(), *self.video_capture_ob.get_frame_shape())
