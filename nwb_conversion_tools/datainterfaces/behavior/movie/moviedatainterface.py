@@ -154,21 +154,21 @@ class MovieInterface(BaseDataInterface):
                     dtype = iterable.dtype
                 mv_iterator = DataChunkIterator(
                     data=tqdm(
-                            iterable=iterable,
-                            desc=f"Writing movie data for {Path(file).name}",
-                            position=tqdm_pos,
-                            mininterval=tqdm_mininterval,
-                        ),
+                        iterable=iterable,
+                        desc=f"Writing movie data for {Path(file).name}",
+                        position=tqdm_pos,
+                        mininterval=tqdm_mininterval,
+                    ),
                     iter_axis=0,  # nwb standard is time as zero axis
                     maxshape=tuple(maxshape),
-                    dtype=dtype
+                    dtype=dtype,
                 )
 
                 data = H5DataIO(mv_iterator, compression="gzip", chunks=best_gzip_chunk)
 
-            #capture data in kwargs:
+            # capture data in kwargs:
             image_series_kwargs.update(data=data)
-            #capture time info in kwargs:
+            # capture time info in kwargs:
             with video_capture_ob as vc:
                 timestamps = starting_times[j] + vc.get_movie_timestamps()
                 if len(starting_times) != len(file_paths):
