@@ -52,6 +52,12 @@ class MovieInterface(BaseDataInterface):
         chunk_data: bool = True,
         module_name: Optional[str] = None,
         module_description: Optional[str] = None,
+        buffer_gb: float = None,
+        buffer_shape: list = None,
+        chunk_mb: float = None,
+        chunk_shape: list = None,
+        iterator_type: str = "v2",
+        compression: str = "gzip",
     ):
         """
         Convert the movie data files to ImageSeries and write them in the NWBFile.
@@ -93,9 +99,16 @@ class MovieInterface(BaseDataInterface):
             ), "Argument 'starting_times' must be a list of floats in one-to-one correspondence with 'file_paths'!"
         else:
             starting_times = [0.0]
-
+        tqdm_pos, tqdm_mininterval = (0, 10)
         for j, file in enumerate(file_paths):
-            mv_iterator = MovieDataChunkIterator(str(file), stub=stub_test)
+            mv_iterator = MovieDataChunkIterator(
+                str(file),
+                stub=stub_test,
+                buffer_gb=buffer_gb,
+                buffer_shape=buffer_shape,
+                chunk_mb=chunk_mb,
+                chunk_shape=chunk_shape,
+            )
             with mv_iterator.video_capture_ob as vc:
                 timestamps = starting_times[j] + vc.get_movie_timestamps()
 
@@ -127,13 +140,11 @@ class MovieInterface(BaseDataInterface):
                     frame_shape = vc.get_frame_shape()
                     maxshape = [total_frames]
                     maxshape.extend(frame_shape)
-                    best_gzip_chunk = (1, frame_shape[0], frame_shape[1], 3)
 
                     image_series_kwargs.update(
                         data=H5DataIO(
                             mv_iterator,
-                            compression="gzip",
-                            chunks=best_gzip_chunk,
+                            compression=compression,
                         )
                     )
 

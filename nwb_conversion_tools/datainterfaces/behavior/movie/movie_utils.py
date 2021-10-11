@@ -34,7 +34,7 @@ class VideoCaptureContext(cv2.VideoCapture):
         """
         if self.isOpened():
             ts = [self.get(cv2.CAP_PROP_POS_MSEC)]
-            for i in tqdm(range(1, self.get_movie_frame_count())):
+            for i in tqdm(range(1, self.get_movie_frame_count()), desc="retrieving video timestamps"):
                 self._set_frame(i)
                 ts.append(self.get(cv2.CAP_PROP_POS_MSEC))
             self._set_frame(0)
@@ -150,14 +150,20 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
         if chunk_shape is None:
             chunk_shape = (1, *self.video_capture_ob.get_frame_shape())
         super().__init__(buffer_gb=buffer_gb, buffer_shape=buffer_shape, chunk_mb=chunk_mb, chunk_shape=chunk_shape)
+        self._current_chunk = 1
+        self._pbar = None
 
     def _get_data(self, selection: Tuple[slice]) -> Iterable:
+        if self._pbar is None:
+            self._pbar = tqdm(total=np.prod(self.num_chunks), desc="retrieving movie data chunk")
         frames_return = []
         step = selection[0].step if selection[0].step is not None else 1
         for frame_no in range(selection[0].start, selection[0].stop, step):
             with self.video_capture_ob as vc:
                 frame = vc.get_movie_frame(frame_no)
                 frames_return.append(frame[selection[1:]])
+                self._pbar.update()
+                self._current_chunk += 1
         return np.concatenate(frames_return, axis=0)
 
     def _get_dtype(self):
