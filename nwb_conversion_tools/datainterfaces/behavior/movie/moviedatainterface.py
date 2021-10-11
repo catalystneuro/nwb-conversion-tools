@@ -14,7 +14,7 @@ from hdmf.data_utils import DataChunkIterator
 from ....basedatainterface import BaseDataInterface
 from ....utils.conversion_tools import check_regular_timestamps, get_module
 from ....utils.json_schema import get_schema_from_method_signature
-from .movie_utils import MovieDataChunkIterator
+from .movie_utils import MovieDataChunkIterator, VideoCaptureContext
 
 
 try:
@@ -90,7 +90,7 @@ class MovieInterface(BaseDataInterface):
             The default description is the same as used by the conversion_tools.get_module function.
         """
         file_paths = self.source_data["file_paths"]
-
+        assert iterator_type in ["v1", "v2"], "for new iterator using GenericDatachunkIteartor use v2, else v1"
         if starting_times is not None:
             assert (
                 isinstance(starting_times, list)
@@ -99,58 +99,89 @@ class MovieInterface(BaseDataInterface):
             ), "Argument 'starting_times' must be a list of floats in one-to-one correspondence with 'file_paths'!"
         else:
             starting_times = [0.0]
-        tqdm_pos, tqdm_mininterval = (0, 10)
         for j, file in enumerate(file_paths):
-            mv_iterator = MovieDataChunkIterator(
-                str(file),
-                stub=stub_test,
-                buffer_gb=buffer_gb,
-                buffer_shape=buffer_shape,
-                chunk_mb=chunk_mb,
-                chunk_shape=chunk_shape,
+            image_series_kwargs = dict(
+                name=f"Video: {Path(file).stem}", description="Video recorded by camera.", unit="Frames"
             )
-            with mv_iterator.video_capture_ob as vc:
-                timestamps = starting_times[j] + vc.get_movie_timestamps()
+            if external_mode:
+                image_series_kwargs.update(format="external", external_file=[file])
+            else:
+                uncompressed_estimate = Path(file).stat().st_size * 70
+                available_memory = psutil.virtual_memory().available
+                if not chunk_data and uncompressed_estimate >= available_memory:
+                    warn(
+                        f"Not enough memory (estimated {round(uncompressed_estimate/1e9, 2)} GB) to load movie file as "
+                        f"array ({round(available_memory/1e9, 2)} GB available)! Forcing chunk_data to True."
+                    )
+                    chunk_data = True
 
+            if iterator_type == "v2":
+                mv_iterator = MovieDataChunkIterator(
+                    str(file),
+                    stub=stub_test,
+                    buffer_gb=buffer_gb,
+                    buffer_shape=buffer_shape,
+                    chunk_mb=chunk_mb,
+                    chunk_shape=chunk_shape,
+                )
+                video_capture_ob = mv_iterator.video_capture_ob
+                data = H5DataIO(
+                    mv_iterator,
+                    compression=compression,
+                )
+            elif iterator_type == "v1":
+                tqdm_pos, tqdm_mininterval = (0, 10)
+                video_capture_ob = VideoCaptureContext(str(file), stub=stub_test)
+                total_frames = video_capture_ob.get_movie_frame_count()
+                frame_shape = video_capture_ob.get_frame_shape()
+                maxshape = (total_frames, *frame_shape)
+                best_gzip_chunk = (1, frame_shape[0], frame_shape[1], 3)
+                if chunk_data:
+                    iterable = video_capture_ob
+                    dtype = video_capture_ob.get_movie_frame_dtype()
+                else:
+                    iterable = []
+                    with tqdm(
+                        desc=f"Reading movie data for {Path(file).name}",
+                        position=tqdm_pos,
+                        total=total_frames,
+                        mininterval=tqdm_mininterval,
+                    ) as pbar:
+                        for frame in video_capture_ob:
+                            iterable.append(frame)
+                            pbar.update(1)
+                    iterable = np.array(iterable)
+                    dtype = iterable.dtype
+                mv_iterator = DataChunkIterator(
+                    data=tqdm(
+                            iterable=iterable,
+                            desc=f"Writing movie data for {Path(file).name}",
+                            position=tqdm_pos,
+                            mininterval=tqdm_mininterval,
+                        ),
+                    iter_axis=0,  # nwb standard is time as zero axis
+                    maxshape=tuple(maxshape),
+                    dtype=dtype
+                )
+
+                data = H5DataIO(mv_iterator, compression="gzip", chunks=best_gzip_chunk)
+
+            #capture data in kwargs:
+            image_series_kwargs.update(data=data)
+            #capture time info in kwargs:
+            with video_capture_ob as vc:
+                timestamps = starting_times[j] + vc.get_movie_timestamps()
                 if len(starting_times) != len(file_paths):
                     starting_times.append(timestamps[-1])
-
-                image_series_kwargs = dict(
-                    name=f"Video: {Path(file).stem}", description="Video recorded by camera.", unit="Frames"
-                )
                 if check_regular_timestamps(ts=timestamps):
                     fps = vc.get_movie_fps()
                     image_series_kwargs.update(starting_time=starting_times[j], rate=fps)
                 else:
                     image_series_kwargs.update(timestamps=H5DataIO(timestamps, compression="gzip"))
 
-                if external_mode:
-                    image_series_kwargs.update(format="external", external_file=[file])
-                else:
-                    uncompressed_estimate = Path(file).stat().st_size * 70
-                    available_memory = psutil.virtual_memory().available
-                    if not chunk_data and uncompressed_estimate >= available_memory:
-                        warn(
-                            f"Not enough memory (estimated {round(uncompressed_estimate/1e9, 2)} GB) to load movie file as "
-                            f"array ({round(available_memory/1e9, 2)} GB available)! Forcing chunk_data to True."
-                        )
-                        chunk_data = True
-
-                    total_frames = len(timestamps)
-                    frame_shape = vc.get_frame_shape()
-                    maxshape = [total_frames]
-                    maxshape.extend(frame_shape)
-
-                    image_series_kwargs.update(
-                        data=H5DataIO(
-                            mv_iterator,
-                            compression=compression,
-                        )
-                    )
-
-                if module_name is None:
-                    nwbfile.add_acquisition(ImageSeries(**image_series_kwargs))
-                else:
-                    get_module(nwbfile=nwbfile, name=module_name, description=module_description).add(
-                        ImageSeries(**image_series_kwargs)
-                    )
+            if module_name is None:
+                nwbfile.add_acquisition(ImageSeries(**image_series_kwargs))
+            else:
+                get_module(nwbfile=nwbfile, name=module_name, description=module_description).add(
+                    ImageSeries(**image_series_kwargs)
+                )
