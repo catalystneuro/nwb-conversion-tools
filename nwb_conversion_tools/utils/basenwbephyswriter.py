@@ -564,6 +564,7 @@ class BaseNwbEphysWriter(ABC):
         # 1. Build column details from unit properties: dict(name: dict(description='',data=data, index=False))
         unit_columns = defaultdict(dict)
         property_names = self._get_unit_property_names()
+        print(property_names)
         exclude_names = self._conversion_ops["skip_unit_properties"]
         for prop in property_names:
             if prop not in exclude_names:

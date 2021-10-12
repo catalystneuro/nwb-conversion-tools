@@ -29,12 +29,12 @@ class TestExtractors(unittest.TestCase):
 
         export_ecephys_to_nwb(self.RX, path)
         RX_nwb = NwbRecordingExtractor(path)
-        check_recordings_equal(self.RX, RX_nwb)
+        check_recordings_equal(self.RX, RX_nwb, return_scaled=False)
         del RX_nwb
 
         export_ecephys_to_nwb(object_to_write=self.RX2, nwb_file_path=path, overwrite=True)
         RX_nwb = NwbRecordingExtractor(path)
-        check_recordings_equal(self.RX2, RX_nwb)
+        check_recordings_equal(self.RX2, RX_nwb, return_scaled=False)
 
         # Writing multiple recordings using metadata
         path_multi = self.test_dir + "/test_multiple.nwb"
@@ -54,7 +54,7 @@ class TestExtractors(unittest.TestCase):
         )
         es_raw_name = "ElectricalSeries"
         RX_nwb = NwbRecordingExtractor(file_path=path_multi, electrical_series_name=es_raw_name)
-        check_recordings_equal(self.RX, RX_nwb)
+        check_recordings_equal(self.RX, RX_nwb, return_scaled=False)
         del RX_nwb
 
         nwbfile = export_ecephys_to_nwb(
@@ -69,7 +69,7 @@ class TestExtractors(unittest.TestCase):
             f"Intended compression type does not match what was written! (Out: {compression_out}, should be: gzip)",
         )
         RX_nwb = NwbRecordingExtractor(path)
-        check_recordings_equal(self.RX, RX_nwb)
+        check_recordings_equal(self.RX, RX_nwb, return_scaled=False)
         del RX_nwb
 
         compression = "lzf"
@@ -83,7 +83,7 @@ class TestExtractors(unittest.TestCase):
             f"Intended compression type does not match what was written! (Out: {compression_out}, should be: {compression})",
         )
         RX_nwb = NwbRecordingExtractor(path)
-        check_recordings_equal(self.RX, RX_nwb)
+        check_recordings_equal(self.RX, RX_nwb, return_scaled=False)
         del RX_nwb
 
     def test_write_sorting(self):
@@ -114,17 +114,8 @@ class TestExtractors(unittest.TestCase):
             object_to_write=self.SX, nwb_file_path=path, skip_unit_properties=["stability"], overwrite=True
         )
         SX_nwb = NwbSortingExtractor(path, sampling_frequency=sf)
-        assert "stability" not in SX_nwb.get_shared_unit_property_names()
+        assert "stability" not in SX_nwb.get_property_keys()
         check_sortings_equal(self.SX, SX_nwb)
-
-        # Test for handling skip_features argument
-        # SX2 has timestamps, so loading it back from Nwb will not recover the same spike frames. Set use_times=False
-        nwbfile = export_ecephys_to_nwb(
-            object_to_write=self.SX2, nwb_file_path=path, skip_unit_features=["widths"], use_times=False, overwrite=True
-        )
-        SX_nwb = NwbSortingExtractor(path, sampling_frequency=sf)
-        assert "widths" not in SX_nwb.get_shared_unit_spike_feature_names()
-        check_sortings_equal(self.SX2, SX_nwb)
 
 
 class TestWriteElectrodes(unittest.TestCase):
@@ -161,10 +152,12 @@ class TestWriteElectrodes(unittest.TestCase):
             if no % 2 == 0:
                 rx1_alt_ch_ids.append(chan_id1)
                 rx2_alt_ch_ids.append(chan_id2)
-        self.RX2.set_property("prop2", rx2_alt_ch_ids, rx2_alt_ch_ids)
-        self.RX.set_property("prop2", rx1_alt_ch_ids, rx1_alt_ch_ids)
-        self.RX2.set_property("prop3", [str(i) for i in rx2_alt_ch_ids], rx2_alt_ch_ids)
+        self.RX.set_property("prop2", values=np.array(rx1_alt_ch_ids).astype(float), ids=rx1_alt_ch_ids)
+        self.RX2.set_property("prop2", values=np.array(rx2_alt_ch_ids).astype(float), ids=rx2_alt_ch_ids)
+
         self.RX.set_property("prop3", [str(i) for i in rx1_alt_ch_ids], rx1_alt_ch_ids)
+        self.RX2.set_property("prop3", [str(i) for i in rx2_alt_ch_ids], rx2_alt_ch_ids)
+
 
     def test_append_same_properties(self):
         export_ecephys_to_nwb(
@@ -178,7 +171,8 @@ class TestWriteElectrodes(unittest.TestCase):
             io.write(self.nwbfile1)
         with NWBHDF5IO(str(self.path1), "r") as io:
             nwb = io.read()
-            assert all(nwb.electrodes.id.data[()] == np.array(self.RX.get_channel_ids() + self.RX2.get_channel_ids()))
+            assert all(nwb.electrodes.id.data[()] == np.concatenate((self.RX.get_channel_ids(),
+                                                                     self.RX2.get_channel_ids())))
             assert all([i in nwb.electrodes.colnames for i in ["prop1", "prop2", "prop3"]])
             for i, chan_id in enumerate(nwb.electrodes.id.data):
                 assert nwb.electrodes["prop1"][i] == "10Hz"

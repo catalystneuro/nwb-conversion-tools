@@ -39,7 +39,7 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
             self.recording = self.object_to_write
             if self.stub:
                 self._make_recording_stub()
-        elif isinstance(self.object_to_write, si.BaseRecording):
+        elif isinstance(self.object_to_write, si.BaseSorting):
             self.sorting = self.object_to_write
             if self.stub:
                 self._make_sorting_stub()
@@ -143,11 +143,11 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
 
     # @default_return([])
     def _get_unit_feature_names(self):
-        return
+        return []
 
     # @default_return([])
     def _get_unit_feature_values(self, prop):
-        return
+        return []
 
     # @default_return([])
     def _get_unit_spike_train_ids(self, unit_id, start_frame=None, end_frame=None, segment_index=None):
@@ -161,18 +161,20 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
 
     def _get_unit_property_names(self):
         properties = self.sorting.get_property_keys()
-        if "max_channel" not in properties:
-            properties = properties.extend("max_channel")
+        if self.waveforms is not None:
+            if "max_channel" not in properties:
+                properties.append("max_channel")
         return properties
 
     # @default_return([])
     def _get_unit_property_values(self, prop):
-        prop_values = self.sorting.get_unit_property(prop)
-        if prop_values is None and prop == "max_channel":
-            from spikeinterface.toolkit import get_template_extremum_channel
+        prop_values = self.sorting.get_property(prop)
+        if self.waveforms is not None:
+            if prop_values is None and prop == "max_channel":
+                from spikeinterface.toolkit import get_template_extremum_channel
 
-            channels_dict = get_template_extremum_channel(self.waveforms)
-            prop_values = [channels_dict.get(id, np.nan) for id in self._get_unit_ids()]
+                channels_dict = get_template_extremum_channel(self.waveforms)
+                prop_values = [channels_dict.get(id, np.nan) for id in self._get_unit_ids()]
         return self._check_valid_property(prop_values)
 
     # @default_return([])
@@ -184,13 +186,12 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
 
 
 def create_si090_example():
-    RX = generate_recording(durations=[2])
-    RX.set_property("prop1", np.arange(RX.get_num_channels()))
-    RX.set_property("prop2", np.arange(RX.get_num_channels()) * 2)
+    RX = generate_recording(durations=[2], num_channels=4)
+    # RX.set_property("prop1", np.arange(RX.get_num_channels()))
+    # RX.set_property("prop2", np.arange(RX.get_num_channels()) * 2)
 
     SX = generate_sorting(durations=[2])
-    SX.set_property("prop1", np.arange(SX.get_num_units()))
-    SX.set_property("prop2", np.arange(SX.get_num_units()) * 2)
-
+    # SX.set_property("prop1", np.arange(SX.get_num_units()))
+    # SX.set_property("prop2", np.arange(SX.get_num_units()) * 2)
 
     return RX, SX
