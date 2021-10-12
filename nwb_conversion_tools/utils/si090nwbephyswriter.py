@@ -81,7 +81,7 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
     def _get_num_frames(self, segment_index=0):
         return self.recording.get_num_frames(segment_index=segment_index)
 
-    @default_return([])
+    # @default_return(np.array([]))
     def _get_traces(self, channel_ids=None, start_frame=None, end_frame=None, return_scaled=True, segment_index=0):
         return self.recording.get_traces(
             channel_ids=channel_ids,
@@ -94,7 +94,8 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
     @default_return([])
     def _get_channel_property_names(self):
         default_properties = ["location", "gain", "offset", "group"]
-        return list(set(self.recording.get_property_keys()).union(default_properties))
+        skip_properties = ["contact_vector"]
+        return list(set(self.recording.get_property_keys()).union(default_properties).difference(skip_properties))
 
     @default_return([])
     def _get_channel_property_values(self, prop):
