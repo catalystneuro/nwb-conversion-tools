@@ -1,3 +1,4 @@
+"""Authors: Saksham Sharda, Alessio Buccino"""
 import distutils.version
 import warnings
 from abc import ABC, abstractmethod
@@ -409,7 +410,8 @@ class BaseNwbEphysWriter(ABC):
         # If user passed metadata info, overwrite defaults
         if self.metadata is not None and "Ecephys" in self.metadata:
             es_key = self._conversion_ops["es_key"]
-            if es_key is not None and es_key not in self.metadata["Ecephys"]:
+            es_key = es_key if es_key is not None else eseries_kwargs["name"]
+            if es_key not in self.metadata["Ecephys"]:
                 warnings.warn(
                     f"metadata['Ecephys'] dictionary does not contain key '{self._conversion_ops['es_key']}'"
                     f"picking default arguments"
@@ -418,8 +420,9 @@ class BaseNwbEphysWriter(ABC):
                 eseries_kwargs.update(self.metadata["Ecephys"][self._conversion_ops["es_key"]])
 
         # update name for segment:
-        name = eseries_kwargs.get("name")
-        eseries_kwargs.update(name=f"{name}_segment_{segment_index}")
+        if segment_index!=0:
+            name = eseries_kwargs.get("name")
+            eseries_kwargs.update(name=f"{name}_segment_{segment_index}")
         # Check for existing names in nwbfile
         if self._conversion_ops["write_as"] == "raw":
             assert (

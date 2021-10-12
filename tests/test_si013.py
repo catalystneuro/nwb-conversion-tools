@@ -60,7 +60,7 @@ class TestExtractors(unittest.TestCase):
         nwbfile = export_ecephys_to_nwb(
             object_to_write=self.RX3, nwbfile=nwbfile, write_as="lfp", es_key="ElectricalSeries_lfp", overwrite=False
         )
-        es_raw_name = "ElectricalSeries_raw_segment_0"
+        es_raw_name = "ElectricalSeries"
         RX_nwb = se.NwbRecordingExtractor(file_path=path_multi, electrical_series_name=es_raw_name)
         check_recording_return_types(RX_nwb)
         check_recordings_equal(self.RX, RX_nwb)
