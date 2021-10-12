@@ -46,6 +46,10 @@ class BaseNwbEphysWriter(ABC):
         pass
 
     @abstractmethod
+    def _get_dtype(self):
+        pass
+
+    @abstractmethod
     def _get_channel_property_names(self):
         pass
 

@@ -69,6 +69,9 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
             channel_ids=channel_ids, start_frame=start_frame, end_frame=end_frame, return_scaled=return_scaled
         ).T
 
+    def _get_dtype(self, return_scaled=True):
+        return self.recording.get_dtype(return_scaled)
+
     def _get_channel_property_names(self):
         property_names = set()
         for chan_id in self._get_channel_ids():
@@ -137,9 +140,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
 
     # @default_return([])
     def _get_recording_times(self, segment_index=0):
-        if self.recording._times is None:
-            return np.arange(0, self._get_num_frames() * self._get_sampling_frequency(), self._get_sampling_frequency())
-        return self.recording._times
+        return self.recording.frame_to_time(np.arange(0, self._get_num_frames()))
 
     def _get_unit_feature_names(self):
         unit_ids = self._get_unit_ids()

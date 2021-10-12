@@ -34,14 +34,14 @@ class TestExtractors(unittest.TestCase):
         export_ecephys_to_nwb(self.RX, path)
         RX_nwb = se.NwbRecordingExtractor(path)
         check_recording_return_types(RX_nwb)
-        check_recordings_equal(self.RX, RX_nwb)
+        check_recordings_equal(self.RX, RX_nwb, check_times=False)
         check_dumping(RX_nwb)
         del RX_nwb
 
         export_ecephys_to_nwb(object_to_write=self.RX2, nwb_file_path=path, overwrite=True)
         RX_nwb = se.NwbRecordingExtractor(path)
         check_recording_return_types(RX_nwb)
-        check_recordings_equal(self.RX2, RX_nwb)
+        check_recordings_equal(self.RX2, RX_nwb, check_times=False)
         check_dumping(RX_nwb)
 
         # Writing multiple recordings using metadata
@@ -63,7 +63,7 @@ class TestExtractors(unittest.TestCase):
         es_raw_name = "ElectricalSeries"
         RX_nwb = se.NwbRecordingExtractor(file_path=path_multi, electrical_series_name=es_raw_name)
         check_recording_return_types(RX_nwb)
-        check_recordings_equal(self.RX, RX_nwb)
+        check_recordings_equal(self.RX, RX_nwb, check_times=False)
         check_dumping(RX_nwb)
         del RX_nwb
 
@@ -80,7 +80,7 @@ class TestExtractors(unittest.TestCase):
         )
         RX_nwb = se.NwbRecordingExtractor(path)
         check_recording_return_types(RX_nwb)
-        check_recordings_equal(self.RX, RX_nwb)
+        check_recordings_equal(self.RX, RX_nwb, check_times=False)
         check_dumping(RX_nwb)
         del RX_nwb
 
@@ -96,7 +96,7 @@ class TestExtractors(unittest.TestCase):
         )
         RX_nwb = se.NwbRecordingExtractor(path)
         check_recording_return_types(RX_nwb)
-        check_recordings_equal(self.RX, RX_nwb)
+        check_recordings_equal(self.RX, RX_nwb, check_times=False)
         check_dumping(RX_nwb)
         del RX_nwb
 

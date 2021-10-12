@@ -38,13 +38,7 @@ class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
         )
 
     def _get_dtype(self):
-        return self.ephys_writer._get_traces(
-            channel_ids=self.channel_ids[0],
-            start_frame=0,
-            end_frame=1,
-            return_scaled=True,
-            segment_index=self.segment_index,
-        ).dtype
+        return self.ephys_writer._get_dtype(self.write_scaled)
 
     def _get_maxshape(self):
         return (self.ephys_writer._get_num_frames(self.segment_index), len(self.ephys_writer._get_channel_ids()))
