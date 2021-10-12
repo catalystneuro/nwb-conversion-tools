@@ -92,7 +92,7 @@ class GenericDataChunkIterator(AbstractDataChunkIterator):
         else:
             assert np.all(
                 chunk_shape <= self.maxshape
-            ), f"Some dimensions of chunk_shape ({self.chunk_shape}) exceed the data dimensions ({self.maxshape})!"
+            ), f"Some dimensions of chunk_shape ({chunk_shape}) exceed the data dimensions ({self.maxshape})!"
             self.chunk_shape = chunk_shape
         if buffer_shape is None:
             self._set_buffer_shape(buffer_gb=buffer_gb)
