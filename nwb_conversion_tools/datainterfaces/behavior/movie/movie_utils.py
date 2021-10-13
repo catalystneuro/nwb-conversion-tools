@@ -19,7 +19,7 @@ class VideoCaptureContext(cv2.VideoCapture):
     def __init__(self, *args, stub=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.stub = stub
-        self.current_frame = 0
+        self._current_frame = 0
         self.frame_count = self.get_movie_frame_count()
         self.fps = self.get_movie_fps()
         self.frame = self.get_movie_frame(0)
@@ -75,6 +75,19 @@ class VideoCaptureContext(cv2.VideoCapture):
             set_arg = cv2.CAP_PROP_POS_FRAMES
         self.current_frame = frame_no
         return self.set(set_arg, frame_no)
+
+    @current_frame.setter
+    def current_frame(self, frame_no):
+        if int(cv2.__version__.split(".")[0]) < 3:
+            set_arg = cv2.cv.CV_CAP_PROP_POS_FRAMES
+        else:
+            set_arg = cv2.CAP_PROP_POS_FRAMES
+        self._current_frame = frame_no
+        return self.set(set_arg, frame_no)
+
+    @property
+    def current_frame(self):
+        return self._current_frame
 
     def get_movie_frame(self, frame_no: int):
         """
@@ -157,4 +170,4 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
         return self.video_capture_ob.get_movie_frame_dtype()
 
     def _get_maxshape(self):
-        return (self.video_capture_ob.get_movie_frame_count(), *self.video_capture_ob.get_frame_shape())
+        return self.video_capture_ob.get_movie_frame_count(), *self.video_capture_ob.get_frame_shape()
