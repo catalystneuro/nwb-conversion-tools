@@ -31,7 +31,7 @@ class VideoCaptureContext(cv2.VideoCapture):
 
         """
         if not self.isOpened():
-            raise ValueError('movie file is not open')
+            raise ValueError("movie file is not open")
         ts = [self.get(cv2.CAP_PROP_POS_MSEC)]
         for i in tqdm(range(1, self.get_movie_frame_count()), desc="retrieving video timestamps"):
             self._set_frame(i)
@@ -63,7 +63,7 @@ class VideoCaptureContext(cv2.VideoCapture):
             # if stub the assume a max frame count of 10
             return 10
         if int(cv2.__version__.split(".")[0]) < 3:
-            return self.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT)
+            count = self.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT)
         else:
             count = self.get(cv2.CAP_PROP_FRAME_COUNT)
         return int(count)
