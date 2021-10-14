@@ -4,6 +4,7 @@ from spikeextractors import load_extractor_from_pickle
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ..basesortingextractorinterface import BaseSortingExtractorInterface
 from ....utils.json_schema import FilePathType
+from ....utils import map_si_object_to_writer
 
 
 class SIPickleRecordingExtractorInterface(BaseRecordingExtractorInterface):
@@ -25,3 +26,4 @@ class SIPickleSortingExtractorInterface(BaseSortingExtractorInterface):
     def __init__(self, pkl_file: FilePathType):
         self.sorting_extractor = load_extractor_from_pickle(pkl_file=pkl_file)
         self.source_data = dict(pkl_file=pkl_file)
+        self.writer_class = map_si_object_to_writer(self.sorting_extractor)(self.sorting_extractor)
