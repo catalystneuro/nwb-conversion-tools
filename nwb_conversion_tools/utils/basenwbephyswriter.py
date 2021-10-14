@@ -290,7 +290,10 @@ class BaseNwbEphysWriter(ABC):
                     if prop == "brain_area":
                         prop = "location"
                     elif prop == "group":
-                        prop = "group_name"
+                        if "group_name" not in property_names:
+                            prop = "group_name"
+                        else:
+                            continue
                     index = isinstance(data[0], (list, np.ndarray))
                     elec_columns[prop].update(description=prop, data=data, index=index)
 
@@ -417,7 +420,7 @@ class BaseNwbEphysWriter(ABC):
             es_key = es_key if es_key is not None else eseries_kwargs["name"]
             if es_key not in self.metadata["Ecephys"]:
                 warnings.warn(
-                    f"metadata['Ecephys'] dictionary does not contain key '{self._conversion_ops['es_key']}'"
+                    f"metadata['Ecephys'] dictionary does not contain key '{es_key}'"
                     f"picking default arguments"
                 )
             else:
