@@ -26,7 +26,7 @@ class BaseSortingExtractorInterface(BaseDataInterface, ABC):
     def __init__(self, **source_data):
         super().__init__(**source_data)
         self.sorting_extractor = self.SX(**source_data)
-        self.writer_class = map_si_object_to_writer(self.sorting_extractor)
+        self.writer_class = map_si_object_to_writer(self.sorting_extractor)(self.sorting_extractor)
 
     def subset_sorting(self):
         """
