@@ -68,13 +68,6 @@ class VideoCaptureContext(cv2.VideoCapture):
             count = self.get(cv2.CAP_PROP_FRAME_COUNT)
         return int(count)
 
-    def set_frame(self, frame_no):
-        if int(cv2.__version__.split(".")[0]) < 3:
-            set_arg = cv2.cv.CV_CAP_PROP_POS_FRAMES
-        else:
-            set_arg = cv2.CAP_PROP_POS_FRAMES
-        self.current_frame = frame_no
-        return self.set(set_arg, frame_no)
 
     @current_frame.setter
     def current_frame(self, frame_no):
