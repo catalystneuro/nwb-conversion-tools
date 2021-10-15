@@ -169,7 +169,7 @@ class MovieInterface(BaseDataInterface):
             # capture data in kwargs:
             image_series_kwargs.update(data=data)
             # capture time info in kwargs:
-            with video_capture_ob as vc:
+            with VideoCaptureContext(str(file), stub=stub_test) as vc:
                 timestamps = starting_times[j] + vc.get_movie_timestamps()
                 if len(starting_times) != len(file_paths):
                     starting_times.append(timestamps[-1])

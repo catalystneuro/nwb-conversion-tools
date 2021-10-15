@@ -35,9 +35,9 @@ class VideoCaptureContext(cv2.VideoCapture):
             raise ValueError("movie file is not open")
         ts = [self.get(cv2.CAP_PROP_POS_MSEC)]
         for i in tqdm(range(1, self.get_movie_frame_count()), desc="retrieving video timestamps"):
-            self._set_frame(i)
+            self.current_frame = i
             ts.append(self.get(cv2.CAP_PROP_POS_MSEC))
-        self._set_frame(0)
+        self.current_frame = 0
         return np.array(ts)
 
     def get_movie_fps(self):
@@ -60,7 +60,7 @@ class VideoCaptureContext(cv2.VideoCapture):
         Return the total number of frames for a movie file.
 
         """
-        if self._stub:
+        if self.stub:
             # if stub the assume a max frame count of 10
             return 10
         if int(cv2.__version__.split(".")[0]) < 3:
@@ -114,16 +114,19 @@ class VideoCaptureContext(cv2.VideoCapture):
             raise StopIteration
         try:
             if self.current_frame < self.get_movie_frame_count():
-                yield self.get_movie_frame(self._current_frame)
+                success, frame = self.read()
                 self.current_frame += 1
+                if success:
+                    return frame
+                else:
+                    return np.nan*np.ones(self.get_frame_shape())
             else:
                 self.current_frame = 0
                 raise StopIteration
         except Exception:
             raise StopIteration
 
-    def __enter__(self, *args, **kwargs):
-        self.__init__(*args, **kwargs)
+    def __enter__(self):
         return self
 
     def __exit__(self, *args):
@@ -143,8 +146,10 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
         stub: bool = False,
     ):
         self.video_capture_ob = VideoCaptureContext(movie_file, stub=stub)
+        self._default_chunk_shape = False
         if chunk_shape is None:
             chunk_shape = (1, *self.video_capture_ob.get_frame_shape())
+            self._default_chunk_shape = True
         super().__init__(buffer_gb=buffer_gb, buffer_shape=buffer_shape, chunk_mb=chunk_mb, chunk_shape=chunk_shape)
         self._current_chunk = 1
         self._pbar = None
@@ -152,14 +157,18 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
     def _get_data(self, selection: Tuple[slice]) -> Iterable:
         if self._pbar is None:
             self._pbar = tqdm(total=np.prod(self.num_chunks), desc="retrieving movie data chunk")
+        if self._default_chunk_shape:
+            print('calling next')
+            self._current_chunk += 1
+            self._pbar.update()
+            return next(self.video_capture_ob)
         frames_return = []
         step = selection[0].step if selection[0].step is not None else 1
         for frame_no in range(selection[0].start, selection[0].stop, step):
-            with self.video_capture_ob as vc:
-                frame = vc.get_movie_frame(frame_no)
-                frames_return.append(frame[selection[1:]])
-                self._pbar.update()
-                self._current_chunk += 1
+            frame = self.video_capture_ob.get_movie_frame(frame_no)
+            frames_return.append(frame[selection[1:]])
+            self._pbar.update()
+            self._current_chunk += 1
         return np.concatenate(frames_return, axis=0)
 
     def _get_dtype(self):
