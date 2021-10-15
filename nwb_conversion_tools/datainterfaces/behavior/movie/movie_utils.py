@@ -132,6 +132,9 @@ class VideoCaptureContext(cv2.VideoCapture):
     def __exit__(self, *args):
         self.release()
 
+    def __del__(self):
+        self.release()
+
 
 class MovieDataChunkIterator(GenericDataChunkIterator):
     """DataChunkIterator specifically for use on RecordingExtractor objects."""
