@@ -2,6 +2,7 @@
 from pathlib import Path
 import numpy as np
 from typing import Union, Tuple, Iterable
+import warnings
 from tqdm import tqdm
 from ....utils.genericdatachunkiterator import GenericDataChunkIterator
 
@@ -68,6 +69,9 @@ class VideoCaptureContext(cv2.VideoCapture):
             count = self.get(cv2.CAP_PROP_FRAME_COUNT)
         return int(count)
 
+    @property
+    def current_frame(self):
+        return self._current_frame
 
     @current_frame.setter
     def current_frame(self, frame_no):
@@ -75,12 +79,11 @@ class VideoCaptureContext(cv2.VideoCapture):
             set_arg = cv2.cv.CV_CAP_PROP_POS_FRAMES
         else:
             set_arg = cv2.CAP_PROP_POS_FRAMES
-        self._current_frame = frame_no
-        return self.set(set_arg, frame_no)
-
-    @property
-    def current_frame(self):
-        return self._current_frame
+        set_value = self.set(set_arg, frame_no)
+        if set_value:
+            self._current_frame = frame_no
+        else:
+            raise ValueError(f'could not set frame no {frame_no}')
 
     def get_movie_frame(self, frame_no: int):
         """
@@ -89,9 +92,9 @@ class VideoCaptureContext(cv2.VideoCapture):
         if not self.isOpened():
             raise ValueError("movie file is not open")
         assert frame_no < self.get_movie_frame_count(), "frame number is greater than length of movie"
-        _ = self._set_frame(frame_no)
+        self.current_frame = frame_no
         success, frame = self.read()
-        _ = self._set_frame(0)
+        self.current_frame = 0
         if success:
             return frame
         elif frame_no > 0:
@@ -114,7 +117,7 @@ class VideoCaptureContext(cv2.VideoCapture):
                 yield self.get_movie_frame(self._current_frame)
                 self.current_frame += 1
             else:
-                _ = self._set_frame(0)
+                self.current_frame = 0
                 raise StopIteration
         except Exception:
             raise StopIteration
