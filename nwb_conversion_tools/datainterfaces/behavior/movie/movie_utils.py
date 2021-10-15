@@ -119,7 +119,7 @@ class VideoCaptureContext(cv2.VideoCapture):
                 if success:
                     return frame
                 else:
-                    return np.nan*np.ones(self.get_frame_shape())
+                    return np.nan * np.ones(self.get_frame_shape())
             else:
                 self.current_frame = 0
                 raise StopIteration
@@ -161,7 +161,7 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
         if self._pbar is None:
             self._pbar = tqdm(total=np.prod(self.num_chunks), desc="retrieving movie data chunk")
         if self._default_chunk_shape:
-            print('calling next')
+            print("calling next")
             self._current_chunk += 1
             self._pbar.update()
             return next(self.video_capture_ob)
