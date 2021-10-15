@@ -83,7 +83,7 @@ class VideoCaptureContext(cv2.VideoCapture):
         if set_value:
             self._current_frame = frame_no
         else:
-            raise ValueError(f'could not set frame no {frame_no}')
+            raise ValueError(f"could not set frame no {frame_no}")
 
     def get_movie_frame(self, frame_no: int):
         """
