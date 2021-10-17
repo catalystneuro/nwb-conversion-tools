@@ -1,19 +1,9 @@
 Status
-==============
+======
 
-.. image:: https://github.com/catalystneuro/nwb-conversion-tools/workflows/Run%20coverage/badge.svg
-    :target: https://github.com/catalystneuro/nwb-conversion-tools/actions?query=workflow%3A%22Run+coverage%22
-
-.. image:: https://codecov.io/gh/catalystneuro/nwb-conversion-tools/branch/dev/graph/badge.svg
-    :target: https://codecov.io/gh/catalystneuro/nwb-conversion-tools
-
-.. image:: https://readthedocs.org/projects/nwb-conversion-tools/badge/?version=latest
-     :target: https://https://nwb-conversion-tools.readthedocs.io/en/master/?badge=latest
-     :alt: Documentation Status
-
-.. image:: https://img.shields.io/pypi/l/pynwb.svg
-     :target: https://github.com/catalystneuro/nwb-conversion-tools/blob/dev/license.txt
-     :alt:    PyPI - License
+[![codecov](https://codecov.io/github/catalystneuro/nwb-conversion-tools/coverage.svg?branch=master)](https://codecov.io/github/catalystneuro/nwb-conversion-tools?branch=master)
+[![documentation](https://readthedocs.org/projects/nwb-conversion-tools/badge/?version=master)](https://nwb-conversion-tools.readthedocs.io/en/master/)
+[![License](https://img.shields.io/pypi/l/pynwb.svg)](https://github.com/catalystneuro/nwb-conversion-tools/license.txt)
 
 # NWB conversion tools
 [![PyPI version](https://badge.fury.io/py/nwb-conversion-tools.svg)](https://badge.fury.io/py/nwb-conversion-tools)
