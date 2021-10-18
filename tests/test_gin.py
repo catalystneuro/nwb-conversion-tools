@@ -28,7 +28,7 @@ except ImportError:
 #   ecephys: https://gin.g-node.org/NeuralEnsemble/ephy_testing_data
 #   ophys: TODO
 #   icephys: TODO
-LOCAL_PATH = Path(".")  # Must be set to "." for CI - temporarily override for local testing
+LOCAL_PATH = Path("E:/GIN")  # Must be set to "." for CI - temporarily override for local testing
 DATA_PATH = LOCAL_PATH / "ephy_testing_data"
 HAVE_DATA = DATA_PATH.exists()
 
@@ -91,7 +91,7 @@ if HAVE_PARAMETERIZED and HAVE_DATA:
 
         @parameterized.expand(parameterized_recording_list)
         def test_convert_recording_extractor_to_nwb(self, recording_interface, interface_kwargs):
-            nwbfile_path = self.savedir / f"{recording_interface.__name__}.nwb"
+            nwbfile_path = str(self.savedir / f"{recording_interface.__name__}.nwb")
 
             class TestConverter(NWBConverter):
                 data_interface_classes = dict(TestRecording=recording_interface)
@@ -116,7 +116,7 @@ if HAVE_PARAMETERIZED and HAVE_DATA:
             ]
         )
         def test_convert_sorting_extractor_to_nwb(self, sorting_interface, interface_kwargs):
-            nwbfile_path = self.savedir / f"{sorting_interface.__name__}.nwb"
+            nwbfile_path = str(self.savedir / f"{sorting_interface.__name__}.nwb")
 
             class TestConverter(NWBConverter):
                 data_interface_classes = dict(TestSorting=sorting_interface)
