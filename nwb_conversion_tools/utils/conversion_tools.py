@@ -1,20 +1,22 @@
 """Authors: Cody Baker, Alessio Buccino."""
-from pathlib import Path
 import numpy as np
 import uuid
+import yaml
+from pathlib import Path
 from datetime import datetime
 from warnings import warn
 from tempfile import mkdtemp
 from shutil import rmtree
 from time import perf_counter
-from typing import Optional
+from typing import Optional, Dict
 
 from pynwb import NWBFile
 from pynwb.file import Subject
 from spikeextractors import RecordingExtractor, SubRecordingExtractor
 
-from .json_schema import dict_deep_update
+from .json_schema import dict_deep_update, FilePathType
 from .spike_interface import write_recording
+from ..nwbconverter import NWBConverter
 
 
 def get_module(nwbfile: NWBFile, name: str, description: str = None):
@@ -119,9 +121,35 @@ def estimate_recording_conversion_time(
     return total_time, speed
 
 
-def dict_to_converter(d: dict):
-    initial_metadata = d["metadata"]
-    
+def yaml_to_converter(file_path: FilePathType) -> Dict:
+    """
+    Convert a yaml specification file to a sequence of NWBConverter classes for each experiment type.
+
+    Parameters
+    ----------
+    file_path : FilePathType
+        File path leading to .yml specification file for NWB conversion.
+
+    Returns
+    -------
+    List of Configured class for all session
+
+    """
+    with open(file=file_path, mode="r")() as io:
+        d = yaml.load(stream=io)  # might need specific loader
+    global_metadata = d["metadata"]
+
+    classes = dict()
     for experiment_type in d["experiment_types"]:
         session_metadata = d["metadata"]
-        
+
+        class Class(NWBConverter):
+            data_interface_classes = dict()  # TODO
+
+            def get_metadata(self):
+                metadata = super().get_metadata()
+                dict_deep_update(metadata, global_metadata)
+                dict_deep_update(metadata, session_metadata)
+                return metadata
+        classes.update({experiment_type: Class})
+    return classes

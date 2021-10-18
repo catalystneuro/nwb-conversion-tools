@@ -1,5 +1,9 @@
 from unittest import TestCase
 import numpy as np
+import yaml
+from tempfile import mkdtemp
+from pathlib import Path
+from shutil import rmtree
 
 from pynwb.base import ProcessingModule
 from spikeextractors import NumpyRecordingExtractor
@@ -9,6 +13,12 @@ from nwb_conversion_tools.utils.conversion_tools import estimate_recording_conve
 
 
 class TestConversionTools(TestCase):
+    def setUp(self):
+        self.test_dir = Path(mkdtemp())
+
+    def tearDown(self):
+        rmtree(self.test_dir)
+
     def test_check_regular_timestamps(self):
         assert check_regular_timestamps([1, 2, 3])
         assert not check_regular_timestamps([1, 2, 4])
@@ -40,3 +50,101 @@ class TestConversionTools(TestCase):
         estimated_write_time, estimated_write_speed = estimate_recording_conversion_time(
             recording=recording, write_kwargs=dict(compression=None)
         )
+
+    def test_yaml_to_converter(self):
+        example_dict = dict(
+            metadata=dict(
+                NWBFile=dict(
+                    lab="My Lab",
+                    institution="My Institution"
+                )
+            ),
+            experiment_types=dict(
+                ymaze=dict(
+                    metadata=dict(
+                        NWBFile=dict(
+                            session_description="maze is shaped like a Y"
+                        ),
+                    ),
+                    source_data_types=[
+                        dict(
+                            name="neuropixels",
+                            data_interface="SpikeGLXRecordingInterface"
+                        ),
+                        dict(
+                            name="phy",
+                            data_interface="PhySortingInterface"
+                        ),
+                    ],
+                    sessions=[
+                        dict(
+                            output_path="filepath1.nwb",
+                            source_data=dict(
+                                neuropixels=dict(
+                                    file_path="rawdata1.ap.bin"
+                                ),
+                                phy=dict(
+                                    folder_path="phy_path"
+                                )
+                            ),
+                            metadata=dict(
+                                NWBFile=dict(
+                                    session_start_time="2020-11-09T21:19:09+00:00"
+                                ),
+                                Subject=dict(
+                                    subject_id="001"
+                                )
+                            ),
+                        ),
+                        dict(
+                            output_path="filepath2.nwb",
+                            source_data=dict(
+                                neuropixels=dict(
+                                    file_path="rawdata2.ap.bin"
+                                ),
+                                phy=dict(
+                                    folder_path="phy_path_2"
+                                )
+                            ),
+                            metadata=dict(
+                                NWBFile=dict(
+                                    session_start_time="2020-11-10T21:19:09+00:00"
+                                ),
+                                Subject=dict(
+                                    subject_id="002"
+                                )
+                            ),
+                        ),
+                    ],
+                ),
+                open_explore=dict(
+                    source_data_types=[
+                        dict(
+                            name="neuropixels",
+                            data_interface="SpikeGLXRecordingInterface"
+                        ),
+                    ],
+                    sessions=[
+                        dict(
+                            output_path="filepath3.nwb",
+                            source_data=dict(
+                                neuropixels=dict(
+                                    file_path="rawdata3.ap.bin"
+                                ),
+                            ),
+                            metadata=dict(
+                                NWBFile=dict(
+                                    session_start_time="2020-11-09T21:21:09+00:00"
+                                ),
+                                Subject=dict(
+                                    subject_id="002"
+                                )
+                            ),
+                        ),
+                    ],
+                ),
+             )
+        )
+        yaml_file_path = self.test_dir / "meta.yaml"
+        with open(file=yaml_file_path, mode="w")() as io:
+            yaml.dump(example_dict, stream=io)
