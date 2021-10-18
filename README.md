@@ -43,9 +43,16 @@ As a maintainer, once the changes to the documentation are on the master branch,
 
 #### v0.9.3
 * [Buzsáki Lab](https://buzsakilab.com/wp/): [buzsaki-lab-to-nwb](https://github.com/catalystneuro/buzsaki-lab-to-nwb)
+* Shenoy lab: [shenoy-lab-to-nwb](https://github.com/catalystneuro/shenoy-lab-to-nwb)
+
+#### v0.9.2
+* [Brody Lab](http://brodylab.org/): [brody-lab-to-nwb](https://github.com/catalystneuro/brody-lab-to-nwb)
 
 #### v0.8.10
 * [Feldman Lab](https://www.feldmanlab.org/): [feldman-lab-to-nwb](https://github.com/catalystneuro/feldman-lab-to-nwb)
+
+#### v0.8.1
+* Hussaini Lab: [hussaini-lab-to-nwb](https://github.com/catalystneuro/hussaini-lab-to-nwb)
 
 #### v0.7.2
 * [Movson lab](https://www.cns.nyu.edu/labs/movshonlab/): [movshon-lab-to-nwb](https://github.com/catalystneuro/movshon-lab-to-nwb)
