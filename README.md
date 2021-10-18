@@ -49,7 +49,7 @@ As a maintainer, once the changes to the documentation are on the master branch,
 #### [Buzsáki Lab](https://buzsakilab.com/wp/): [buzsaki-lab-to-nwb](https://github.com/catalystneuro/buzsaki-lab-to-nwb)
 This project is an ongoing effort for the Ripple U19 conversion of extracellular electrophysiology data to NWB format, including final publishing of each dataset on DANDI. Currently spans 7 major publications and over 14 TB of data on the [DANDI Archive](https://www.dandiarchive.org/) (with compression, of course... down from an original data size of over 30 TB). Most of the data consists of raw recordings, LFP, spike sorted units, and behavior with can consist of a mix of mental state tracking, position tracking through mazes, and trial stimulus events.
 
-#### Shenoy Lab - [shenoy-lab-to-nwb](https://github.com/catalystneuro/shenoy-lab-to-nwb): [shenoy-lab-to-nwb](https://github.com/catalystneuro/shenoy-lab-to-nwb)
+#### Shenoy Lab: [shenoy-lab-to-nwb](https://github.com/catalystneuro/shenoy-lab-to-nwb):
 
 
 ### v0.9.2
