@@ -151,5 +151,6 @@ def yaml_to_converter(file_path: FilePathType) -> Dict:
                 dict_deep_update(metadata, global_metadata)
                 dict_deep_update(metadata, session_metadata)
                 return metadata
+
         classes.update({experiment_type: Class})
     return classes
