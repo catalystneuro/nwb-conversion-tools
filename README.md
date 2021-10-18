@@ -44,6 +44,9 @@ As a maintainer, once the changes to the documentation are on the master branch,
 #### v0.9.3
 * [Buzsáki Lab](https://buzsakilab.com/wp/): [buzsaki-lab-to-nwb](https://github.com/catalystneuro/buzsaki-lab-to-nwb)
 
+#### v0.8.10
+* [Feldman Lab](https://www.feldmanlab.org/): [feldman-lab-to-nwb](https://github.com/catalystneuro/feldman-lab-to-nwb)
+
 #### v0.7.2
 * [Movson lab](https://www.cns.nyu.edu/labs/movshonlab/): [movshon-lab-to-nwb](https://github.com/catalystneuro/movshon-lab-to-nwb)
 
@@ -51,10 +54,6 @@ As a maintainer, once the changes to the documentation are on the master branch,
 * [Tank Lab](https://pni.princeton.edu/faculty/david-tank): [tank-lab-to-nwb](https://github.com/catalystneuro/tank-lab-to-nwb)
 * [Groh lab](https://www.uni-heidelberg.de/izn/researchgroups/groh/): [mease-lab-to-nwb](https://github.com/catalystneuro/mease-lab-to-nwb)
 * [Giocomo lab](https://giocomolab.weebly.com/): [giocomo-lab-to-nwb](https://github.com/catalystneuro/giocomo-lab-to-nwb/tree/master/giocomo_lab_to_nwb/mallory21)
-
-##### Prior to v0.6.3 (first release)
-
-### Optical Electrophysiology - Photon and Segmentation Series with Imaging
 
 
 ### Other labs that use NWB standard
