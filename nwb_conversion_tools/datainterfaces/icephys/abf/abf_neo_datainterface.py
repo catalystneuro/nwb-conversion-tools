@@ -29,7 +29,7 @@ class AbfNeoDataInterface(BaseIcephysNeoInterface):
         # Extract start_time info
         startDate = str(self.reader._axon_info["uFileStartDate"])
         startTime = round(self.reader._axon_info["uFileStartTimeMS"] / 1000)
-        startDate = datetime.strptime(startDate, "%Y%M%d")
+        startDate = datetime.strptime(startDate, "%Y%m%d")
         startTime = timedelta(seconds=startTime)
         abfDateTime = startDate + startTime
         session_start_time = abfDateTime.strftime("%Y-%m-%dT%H:%M:%S%z")
