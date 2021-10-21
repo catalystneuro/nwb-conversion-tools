@@ -36,6 +36,21 @@ jobs:
           ecephys-dset-${{ steps.vars.outputs.HASH_EPHY_DATASET }}
     - name: Test with pytest
       run: pytest --cov=/home/runner/work/nwb-conversion-tools/nwb-conversion-tools --cov-report=xml
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: codecov_xml_1
+        path: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/codecov.xml
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: codecov_xml_2
+        path: /home/runner/work/nwb-conversion-tools/codecov.xml
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: codecov_xml_3
+        path: ./codecov.xml
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
@@ -44,21 +59,6 @@ jobs:
         flags: unittests
         name: codecov-umbrella 
         yml: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/codecov.yml
-    - name: Upload artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: codecov_xml
-        path: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/codecov.xml
-    - name: Upload artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: codecov_xml
-        path: ./codecov.xml
-    - name: Upload artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: codecov_xml
-        path: ./codecov.yml 
     - name: Upload artifact
       uses: actions/upload-artifact@v2
       with:
