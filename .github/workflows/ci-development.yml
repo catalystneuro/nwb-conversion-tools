@@ -40,15 +40,25 @@ jobs:
       uses: codecov/codecov-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        file: ./coverage.xml
+        file: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/coverage.xml
         flags: unittests
         name: codecov-umbrella 
-        yml: ./codecov.yml
+        yml: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/codecov.yml
     - name: Upload artifact
       uses: actions/upload-artifact@v2
       with:
         name: codecov_xml
-        path: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/codecov.xml 
+        path: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/codecov.xml
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: codecov_xml
+        path: ./codecov.xml
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: codecov_xml
+        path: ./codecov.yml 
     - name: Upload artifact
       uses: actions/upload-artifact@v2
       with:
