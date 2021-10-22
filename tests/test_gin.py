@@ -88,6 +88,7 @@ if HAVE_PARAMETERIZED and HAVE_DATA:
                     interface_kwargs=dict(file_path=str(DATA_PATH / sub_path / f"Noise4Sam_g0_t0.imec0.{suffix}.bin")),
                 )
             )
+
         @parameterized.expand(parameterized_recording_list)
         def test_convert_recording_extractor_to_nwb(self, recording_interface, interface_kwargs):
             nwbfile_path = self.savedir / f"{recording_interface.__name__}.nwb"

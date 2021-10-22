@@ -34,9 +34,9 @@ class BlackrockRecordingExtractorInterface(BaseRecordingExtractorInterface):
     def __init__(self, file_path: FilePathType, nsx_override: OptionalFilePathType = None):
         file_path = Path(file_path)
         if file_path.suffix == "":
-            assert nsx_override is not None, (
-                "If file_path is empty, provide a .nsx file to load with the 'nsx_override' argument!"
-            )
+            assert (
+                nsx_override is not None
+            ), "If file_path is empty, provide a .nsx file to load with the 'nsx_override' argument!"
             nsx_to_load = None
         else:
             assert "ns" in file_path.suffix, "file_path should be a .nsx file!"
