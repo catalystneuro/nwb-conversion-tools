@@ -7,7 +7,7 @@ from ....utils.json_schema import FilePathType
 
 
 class SIPickleRecordingExtractorInterface(BaseRecordingExtractorInterface):
-    """Primary interface for reading and converting SpikeInterface objects through Pickle files."""
+    """Primary interface for reading and converting SpikeInterface Recording objects through .pkl files."""
 
     RX = load_extractor_from_pickle
 
@@ -16,7 +16,7 @@ class SIPickleRecordingExtractorInterface(BaseRecordingExtractorInterface):
 
 
 class SIPickleSortingExtractorInterface(BaseSortingExtractorInterface):
-    """Primary interface for reading and converting SpikeInterface objects through Pickle files."""
+    """Primary interface for reading and converting SpikeInterface Sorting objects through .pkl files."""
 
     SX = load_extractor_from_pickle
 

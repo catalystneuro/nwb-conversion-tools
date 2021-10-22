@@ -1,12 +1,12 @@
 """Authors: Luiz Tauffer"""
 import pytz
 from typing import Optional
-
+from pathlib import Path
 import spikeextractors as se
 from pynwb import NWBFile
 from pynwb.ecephys import ElectricalSeries
 
-from .brpylib import NsxFile
+from .header_tools import parse_nsx_basic_header, parse_nev_basic_header
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ..basesortingextractorinterface import BaseSortingExtractorInterface
 from ....utils.json_schema import (
@@ -31,9 +31,16 @@ class BlackrockRecordingExtractorInterface(BaseRecordingExtractorInterface):
         source_schema["properties"]["file_path"]["description"] = "Path to Blackrock file."
         return source_schema
 
-    def __init__(
-        self, file_path: FilePathType, nsx_override: OptionalFilePathType = None, nsx_to_load: Optional[int] = None
-    ):
+    def __init__(self, file_path: FilePathType, nsx_override: OptionalFilePathType = None):
+        file_path = Path(file_path)
+        if file_path.suffix == "":
+            assert nsx_override is not None, (
+                "If file_path is empty, provide a .nsx file to load with the 'nsx_override' argument!"
+            )
+            nsx_to_load = None
+        else:
+            assert "ns" in file_path.suffix, "file_path should be a .nsx file!"
+            nsx_to_load = int(file_path.suffix[-1])
         super().__init__(filename=file_path, nsx_override=nsx_override, nsx_to_load=nsx_to_load)
 
     def get_metadata_schema(self):
@@ -48,21 +55,17 @@ class BlackrockRecordingExtractorInterface(BaseRecordingExtractorInterface):
     def get_metadata(self):
         """Auto-fill as much of the metadata as possible. Must comply with metadata schema."""
         metadata = super().get_metadata()
-
+        metadata["NWBFile"] = dict()
         # Open file and extract headers
-        nsx_file = NsxFile(datafile=self.source_data["filename"])
-        session_start_time = nsx_file.basic_header["TimeOrigin"]
-        session_start_time_tzaware = pytz.timezone("EST").localize(session_start_time)
-        comment = nsx_file.basic_header["Comment"]
-
-        # Updates basic metadata from files
-        metadata["NWBFile"] = dict(
-            session_start_time=session_start_time_tzaware.strftime("%Y-%m-%dT%H:%M:%S"),
-            session_description=comment,
-        )
+        basic_header = parse_nsx_basic_header(self.source_data["filename"])
+        if "TimeOrigin" in basic_header:
+            session_start_time = basic_header["TimeOrigin"]
+            metadata["NWBFile"].update(session_start_time=session_start_time.strftime("%Y-%m-%dT%H:%M:%S"))
+        if "Comment" in basic_header:
+            metadata["NWBFile"].update(session_description=basic_header["Comment"])
 
         # Checks if data is raw or processed
-        if max(self.recording_extractor.neo_reader.nsx_to_load) >= 5:
+        if int(self.filename.suffix[-1]) >= 5:
             metadata["Ecephys"]["ElectricalSeries_raw"] = dict(name="ElectricalSeries_raw")
         else:
             metadata["Ecephys"]["ElectricalSeries_processed"] = dict(name="ElectricalSeries_processed")
@@ -82,7 +85,6 @@ class BlackrockRecordingExtractorInterface(BaseRecordingExtractorInterface):
     ):
         """
         Primary function for converting recording extractor data to nwb.
-
         Parameters
         ----------
         nwbfile: NWBFile
@@ -97,7 +99,7 @@ class BlackrockRecordingExtractorInterface(BaseRecordingExtractorInterface):
             the sampling rate is used.
         write_as_lfp: bool (optional, defaults to False)
             If True, writes the traces under a processing LFP module in the NWBFile instead of acquisition.
-        save_path: OptionalFilePathType
+        save_path: PathType
             Required if an nwbfile is not passed. Must be the path to the nwbfile
             being appended, otherwise one is created and written.
         overwrite: bool
@@ -105,7 +107,7 @@ class BlackrockRecordingExtractorInterface(BaseRecordingExtractorInterface):
         stub_test: bool, optional (default False)
             If True, will truncate the data to run the conversion faster and take up less memory.
         """
-        if max(self.recording_extractor.neo_reader.nsx_to_load) >= 5:
+        if int(self.filename.suffix[-1]) >= 5:
             write_as = "raw"
         elif write_as not in ["processed", "lfp"]:
             write_as = "processed"
@@ -142,3 +144,15 @@ class BlackrockSortingExtractorInterface(BaseSortingExtractorInterface):
         self, file_path: FilePathType, nsx_to_load: Optional[int] = None, nev_override: OptionalFilePathType = None
     ):
         super().__init__(filename=file_path, nsx_to_load=nsx_to_load, nev_override=nev_override)
+
+    def get_metadata(self):
+        metadata = super().get_metadata()
+        metadata["NWBFile"] = dict()
+        # Open file and extract headers
+        basic_header = parse_nev_basic_header(self.source_data["filename"])
+        if "TimeOrigin" in basic_header:
+            session_start_time = basic_header["TimeOrigin"]
+            metadata["NWBFile"].update(session_start_time=session_start_time.strftime("%Y-%m-%dT%H:%M:%S"))
+        if "Comment" in basic_header:
+            metadata["NWBFile"].update(session_description=basic_header["Comment"])
+        return metadata
