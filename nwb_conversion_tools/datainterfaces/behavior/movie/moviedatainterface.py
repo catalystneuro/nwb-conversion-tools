@@ -13,7 +13,7 @@ from hdmf.data_utils import DataChunkIterator
 
 from ....basedatainterface import BaseDataInterface
 from ....utils.conversion_tools import check_regular_timestamps, get_module
-from ....utils.json_schema import get_schema_from_method_signature
+from ....utils.json_schema import get_schema_from_hdmf_class, get_base_schema
 from .movie_utils import MovieDataChunkIterator, VideoCaptureContext
 
 
@@ -133,6 +133,21 @@ class MovieInterface(BaseDataInterface):
         module_description: str, optional
             If the processing module specified by module_name does not exist, it will be created with this description.
             The default description is the same as used by the conversion_tools.get_module function.
+        compression: str
+            The compression algorithm to use: gzip, lzf. Those supported by HDMF
+        iterator_type: str
+            "v1" using old iteration method using DataChunkIteartor with not option to set chunk_shape,
+            chunk_size, buffer_shape. "v2" for the newer GenericDataChunkIterator
+        chunk_shape : tuple, optional
+            Manually defined shape of the chunks. Defaults to None.
+        chunk_mb : float, optional
+            If chunk_shape is not specified, it will be inferred as the smallest chunk below the chunk_mb threshold.
+            H5 recommends setting this to around 1 MB (our default) for optimal performance.
+        buffer_shape : tuple, optional
+            Manually defined shape of the buffer. Defaults to None.
+        buffer_gb : float, optional
+            If buffer_shape is not specified, it will be inferred as the smallest chunk below the buffer_gb threshold.
+            Defaults to 1 GB.
         """
         file_paths = self.source_data["file_paths"]
         assert iterator_type in ["v1", "v2"], "for new iterator using GenericDatachunkIteartor use v2, else v1"
@@ -154,9 +169,7 @@ class MovieInterface(BaseDataInterface):
         )
 
         for j, file in enumerate(file_paths):
-            image_series_kwargs = dict(
-                name=f"Video: {Path(file).stem}", description="Video recorded by camera.", unit="Frames"
-            )
+            image_series_kwargs = dict(image_series_kwargs_list[j])
             if external_mode:
                 image_series_kwargs.update(format="external", external_file=[file])
             else:
@@ -169,59 +182,59 @@ class MovieInterface(BaseDataInterface):
                     )
                     chunk_data = True
 
-            if iterator_type == "v2":
-                mv_iterator = MovieDataChunkIterator(
-                    str(file),
-                    stub=stub_test,
-                    buffer_gb=buffer_gb,
-                    buffer_shape=buffer_shape,
-                    chunk_mb=chunk_mb,
-                    chunk_shape=chunk_shape,
-                )
-                video_capture_ob = mv_iterator.video_capture_ob
-                data = H5DataIO(
-                    mv_iterator,
-                    compression=compression,
-                )
-            elif iterator_type == "v1":
-                tqdm_pos, tqdm_mininterval = (0, 10)
-                video_capture_ob = VideoCaptureContext(str(file), stub=stub_test)
-                total_frames = video_capture_ob.get_movie_frame_count()
-                frame_shape = video_capture_ob.get_frame_shape()
-                maxshape = (total_frames, *frame_shape)
-                best_gzip_chunk = (1, frame_shape[0], frame_shape[1], 3)
-                if chunk_data:
-                    iterable = video_capture_ob
-                    dtype = video_capture_ob.get_movie_frame_dtype()
-                else:
-                    iterable = []
-                    with tqdm(
-                        desc=f"Reading movie data for {Path(file).name}",
-                        position=tqdm_pos,
-                        total=total_frames,
-                        mininterval=tqdm_mininterval,
-                    ) as pbar:
-                        for frame in video_capture_ob:
-                            iterable.append(frame)
-                            pbar.update(1)
-                    iterable = np.array(iterable)
-                    dtype = iterable.dtype
-                mv_iterator = DataChunkIterator(
-                    data=tqdm(
-                        iterable=iterable,
-                        desc=f"Writing movie data for {Path(file).name}",
-                        position=tqdm_pos,
-                        mininterval=tqdm_mininterval,
-                    ),
-                    iter_axis=0,  # nwb standard is time as zero axis
-                    maxshape=tuple(maxshape),
-                    dtype=dtype,
-                )
+                if iterator_type == "v2":
+                    mv_iterator = MovieDataChunkIterator(
+                        str(file),
+                        stub=stub_test,
+                        buffer_gb=buffer_gb,
+                        buffer_shape=buffer_shape,
+                        chunk_mb=chunk_mb,
+                        chunk_shape=chunk_shape,
+                    )
+                    video_capture_ob = mv_iterator.video_capture_ob
+                    data = H5DataIO(
+                        mv_iterator,
+                        compression=compression,
+                    )
+                elif iterator_type == "v1":
+                    tqdm_pos, tqdm_mininterval = (0, 10)
+                    video_capture_ob = VideoCaptureContext(str(file), stub=stub_test)
+                    total_frames = video_capture_ob.get_movie_frame_count()
+                    frame_shape = video_capture_ob.get_frame_shape()
+                    maxshape = (total_frames, *frame_shape)
+                    best_gzip_chunk = (1, frame_shape[0], frame_shape[1], 3)
+                    if chunk_data:
+                        iterable = video_capture_ob
+                        dtype = video_capture_ob.get_movie_frame_dtype()
+                    else:
+                        iterable = []
+                        with tqdm(
+                            desc=f"Reading movie data for {Path(file).name}",
+                            position=tqdm_pos,
+                            total=total_frames,
+                            mininterval=tqdm_mininterval,
+                        ) as pbar:
+                            for frame in video_capture_ob:
+                                iterable.append(frame)
+                                pbar.update(1)
+                        iterable = np.array(iterable)
+                        dtype = iterable.dtype
+                    mv_iterator = DataChunkIterator(
+                        data=tqdm(
+                            iterable=iterable,
+                            desc=f"Writing movie data for {Path(file).name}",
+                            position=tqdm_pos,
+                            mininterval=tqdm_mininterval,
+                        ),
+                        iter_axis=0,  # nwb standard is time as zero axis
+                        maxshape=tuple(maxshape),
+                        dtype=dtype,
+                    )
 
-                data = H5DataIO(mv_iterator, compression="gzip", chunks=best_gzip_chunk)
+                    data = H5DataIO(mv_iterator, compression="gzip", chunks=best_gzip_chunk)
 
-            # capture data in kwargs:
-            image_series_kwargs.update(data=data)
+                # capture data in kwargs:
+                image_series_kwargs.update(data=data)
             # capture time info in kwargs:
             with VideoCaptureContext(str(file), stub=stub_test) as vc:
                 timestamps = starting_times[j] + vc.get_movie_timestamps()
