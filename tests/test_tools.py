@@ -64,4 +64,3 @@ class TestConversionTools(TestCase):
         custom_converter = custom_converters_dict[experiment_name]
         custom_metadata = custom_converter.get_metadata()
         # check
-
