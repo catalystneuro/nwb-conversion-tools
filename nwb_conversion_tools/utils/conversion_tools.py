@@ -135,8 +135,8 @@ def yaml_to_converter(file_path: FilePathType) -> Dict:
     List of Configured class for all session
 
     """
-    with open(file=file_path, mode="r")() as io:
-        d = yaml.load(stream=io)  # might need specific loader
+    with open(file=file_path, mode="r") as io:
+        d = yaml.load(stream=io, Loader=yaml.SafeLoader)
     global_metadata = d["metadata"]
 
     classes = dict()

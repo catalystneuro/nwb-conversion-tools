@@ -1,6 +1,5 @@
 from unittest import TestCase
 import numpy as np
-import yaml
 from tempfile import mkdtemp
 from pathlib import Path
 from shutil import rmtree
@@ -8,8 +7,13 @@ from shutil import rmtree
 from pynwb.base import ProcessingModule
 from spikeextractors import NumpyRecordingExtractor
 
-from nwb_conversion_tools.utils.conversion_tools import check_regular_timestamps, get_module, make_nwbfile_from_metadata
-from nwb_conversion_tools.utils.conversion_tools import estimate_recording_conversion_time
+from nwb_conversion_tools.utils.conversion_tools import (
+    check_regular_timestamps,
+    get_module,
+    make_nwbfile_from_metadata,
+    estimate_recording_conversion_time,
+    yaml_to_converter,
+)
 
 
 class TestConversionTools(TestCase):
@@ -51,60 +55,13 @@ class TestConversionTools(TestCase):
             recording=recording, write_kwargs=dict(compression=None)
         )
 
-    def test_yaml_to_converter(self):
-        example_dict = dict(
-            metadata=dict(NWBFile=dict(lab="My Lab", institution="My Institution")),
-            experiment_types=dict(
-                ymaze=dict(
-                    metadata=dict(
-                        NWBFile=dict(session_description="maze is shaped like a Y"),
-                    ),
-                    source_data_types=[
-                        dict(name="neuropixels", data_interface="SpikeGLXRecordingInterface"),
-                        dict(name="phy", data_interface="PhySortingInterface"),
-                    ],
-                    sessions=[
-                        dict(
-                            output_path="filepath1.nwb",
-                            source_data=dict(
-                                neuropixels=dict(file_path="rawdata1.ap.bin"), phy=dict(folder_path="phy_path")
-                            ),
-                            metadata=dict(
-                                NWBFile=dict(session_start_time="2020-11-09T21:19:09+00:00"),
-                                Subject=dict(subject_id="001"),
-                            ),
-                        ),
-                        dict(
-                            output_path="filepath2.nwb",
-                            source_data=dict(
-                                neuropixels=dict(file_path="rawdata2.ap.bin"), phy=dict(folder_path="phy_path_2")
-                            ),
-                            metadata=dict(
-                                NWBFile=dict(session_start_time="2020-11-10T21:19:09+00:00"),
-                                Subject=dict(subject_id="002"),
-                            ),
-                        ),
-                    ],
-                ),
-                open_explore=dict(
-                    source_data_types=[
-                        dict(name="neuropixels", data_interface="SpikeGLXRecordingInterface"),
-                    ],
-                    sessions=[
-                        dict(
-                            output_path="filepath3.nwb",
-                            source_data=dict(
-                                neuropixels=dict(file_path="rawdata3.ap.bin"),
-                            ),
-                            metadata=dict(
-                                NWBFile=dict(session_start_time="2020-11-09T21:21:09+00:00"),
-                                Subject=dict(subject_id="002"),
-                            ),
-                        ),
-                    ],
-                ),
-            ),
-        )
-        yaml_file_path = self.test_dir / "meta.yaml"
-        with open(file=yaml_file_path, mode="w")() as io:
-            yaml.dump(example_dict, stream=io)
+    def test_yaml_to_converter_single_session(self):
+        custom_converters_dict = yaml_to_converter(file_path="example_converter_spec.yml")
+        experiment_name = "ymaze"
+        assert len(custom_converters_dict) == 1
+        assert experiment_name in custom_converters_dict
+        assert len(custom_converters_dict)
+        custom_converter = custom_converters_dict[experiment_name]
+        custom_metadata = custom_converter.get_metadata()
+        # check
+
