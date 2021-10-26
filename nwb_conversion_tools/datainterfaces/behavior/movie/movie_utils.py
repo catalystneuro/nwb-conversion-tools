@@ -178,4 +178,4 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
         return self.video_capture_ob.get_movie_frame_dtype()
 
     def _get_maxshape(self):
-        return self.video_capture_ob.get_movie_frame_count(), *self.video_capture_ob.get_frame_shape()
+        return (self.video_capture_ob.get_movie_frame_count(), *self.video_capture_ob.get_frame_shape())
