@@ -242,7 +242,6 @@ class NeuroscopeSortingInterface(BaseSortingExtractorInterface):
     def get_metadata(self):
         session_path = Path(self.source_data["folder_path"])
         session_id = session_path.stem
-        metadata = {}
         metadata = NeuroscopeRecordingInterface.get_ecephys_metadata(
            xml_file_path=str((session_path / f"{session_id}.xml").absolute())
         )
