@@ -86,7 +86,8 @@ def run_conversion_from_yaml(file_path: FilePathType, overwrite: bool = False):
         full_spec = yaml.load(stream=io, Loader=yaml.SafeLoader)
     global_metadata = full_spec["global_metadata"]
     nwb_conversion_tools = import_module(
-        name=".", package="nwb_conversion_tools",  # relative import  # but named and referenced as it were absolute
+        name=".",
+        package="nwb_conversion_tools",  # relative import  # but named and referenced as it were absolute
     )
     for experiment in full_spec["experiments"].values():
         experiment_metadata = experiment["experiment_metadata"]
