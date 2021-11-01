@@ -168,7 +168,8 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
             print("calling next")
             self._current_chunk += 1
             self._pbar.update()
-            return next(self.video_capture_ob)
+            frame = next(self.video_capture_ob)
+            return frame[np.newaxis,:]
         frames_return = []
         step = selection[0].step if selection[0].step is not None else 1
         for frame_no in range(selection[0].start, selection[0].stop, step):

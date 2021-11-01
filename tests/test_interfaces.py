@@ -154,8 +154,8 @@ def test_movie_interface():
 
         # These conversion options do not operate independently, so test them jointly
         conversion_options_testing_matrix = [
-            dict(Movie=dict(external_mode=False, stub_test=x, chunk_data=y))
-            for x, y in product([True, False], repeat=2)
+            dict(Movie=dict(external_mode=False, stub_test=True, chunk_data=i, iterator_type=j))
+            for i, j in product([True, False], ["v1", "v2"])
         ]
         for conversion_options in conversion_options_testing_matrix:
             converter.run_conversion(

@@ -175,7 +175,7 @@ class MovieInterface(BaseDataInterface):
             else:
                 uncompressed_estimate = Path(file).stat().st_size * 70
                 available_memory = psutil.virtual_memory().available
-                if not chunk_data and uncompressed_estimate >= available_memory:
+                if not chunk_data and not stub_test and uncompressed_estimate >= available_memory:
                     warn(
                         f"Not enough memory (estimated {round(uncompressed_estimate/1e9, 2)} GB) to load movie file as "
                         f"array ({round(available_memory/1e9, 2)} GB available)! Forcing chunk_data to True."
@@ -203,13 +203,8 @@ class MovieInterface(BaseDataInterface):
                     maxshape = (total_frames, *frame_shape)
                     best_gzip_chunk = (1, frame_shape[0], frame_shape[1], 3)
                     if chunk_data:
-                        iterable = DataChunkIterator(
-                            data=tqdm(
-                                iterable=video_capture_ob,
-                                desc=f"Writing movie data for {Path(file).name}",
-                                position=tqdm_pos,
-                                mininterval=tqdm_mininterval,
-                            ),
+                        iterable = DataChunkIterator.from_iterable(
+                            data=video_capture_ob,
                             iter_axis=0,  # nwb standard is time as zero axis
                             maxshape=tuple(maxshape),
                             dtype=video_capture_ob.get_movie_frame_dtype(),
