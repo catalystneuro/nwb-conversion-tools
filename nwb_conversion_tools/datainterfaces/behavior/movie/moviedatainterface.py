@@ -191,7 +191,6 @@ class MovieInterface(BaseDataInterface):
                         chunk_mb=chunk_mb,
                         chunk_shape=chunk_shape,
                     )
-                    video_capture_ob = mv_iterator.video_capture_ob
                     data = H5DataIO(
                         mv_iterator,
                         compression=compression,
