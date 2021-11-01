@@ -1,72 +1,18 @@
 """Authors: Cody Baker, Alessio Buccino."""
-import numpy as np
-import uuid
 import yaml
+import numpy as np
 from pathlib import Path
-from datetime import datetime
-from warnings import warn
 from tempfile import mkdtemp
 from shutil import rmtree
 from time import perf_counter
-from typing import Optional, Dict
+from typing import Optional
+from importlib import import_module
 
-from pynwb import NWBFile
-from pynwb.file import Subject
 from spikeextractors import RecordingExtractor, SubRecordingExtractor
 
 from .json_schema import dict_deep_update, FilePathType
 from .spike_interface import write_recording
 from ..nwbconverter import NWBConverter
-
-
-def get_module(nwbfile: NWBFile, name: str, description: str = None):
-    """Check if processing module exists. If not, create it. Then return module."""
-    if name in nwbfile.processing:
-        if description is not None and nwbfile.modules[name].description != description:
-            warn(
-                "Custom description given to get_module does not match existing module description! "
-                "Ignoring custom description."
-            )
-        return nwbfile.processing[name]
-    else:
-        if description is None:
-            description = "No description."
-        return nwbfile.create_processing_module(name=name, description=description)
-
-
-def get_default_nwbfile_metadata():
-    """
-    Return structure with defaulted metadata values required for a NWBFile.
-
-    These standard defaults are
-        metadata["NWBFile"]["session_description"] = "no description"
-        metadata["NWBFile"]["session_description"] = datetime(1970, 1, 1)
-
-    Proper conversions should override these fields prior to calling NWBConverter.run_conversion()
-    """
-    metadata = dict(
-        NWBFile=dict(
-            session_description="no description",
-            session_start_time=datetime(1970, 1, 1).isoformat(),
-            identifier=str(uuid.uuid4()),
-        )
-    )
-    return metadata
-
-
-def make_nwbfile_from_metadata(metadata: dict):
-    """Make NWBFile from available metadata."""
-    metadata = dict_deep_update(get_default_nwbfile_metadata(), metadata)
-    nwbfile_kwargs = metadata["NWBFile"]
-    if "Subject" in metadata:
-        # convert ISO 8601 string to datetime
-        if "date_of_birth" in metadata["Subject"] and isinstance(metadata["Subject"]["date_of_birth"], str):
-            metadata["Subject"]["date_of_birth"] = datetime.fromisoformat(metadata["Subject"]["date_of_birth"])
-        nwbfile_kwargs.update(subject=Subject(**metadata["Subject"]))
-    # convert ISO 8601 string to datetime
-    if isinstance(nwbfile_kwargs.get("session_start_time", None), str):
-        nwbfile_kwargs["session_start_time"] = datetime.fromisoformat(metadata["NWBFile"]["session_start_time"])
-    return NWBFile(**nwbfile_kwargs)
 
 
 def check_regular_timestamps(ts):
@@ -121,36 +67,40 @@ def estimate_recording_conversion_time(
     return total_time, speed
 
 
-def yaml_to_converter(file_path: FilePathType) -> Dict:
+def run_conversion_from_yaml(file_path: FilePathType, overwrite: bool = False):
     """
-    Convert a yaml specification file to a sequence of NWBConverter classes for each experiment type.
+    Run conversion to NWB given a yaml specification file.
 
     Parameters
     ----------
     file_path : FilePathType
         File path leading to .yml specification file for NWB conversion.
-
-    Returns
-    -------
-    List of Configured class for all session
+    overwrite : bool, optional
+        If True, replaces any existing NWBFile at the nwbfile_path location, if save_to_file is True.
+        If False, appends the existing NWBFile at the nwbfile_path location, if save_to_file is True.
+        The default is False.
 
     """
+    source_dir = Path(file_path).parent.absolute()
     with open(file=file_path, mode="r") as io:
-        d = yaml.load(stream=io, Loader=yaml.SafeLoader)
-    global_metadata = d["metadata"]
+        full_spec = yaml.load(stream=io, Loader=yaml.SafeLoader)
+    global_metadata = full_spec["global_metadata"]
+    nwb_conversion_tools = import_module(
+        name=".", package="nwb_conversion_tools",  # relative import  # but named and referenced as it were absolute
+    )
+    for experiment in full_spec["experiments"].values():
+        experiment_metadata = experiment["experiment_metadata"]
+        for session in experiment["sessions"]:
+            data_interface_classes = dict()
+            for data_interface_name in experiment["data_interfaces"]:
+                data_interface_class = getattr(nwb_conversion_tools, data_interface_name)
+                data_interface_classes.update(data_interface_name=data_interface_class)
 
-    classes = dict()
-    for experiment_type in d["experiment_types"]:
-        session_metadata = d["metadata"]
+            class CustomNWBConverter(NWBConverter):
+                data_interface_classes = data_interface_classes
 
-        class Class(NWBConverter):
-            data_interface_classes = dict()  # TODO
-
-            def get_metadata(self):
-                metadata = super().get_metadata()
-                dict_deep_update(metadata, global_metadata)
-                dict_deep_update(metadata, session_metadata)
-                return metadata
-
-        classes.update({experiment_type: Class})
-    return classes
+            converter = CustomNWBConverter(source_data=session["source_data"])
+            metadata = converter.get_metadata()
+            for metadata_source in [global_metadata, experiment_metadata, session["session_metadata"]]:
+                dict_deep_update(metadata, metadata_source)
+            converter.run_conversion(nwbfile_path=source_dir / f"{session['nwbfile_name']}.nwb", overwrite=overwrite)

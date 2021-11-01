@@ -3,7 +3,9 @@ import numpy as np
 from tempfile import mkdtemp
 from pathlib import Path
 from shutil import rmtree
+from datetime import datetime
 
+from pynwb import NWBHDF5IO
 from pynwb.base import ProcessingModule
 from spikeextractors import NumpyRecordingExtractor
 
@@ -12,7 +14,7 @@ from nwb_conversion_tools.utils.conversion_tools import (
     get_module,
     make_nwbfile_from_metadata,
     estimate_recording_conversion_time,
-    yaml_to_converter,
+    convert_from_yaml,
 )
 
 
@@ -55,13 +57,14 @@ class TestConversionTools(TestCase):
             recording=recording, write_kwargs=dict(compression=None)
         )
 
-    def test_yaml_to_converter_single_session(self):
-        custom_converters_dict = yaml_to_converter(file_path="example_converter_spec.yml")
-        experiment_name = "ymaze"
-        assert len(custom_converters_dict) == 1
-        assert experiment_name in custom_converters_dict
-        assert len(custom_converters_dict)
-        custom_converter = custom_converters_dict[experiment_name]
-        custom_metadata = custom_converter.get_metadata()
-        # check
-
+    def test_run_conversion_from_yaml(self):
+        yaml_file_path = "example_converter_spec.yml"
+        convert_from_yaml(file_path=yaml_file_path)
+        with NWBHDF5IO(path="example_converter_spec_1.nwb", mode="r") as io:
+            nwbfile = io.read()
+            assert nwbfile.session_description == "Subject navigating a Y-shaped maze."
+            assert nwbfile.lab == "My Lab"
+            assert nwbfile.institution == "My Institution"
+            assert nwbfile.session_start_time == datetime.fromisoformat("2020-11-09T21:19:09+00:00")
+            assert nwbfile.Subject.subject_id == "001"
+            assert "ElectricalSeries_raw" in nwbfile.acquisition
