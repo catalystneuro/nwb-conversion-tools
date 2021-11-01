@@ -204,8 +204,18 @@ class MovieInterface(BaseDataInterface):
                     maxshape = (total_frames, *frame_shape)
                     best_gzip_chunk = (1, frame_shape[0], frame_shape[1], 3)
                     if chunk_data:
-                        iterable = video_capture_ob
-                        dtype = video_capture_ob.get_movie_frame_dtype()
+                        iterable = DataChunkIterator(
+                            data=tqdm(
+                                iterable=video_capture_ob,
+                                desc=f"Writing movie data for {Path(file).name}",
+                                position=tqdm_pos,
+                                mininterval=tqdm_mininterval,
+                            ),
+                            iter_axis=0,  # nwb standard is time as zero axis
+                            maxshape=tuple(maxshape),
+                            dtype=video_capture_ob.get_movie_frame_dtype(),
+                        )
+                        data = H5DataIO(iterable, compression="gzip", chunks=best_gzip_chunk)
                     else:
                         iterable = []
                         with tqdm(
@@ -218,20 +228,8 @@ class MovieInterface(BaseDataInterface):
                                 iterable.append(frame)
                                 pbar.update(1)
                         iterable = np.array(iterable)
-                        dtype = iterable.dtype
-                    mv_iterator = DataChunkIterator(
-                        data=tqdm(
-                            iterable=iterable,
-                            desc=f"Writing movie data for {Path(file).name}",
-                            position=tqdm_pos,
-                            mininterval=tqdm_mininterval,
-                        ),
-                        iter_axis=0,  # nwb standard is time as zero axis
-                        maxshape=tuple(maxshape),
-                        dtype=dtype,
-                    )
 
-                    data = H5DataIO(mv_iterator, compression="gzip", chunks=best_gzip_chunk)
+                        data = H5DataIO(iterable, compression="gzip")
 
                 # capture data in kwargs:
                 image_series_kwargs.update(data=data)
