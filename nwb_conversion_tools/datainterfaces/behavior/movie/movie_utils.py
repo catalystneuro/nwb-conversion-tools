@@ -18,6 +18,8 @@ PathType = Union[str, Path]
 
 class VideoCaptureContext(cv2.VideoCapture):
     def __init__(self, *args, stub=False, **kwargs):
+        self._args = args
+        self._kwargs = kwargs
         super().__init__(*args, **kwargs)
         self.stub = stub
         self._current_frame = 0
@@ -127,6 +129,8 @@ class VideoCaptureContext(cv2.VideoCapture):
             raise StopIteration
 
     def __enter__(self):
+        if not self.isOpened():
+            super().__init__(*self._args, **self._kwargs)
         return self
 
     def __exit__(self, *args):
@@ -159,7 +163,7 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
 
     def _get_data(self, selection: Tuple[slice]) -> Iterable:
         if self._pbar is None:
-            self._pbar = tqdm(total=np.prod(self.num_chunks), desc="retrieving movie data chunk")
+            self._pbar = tqdm(total=np.prod(self.num_buffers), desc="retrieving movie data chunk")
         if self._default_chunk_shape:
             print("calling next")
             self._current_chunk += 1
