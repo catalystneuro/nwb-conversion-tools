@@ -57,6 +57,7 @@ class TestConversionTools(TestCase):
             recording=recording, write_kwargs=dict(compression=None)
         )
 
+<<<<<<< HEAD
     def test_run_conversion_from_yaml(self):
         yaml_file_path = "example_converter_spec.yml"
         convert_from_yaml(file_path=yaml_file_path)
@@ -68,3 +69,14 @@ class TestConversionTools(TestCase):
             assert nwbfile.session_start_time == datetime.fromisoformat("2020-11-09T21:19:09+00:00")
             assert nwbfile.Subject.subject_id == "001"
             assert "ElectricalSeries_raw" in nwbfile.acquisition
+=======
+    def test_yaml_to_converter_single_session(self):
+        custom_converters_dict = yaml_to_converter(file_path="example_converter_spec.yml")
+        experiment_name = "ymaze"
+        assert len(custom_converters_dict) == 1
+        assert experiment_name in custom_converters_dict
+        assert len(custom_converters_dict)
+        custom_converter = custom_converters_dict[experiment_name]
+        custom_metadata = custom_converter.get_metadata()
+        # check
+>>>>>>> dbe351e14c6fe97bfd008b7582324ff88c888e6a
