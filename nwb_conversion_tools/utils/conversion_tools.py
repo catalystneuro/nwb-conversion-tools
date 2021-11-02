@@ -7,6 +7,7 @@ from shutil import rmtree
 from time import perf_counter
 from typing import Optional
 from importlib import import_module
+from itertools import chain
 
 from spikeextractors import RecordingExtractor, SubRecordingExtractor
 
@@ -96,24 +97,32 @@ def run_conversion_from_yaml(file_path: FilePathType, overwrite: bool = False):
     """
     source_dir = Path(file_path).parent.absolute()
     full_spec = yaml_to_dict(file_path=file_path)
-    global_metadata = full_spec["metadata"]
+    global_metadata = full_spec.get("metadata", dict())
+    global_data_interfaces = full_spec.get("data_interfaces")
     nwb_conversion_tools = import_module(
         name=".",
         package="nwb_conversion_tools",  # relative import  # but named and referenced as it were absolute
     )
     for experiment in full_spec["experiments"].values():
-        experiment_metadata = experiment["metadata"]
+        experiment_metadata = experiment.get("metadata", dict())
+        experiment_data_interfaces = experiment.get("data_interfaces")
         for session in experiment["sessions"]:
+            session_data_interfaces = experiment.get("data_interfaces")
             data_interface_classes = dict()
-            for data_interface_name in experiment["data_interfaces"]:
-                data_interface_class = getattr(nwb_conversion_tools, data_interface_name)
-                data_interface_classes.update(data_interface_name=data_interface_class)
+            for data_interface_name in chain(
+                global_data_interfaces, experiment_data_interfaces, session_data_interfaces
+            ):
+                data_interface_classes.update(data_interface_name=getattr(nwb_conversion_tools, data_interface_name))
 
             class CustomNWBConverter(NWBConverter):
                 data_interface_classes = data_interface_classes
 
             converter = CustomNWBConverter(source_data=session["source_data"])
             metadata = converter.get_metadata()
-            for metadata_source in [global_metadata, experiment_metadata, session["metadata"]]:
+            for metadata_source in [global_metadata, experiment_metadata, session.get("metadata", dict())]:
                 dict_deep_update(metadata, metadata_source)
-            converter.run_conversion(nwbfile_path=source_dir / f"{session['nwbfile_name']}.nwb", overwrite=overwrite)
+            converter.run_conversion(
+                nwbfile_path=source_dir / f"{session['nwbfile_name']}.nwb",
+                overwrite=overwrite,
+                conversion_options=session.get("conversion_options", dict()),
+            )
