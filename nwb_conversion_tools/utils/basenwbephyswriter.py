@@ -485,7 +485,7 @@ class BaseNwbEphysWriter(ABC):
         }
         if self._conversion_ops["iterator_type"] == "v2":
             ephys_data = NwbEphysWriterDataChunkIterator(
-                ephys_writer=self, segment_index=segment_index, unsigned_coercion=unsigned_coercion, **iterator_opts
+                ephys_writer=self, segment_index=segment_index, **iterator_opts
             )
         elif self._conversion_ops["iterator_type"] == "v1":
             if isinstance(
