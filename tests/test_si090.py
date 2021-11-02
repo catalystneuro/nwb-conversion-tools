@@ -133,19 +133,20 @@ class TestWriteElectrodes(unittest.TestCase):
         self.metadata_list = [dict(Ecephys={i: dict(name=i, description="desc")}) for i in ["es1", "es2"]]
         # change channel_ids
         id_offset = np.max(self.RX.get_channel_ids())
-        self.RX2 = self.RX2.channel_slice(self.RX2.get_channel_ids(),
-                                          renamed_channel_ids=np.array(self.RX2.get_channel_ids()) + id_offset + 1)
+        self.RX2 = self.RX2.channel_slice(
+            self.RX2.get_channel_ids(), renamed_channel_ids=np.array(self.RX2.get_channel_ids()) + id_offset + 1
+        )
 
         self.RX2.set_channel_groups(np.ones(shape=self.RX2.get_num_channels(), dtype="int"))
         self.RX.set_channel_groups(np.zeros(shape=self.RX.get_num_channels(), dtype="int"))
-        self.SX.set_property("electrode_group", ["0"]*self.SX.get_num_units())
+        self.SX.set_property("electrode_group", ["0"] * self.SX.get_num_units())
         # add common properties:
-        self.RX2.set_property("prop1", ["10Hz"]*self.RX2.get_num_channels())
-        self.RX.set_property("prop1", ["10Hz"]*self.RX.get_num_channels())
-        self.RX2.set_property("brain_area", ["M1"]*self.RX2.get_num_channels())
-        self.RX.set_property("brain_area", ["PMd"]*self.RX.get_num_channels())
-        self.RX2.set_property("group_electrodes", ["M1"]*self.RX2.get_num_channels())
-        self.RX.set_property("group_electrodes", ["PMd"]*self.RX.get_num_channels())
+        self.RX2.set_property("prop1", ["10Hz"] * self.RX2.get_num_channels())
+        self.RX.set_property("prop1", ["10Hz"] * self.RX.get_num_channels())
+        self.RX2.set_property("brain_area", ["M1"] * self.RX2.get_num_channels())
+        self.RX.set_property("brain_area", ["PMd"] * self.RX.get_num_channels())
+        self.RX2.set_property("group_electrodes", ["M1"] * self.RX2.get_num_channels())
+        self.RX.set_property("group_electrodes", ["PMd"] * self.RX.get_num_channels())
         rx2_alt_ch_ids = []
         rx1_alt_ch_ids = []
         for no, (chan_id1, chan_id2) in enumerate(zip(self.RX.get_channel_ids(), self.RX2.get_channel_ids())):
@@ -157,7 +158,6 @@ class TestWriteElectrodes(unittest.TestCase):
 
         self.RX.set_property("prop3", [str(i) for i in rx1_alt_ch_ids], rx1_alt_ch_ids)
         self.RX2.set_property("prop3", [str(i) for i in rx2_alt_ch_ids], rx2_alt_ch_ids)
-
 
     def test_append_same_properties(self):
         export_ecephys_to_nwb(
@@ -171,8 +171,9 @@ class TestWriteElectrodes(unittest.TestCase):
             io.write(self.nwbfile1)
         with NWBHDF5IO(str(self.path1), "r") as io:
             nwb = io.read()
-            assert all(nwb.electrodes.id.data[()] == np.concatenate((self.RX.get_channel_ids(),
-                                                                     self.RX2.get_channel_ids())))
+            assert all(
+                nwb.electrodes.id.data[()] == np.concatenate((self.RX.get_channel_ids(), self.RX2.get_channel_ids()))
+            )
             assert all([i in nwb.electrodes.colnames for i in ["prop1", "prop2", "prop3"]])
             for i, chan_id in enumerate(nwb.electrodes.id.data):
                 assert nwb.electrodes["prop1"][i] == "10Hz"

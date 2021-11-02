@@ -97,9 +97,9 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
         if not return_scaled:
             return self.recording.get_dtype()
         else:
-            return self._get_traces(channel_ids=self._get_channel_ids()[:1],
-                                    start_frame=0, end_frame=2,
-                                    return_scaled=return_scaled).dtype
+            return self._get_traces(
+                channel_ids=self._get_channel_ids()[:1], start_frame=0, end_frame=2, return_scaled=return_scaled
+            ).dtype
 
     # @default_return([])
     def _get_channel_property_names(self):
