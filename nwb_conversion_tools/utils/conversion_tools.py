@@ -67,6 +67,20 @@ def estimate_recording_conversion_time(
     return total_time, speed
 
 
+def yaml_to_dict(file_path: FilePathType):
+    """
+    Conversion of yaml to dictionary.
+
+    Parameters
+    ----------
+    file_path : FilePathType
+      Path to .yml file.
+    """
+    with open(file=file_path, mode="r") as io:
+        d = yaml.load(stream=io, Loader=yaml.SafeLoader)
+    return d
+
+
 def run_conversion_from_yaml(file_path: FilePathType, overwrite: bool = False):
     """
     Run conversion to NWB given a yaml specification file.
@@ -79,18 +93,16 @@ def run_conversion_from_yaml(file_path: FilePathType, overwrite: bool = False):
         If True, replaces any existing NWBFile at the nwbfile_path location, if save_to_file is True.
         If False, appends the existing NWBFile at the nwbfile_path location, if save_to_file is True.
         The default is False.
-
     """
     source_dir = Path(file_path).parent.absolute()
-    with open(file=file_path, mode="r") as io:
-        full_spec = yaml.load(stream=io, Loader=yaml.SafeLoader)
-    global_metadata = full_spec["global_metadata"]
+    full_spec = yaml_to_dict(file_path=file_path)
+    global_metadata = full_spec["metadata"]
     nwb_conversion_tools = import_module(
         name=".",
         package="nwb_conversion_tools",  # relative import  # but named and referenced as it were absolute
     )
     for experiment in full_spec["experiments"].values():
-        experiment_metadata = experiment["experiment_metadata"]
+        experiment_metadata = experiment["metadata"]
         for session in experiment["sessions"]:
             data_interface_classes = dict()
             for data_interface_name in experiment["data_interfaces"]:
@@ -102,6 +114,6 @@ def run_conversion_from_yaml(file_path: FilePathType, overwrite: bool = False):
 
             converter = CustomNWBConverter(source_data=session["source_data"])
             metadata = converter.get_metadata()
-            for metadata_source in [global_metadata, experiment_metadata, session["session_metadata"]]:
+            for metadata_source in [global_metadata, experiment_metadata, session["metadata"]]:
                 dict_deep_update(metadata, metadata_source)
             converter.run_conversion(nwbfile_path=source_dir / f"{session['nwbfile_name']}.nwb", overwrite=overwrite)
