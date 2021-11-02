@@ -1,8 +1,5 @@
 from unittest import TestCase
 import numpy as np
-from tempfile import mkdtemp
-from pathlib import Path
-from shutil import rmtree
 
 from pynwb.base import ProcessingModule
 from spikeextractors import NumpyRecordingExtractor
@@ -16,12 +13,6 @@ from nwb_conversion_tools.utils.conversion_tools import (
 
 
 class TestConversionTools(TestCase):
-    def setUp(self):
-        self.test_dir = Path(mkdtemp())
-
-    def tearDown(self):
-        rmtree(self.test_dir)
-
     def test_check_regular_timestamps(self):
         assert check_regular_timestamps([1, 2, 3])
         assert not check_regular_timestamps([1, 2, 4])
