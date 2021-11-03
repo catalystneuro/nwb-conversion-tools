@@ -36,7 +36,7 @@ class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
                 return_scaled=self.write_scaled,
                 segment_index=self.segment_index,
             )
-            + self.unsigned_coercion[channel_idxs]
+            + self.unsigned_coercion[np.array(channel_idxs)]
         )
 
     def _get_dtype(self):
