@@ -21,7 +21,7 @@ class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
         self.segment_index = segment_index
         self.write_scaled = write_scaled
         self.ephys_writer = ephys_writer
-        self.channel_ids = ephys_writer._get_channel_ids()
+        self.channel_ids = list(ephys_writer._get_channel_ids())
         self.unsigned_coercion = [0] * len(self.channel_ids) if unsigned_coercion is None else unsigned_coercion
         super().__init__(buffer_gb=buffer_gb, buffer_shape=buffer_shape, chunk_mb=chunk_mb, chunk_shape=chunk_shape)
 
