@@ -33,7 +33,7 @@ def append_replace_dict_in_list(d, ls, k):
         # Index where the value dictionary[k] exists in the list of dicts
         ind = np.where([d[k] == i[k] for i in ls])[0]
         if len(ind) > 0:
-            ls[ind[0]] = d
+            ls[ind[0]].update(d)
         else:
             ls.append(d)
     else:
