@@ -1,6 +1,6 @@
 """Authors: Saksham Sharda."""
 from typing import Tuple, Iterable
-
+import numpy as np
 from .genericdatachunkiterator import GenericDataChunkIterator
 
 
