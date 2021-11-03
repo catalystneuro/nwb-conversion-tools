@@ -30,7 +30,7 @@ def get_default_nwbfile_metadata():
 
     These standard defaults are
         metadata["NWBFile"]["session_description"] = "no description"
-        metadata["NWBFile"]["session_description"] = datetime(1970, 1, 1)
+        metadata["NWBFile"]["session_start_time"] = datetime(1970, 1, 1)
 
     Proper conversions should override these fields prior to calling NWBConverter.run_conversion()
     """
