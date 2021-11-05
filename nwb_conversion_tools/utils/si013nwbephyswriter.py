@@ -127,7 +127,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
         elif prop == "offset":
             return self.recording.get_channel_offsets()
         elif prop == "group":
-            if any(["group_name" in self.recording._properties.get(id,"") for id in self.recording.get_channel_ids()]):
+            if any(["group_name" in self.recording._properties.get(id, "") for id in self.recording.get_channel_ids()]):
                 prop_values = self._fill_missing_property_values(
                     self._get_channel_ids(), "group_name", self.recording.get_channel_property
                 )
