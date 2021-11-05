@@ -40,7 +40,7 @@ class IntanRecordingInterface(BaseRecordingExtractorInterface):
         channel_ids = self.recording_extractor.get_channel_ids()
         for channel_id, channel_group in zip(channel_ids, group_names):
             self.recording_extractor.set_channel_property(
-                channel_id=channel_id, property_name="group_name", value=f"Group{channel_group}"
+                channel_id=channel_id, property_name="group_name", value=channel_group
             )
 
         if len(unique_group_names) > 1:
