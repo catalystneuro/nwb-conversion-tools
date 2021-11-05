@@ -1,7 +1,7 @@
 """Authors: Cody Baker and Ben Dichter."""
 import spikeextractors as se
-
-from ..basesortingextractorinterface import BaseSortingExtractorInterface
+from pynwb import NWBFile, NWBHDF5IO
+from ..basesortingextractorinterface import BaseSortingExtractorInterface, OptionalPathType
 
 
 class TutorialSortingExtractor(se.NumpySortingExtractor):
@@ -55,17 +55,26 @@ class SortingTutorialInterface(BaseSortingExtractorInterface):
                 unit_id=unit_id, property_name="custom_unit_column", value="A custom value"
             )
 
-    def get_metadata(self):
-        # Set all automatically constructed metadata for the interface at this step
-        # The user can always manually override this prior to running the conversion
-        metadata = dict(
-            Ecephys=dict(
-                UnitProperties=[
-                    dict(
-                        name="custom_unit_column",
-                        description="Custom column in the spiking unit table for the NWB Conversion Tools tutorial.",
-                    )
-                ]
-            )
+    def run_conversion(
+        self,
+        nwbfile: NWBFile,
+        metadata: dict,
+        stub_test: bool = False,
+        write_ecephys_metadata: bool = False,
+        save_path: OptionalPathType = None,
+        overwrite: bool = False,
+        **kwargs,
+    ):
+        unit_property_desc = {
+            "custom_unit_column": "Custom column in the spiking unit table for the NWB Conversion Tools tutorial."
+        }
+        super().run_conversion(
+            nwbfile=nwbfile,
+            metadata=metadata,
+            stub_test=stub_test,
+            write_ecephys_metadata=write_ecephys_metadata,
+            save_path=save_path,
+            overwrite=overwrite,
+            unit_property_descriptions=unit_property_desc,
+            **kwargs,
         )
-        return metadata
