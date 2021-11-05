@@ -164,7 +164,7 @@ def default_export_ops():
         chunk_mb=None,
         iterator_type="v2",
         chunk_shape=None,
-        write_scaled=True,
+        write_scaled=False,
         compression="gzip",
         compression_opts=4,
         iterate=True,
