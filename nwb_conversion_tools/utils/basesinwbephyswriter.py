@@ -35,7 +35,7 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
 
     # @default_return([])
     def _get_unit_ids(self):
-        return np.array(self.sorting.get_unit_ids(), dtype='int')
+        return np.array(self.sorting.get_unit_ids(), dtype="int")
 
     # @default_return([])
     def _check_valid_property(self, prop_values):
