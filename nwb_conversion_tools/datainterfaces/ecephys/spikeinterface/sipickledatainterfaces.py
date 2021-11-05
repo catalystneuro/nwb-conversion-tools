@@ -10,16 +10,21 @@ from ....utils import map_si_object_to_writer
 class SIPickleRecordingExtractorInterface(BaseRecordingExtractorInterface):
     """Primary interface for reading and converting SpikeInterface Recording objects through .pkl files."""
 
-    RX = load_extractor_from_pickle
+    RX = None
 
     def __init__(self, pkl_file: FilePathType):
-        super(SIPickleRecordingExtractorInterface, self).__init__(pkl_file=pkl_file)
+        self.recording_extractor = load_extractor_from_pickle(pkl_file)
+        self.writer_class = map_si_object_to_writer(self.recording_extractor)(self.recording_extractor)
+        self.subset_channels = None
+        self.source_data = dict(pkl_file=pkl_file)
 
 
 class SIPickleSortingExtractorInterface(BaseSortingExtractorInterface):
     """Primary interface for reading and converting SpikeInterface Sorting objects through .pkl files."""
 
-    SX = load_extractor_from_pickle
+    SX = None
 
     def __init__(self, pkl_file: FilePathType):
-        super(SIPickleSortingExtractorInterface, self).__init__(pkl_file=pkl_file)
+        self.sorting_extractor = load_extractor_from_pickle(pkl_file)
+        self.writer_class = map_si_object_to_writer(self.sorting_extractor)(self.sorting_extractor)
+        self.source_data = dict(pkl_file=pkl_file)
