@@ -166,7 +166,7 @@ class BaseNwbEphysWriter(ABC):
         if "Ecephys" not in self.metadata:
             self.metadata["Ecephys"] = dict()
 
-        channel_groups_unique = np.unique(self._get_channel_property_values("group"))
+        channel_groups_unique = set(self._get_channel_property_values("group"))
 
         defaults = [
             dict(

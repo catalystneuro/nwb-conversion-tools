@@ -125,6 +125,8 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
             else:
                 return self.recording.get_channel_offsets()
         elif prop == "group":
+            if self.recording.get_property("group_name") is not None:
+                return self.recording.get_property("group_name")
             if self.recording.get_channel_groups() is None:
                 return np.zeros(len(self._get_channel_ids()))
             else:
