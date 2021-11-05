@@ -115,7 +115,7 @@ class VideoCaptureContext(cv2.VideoCapture):
         if not self.isOpened():
             raise StopIteration
         try:
-            if self.current_frame < self.get_movie_frame_count():
+            if self.current_frame < self.frame_count:
                 success, frame = self.read()
                 self.current_frame += 1
                 if success:
