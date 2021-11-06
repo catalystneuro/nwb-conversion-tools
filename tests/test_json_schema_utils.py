@@ -44,22 +44,46 @@ def test_get_schema_from_method_signature():
 
 
 def test_dict_deep_update():
+    # 1. dict with non dict, list items
+    a1 = dict(a=1, b="hello", c=23)
+    b1 = dict(a=3, b="goodbye", d="compare")
+    result1 = dict_deep_update(a1, b1, copy=True)
+    correct_result = dict(a=3, b="goodbye", c=23, d="compare")
+    compare_dicts(result1, correct_result)
 
-    a = dict(a=1, b="hello", c=dict(a=2), d=[1, 2, 3])
+    # 2. test recursive dicts as keys
+    a2 = dict(a=1, c=a1)
+    b2 = dict(a=3, b="compare", c=b1)
+    result2 = dict_deep_update(a2, b2, copy=True)
+    correct_result = dict(a=3, b="compare", c=result1)
+    compare_dicts(result2, correct_result)
 
-    b = dict(a=3, b="goodbye", c=dict(b=1), d=[4, 5, 6])
+    # 3.1 test list single elements append
+    a3 = dict(a2, ls1=[1,2,"test"])
+    b3 = dict(b2, ls1=[3,1,"test2"])
+    result3_1 = dict_deep_update(a3, b3, copy=True, append_list=True)
+    correct_result = dict(result2,ls1=[1,2,3,"test","test2"])
+    compare_dicts(result3_1, correct_result)
+    result3_1 = dict_deep_update(a3, b3, copy=True, append_list=True, remove_repeats=False)
+    correct_result = dict(result2, ls1=[1, 1, 2, 3, "test", "test2"])
+    compare_dicts(result3_1, correct_result)
+    # 3.2 test without append
+    result3_2 = dict_deep_update(a3, b3, copy=True, append_list=False)
+    correct_result = dict(result2, ls1=b3["ls1"])
+    compare_dicts(result3_2, correct_result)
 
-    result = dict_deep_update(a, b)
-
-    correct_result = {"a": 3, "b": "goodbye", "c": {"a": 2, "b": 1}, "d": [1, 2, 3, 4, 5, 6]}
-
-    compare_dicts(result, correct_result)
-
-    result2 = dict_deep_update(a, b, append_list=False)
-
-    correct_result2 = {"a": 3, "b": "goodbye", "c": {"a": 2, "b": 1}, "d": [4, 5, 6]}
-
-    compare_dicts(result2, correct_result2)
+    # 4. test list of dicts with common keys
+    c1 = dict(a1, b="world", e="string")
+    a4 = dict(a3, ls1=[a1, b1])
+    b4 = dict(b3, ls1=[c1])
+    # compare key is common in both:
+    result4 = dict_deep_update(a4, b4, copy=True, compare_key="a")
+    correct_result = dict(result3_1, ls1=[dict_deep_update(a1,c1,copy=True), b1])
+    compare_dicts(result4, correct_result)
+    # compare key missing:
+    result4 = dict_deep_update(a4, b4, copy=True, compare_key="b")
+    correct_result = dict(result3_1, ls1=[a1, c1, b1])
+    compare_dicts(result4, correct_result)
 
 
 def test_fill_defaults():
