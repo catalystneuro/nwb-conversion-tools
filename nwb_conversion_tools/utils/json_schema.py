@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import TypeVar
 from pathlib import Path
 from typing import Optional, Union
-
+from copy import deepcopy
 import pynwb
 
 FilePathType = TypeVar("FilePathType", str, Path)
@@ -42,23 +42,35 @@ def append_replace_dict_in_list(d, ls, k):
     return ls
 
 
-def dict_deep_update(d: dict, u: dict, append_list: bool = True, remove_repeats: bool = True) -> dict:
+def dict_get_dtype(d: collections.abc.Mapping, key: str, default_val=None):
+    ret_val = d.get(key, default_val)
+    if isinstance(ret_val, type(default_val)) or default_val is None:
+        return ret_val
+    else:
+        return default_val
+
+
+def dict_deep_update(
+    d: collections.abc.Mapping, u: collections.abc.Mapping, append_list: bool = True, remove_repeats: bool = True, copy: bool = False,
+        compare_key: str = "name"
+) -> dict:
     """Perform an update to all nested keys of dictionary d from dictionary u."""
+    if copy:
+        d = deepcopy(d)
     for k, v in u.items():
         if isinstance(v, collections.abc.Mapping):
-            d[k] = dict_deep_update(d.get(k, {}), v, append_list=append_list, remove_repeats=remove_repeats)
+            d[k] = dict_deep_update(dict_get_dtype(d, k, {}), v, append_list=append_list, remove_repeats=remove_repeats)
         elif append_list and isinstance(v, list):
-            if len(v) > 0 and isinstance(v[0], dict):
-                for vv in v:
-                    d[k] = append_replace_dict_in_list(d=vv, ls=d.get(k, []), k="name")
-                    # add dict only if not repeated
-                    # if not exist_dict_in_list(vv, d.get(k, [])):
-                    # d[k] = d.get(k, []) + [vv]
-            else:
-                d[k] = d.get(k, []) + v
-                # Remove repeated items if they exist
-                if remove_repeats and len(d[k]) > 0:
-                    d[k] = list(set(d[k]))
+            d[k] = dict_get_dtype(d, k, [])
+            for vv in v:
+                if isinstance(vv, collections.abc.Mapping):
+                    d[k] = append_replace_dict_in_list(d=vv, ls=dict_get_dtype(d, k, []), k=compare_key)
+                else:
+                    if vv not in d[k] or not remove_repeats:
+                        if isinstance(vv, list):
+                            d[k].extend(vv)
+                        else:
+                            d[k].append(vv)
         else:
             d[k] = v
     return d
