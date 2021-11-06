@@ -23,7 +23,7 @@ def exist_dict_in_list(d, ls):
     return any([d == i for i in ls])
 
 
-def append_replace_dict_in_list(d, ls, k):
+def append_replace_dict_in_list(d, ls, k, list_dict_deep_update: bool = True):
     """
     Append a dictionary to a list of dictionaries.
 
@@ -34,7 +34,10 @@ def append_replace_dict_in_list(d, ls, k):
         indxs = np.where([d[k] == i[k] for i in ls])[0]
         if len(indxs) > 0:
             for idx in indxs:
-                ls[idx] = dict_deep_update(ls[idx], d)
+                if list_dict_deep_update:
+                    ls[idx] = dict_deep_update(ls[idx], d)
+                else:
+                    ls[idx] = d
         else:
             ls.append(d)
     else:
@@ -57,6 +60,7 @@ def dict_deep_update(
     remove_repeats: bool = True,
     copy: bool = False,
     compare_key: str = "name",
+    list_dict_deep_update: bool = True,
 ) -> dict:
     """Perform an update to all nested keys of dictionary d from dictionary u."""
     if copy:
@@ -68,7 +72,9 @@ def dict_deep_update(
             d[k] = dict_get_dtype(d, k, [])
             for vv in v:
                 if isinstance(vv, collections.abc.Mapping):
-                    d[k] = append_replace_dict_in_list(d=vv, ls=dict_get_dtype(d, k, []), k=compare_key)
+                    d[k] = append_replace_dict_in_list(
+                        d=vv, ls=dict_get_dtype(d, k, []), k=compare_key, list_dict_deep_update=list_dict_deep_update
+                    )
                 else:
                     if vv not in d[k] or not remove_repeats:
                         if isinstance(vv, list):
