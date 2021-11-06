@@ -51,8 +51,12 @@ def dict_get_dtype(d: collections.abc.Mapping, key: str, default_val=None):
 
 
 def dict_deep_update(
-    d: collections.abc.Mapping, u: collections.abc.Mapping, append_list: bool = True, remove_repeats: bool = True, copy: bool = False,
-        compare_key: str = "name"
+    d: collections.abc.Mapping,
+    u: collections.abc.Mapping,
+    append_list: bool = True,
+    remove_repeats: bool = True,
+    copy: bool = False,
+    compare_key: str = "name",
 ) -> dict:
     """Perform an update to all nested keys of dictionary d from dictionary u."""
     if copy:
