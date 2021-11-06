@@ -83,7 +83,6 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         stub_test : bool, optional (default False)
         """
         kwargs = dict()
-
         if stub_test:
             num_frames = 100
             end_frame = min([num_frames, self.recording_extractor.get_num_frames()])
@@ -92,7 +91,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         if self.subset_channels is not None:
             kwargs.update(channel_ids=self.subset_channels)
 
-        recording_extractor = se.SubRecordingExtractor(self.recording_extractor, **kwargs)
+        recording_extractor = se.SubRecordingExtractor(parent_recording=self.recording_extractor, **kwargs)
         recording_extractor.set_channel_gains(gains=self.recording_extractor.get_channel_gains())
         return recording_extractor
 

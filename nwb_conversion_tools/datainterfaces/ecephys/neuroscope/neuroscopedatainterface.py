@@ -28,6 +28,7 @@ def subset_shank_channels(recording_extractor: se.RecordingExtractor, xml_file_p
             parent_recording=recording_extractor,
             channel_ids=[channel_id for group in shank_channels for channel_id in group],
         )
+        sub_recording.set_channel_gains(gains=recording_extractor.get_channel_gains())
     else:
         sub_recording = recording_extractor
     return sub_recording
