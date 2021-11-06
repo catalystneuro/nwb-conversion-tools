@@ -83,10 +83,10 @@ def test_dict_deep_update():
     compare_dicts(result2, correct_result)
 
     # 3.1 test list single elements append
-    a3 = dict(a2, ls1=[1,2,"test"])
-    b3 = dict(b2, ls1=[3,1,"test2"])
+    a3 = dict(a2, ls1=[1, 2, "test"])
+    b3 = dict(b2, ls1=[3, 1, "test2"])
     result3_1 = dict_deep_update(a3, b3, copy=True, append_list=True)
-    correct_result = dict(result2,ls1=[1,2,3,"test","test2"])
+    correct_result = dict(result2, ls1=[1, 2, 3, "test", "test2"])
     compare_dicts(result3_1, correct_result)
     result3_1 = dict_deep_update(a3, b3, copy=True, append_list=True, remove_repeats=False)
     correct_result = dict(result2, ls1=[1, 1, 2, 3, "test", "test2"])
@@ -102,7 +102,7 @@ def test_dict_deep_update():
     b4 = dict(b3, ls1=[c1])
     # compare key is common in both:
     result4 = dict_deep_update(a4, b4, copy=True, compare_key="a")
-    correct_result = dict(result3_1, ls1=[dict_deep_update(a1,c1,copy=True), b1])
+    correct_result = dict(result3_1, ls1=[dict_deep_update(a1, c1, copy=True), b1])
     compare_dicts(result4, correct_result)
     # compare key missing:
     result4 = dict_deep_update(a4, b4, copy=True, compare_key="b")
