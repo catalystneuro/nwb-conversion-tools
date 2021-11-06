@@ -20,7 +20,7 @@ def compare_dicts_2(a: dict, b: dict):
 
 
 def sort_dict(a: dict):
-    b = {i:a[i] for i in sorted(a)}
+    b = {i: a[i] for i in sorted(a)}
     for key, val in b.items():
         if isinstance(val, dict):
             b[key] = sort_dict(val)
