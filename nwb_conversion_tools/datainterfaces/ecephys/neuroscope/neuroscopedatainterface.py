@@ -65,6 +65,12 @@ class NeuroscopeRecordingInterface(BaseRecordingExtractorInterface):
         """Auto-populates ecephys metadata from the xml_file_path."""
         channel_groups = get_channel_groups(xml_file_path=xml_file_path)
         ecephys_metadata = dict(
+            ElectrodeGroup=[
+                dict(
+                    name=f"Group{n + 1}", description=f"Group{n + 1} electrodes.", location="", device="Device_ecephys"
+                )
+                for n, _ in enumerate(channel_groups)
+            ],
             Electrodes=[
                 dict(name="shank_electrode_number", description="0-indexed channel within a shank."),
                 dict(name="group_name", description="The name of the ElectrodeGroup this electrode is a part of."),
