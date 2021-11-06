@@ -93,6 +93,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
             kwargs.update(channel_ids=self.subset_channels)
 
         recording_extractor = se.SubRecordingExtractor(self.recording_extractor, **kwargs)
+        recording_extractor.set_channel_gains(gains=self.recording_extractor.get_channel_gains())
         return recording_extractor
 
     def run_conversion(
