@@ -28,7 +28,7 @@ except ImportError:
 #   ecephys: https://gin.g-node.org/NeuralEnsemble/ephy_testing_data
 #   ophys: TODO
 #   icephys: TODO
-LOCAL_PATH = Path(".")  # Must be set to "." for CI - temporarily override for local testing
+LOCAL_PATH = Path("E:/GIN/")  # Must be set to "." for CI - temporarily override for local testing
 DATA_PATH = LOCAL_PATH / "ephy_testing_data"
 HAVE_DATA = DATA_PATH.exists()
 
@@ -91,7 +91,7 @@ if HAVE_PARAMETERIZED and HAVE_DATA:
 
         @parameterized.expand(parameterized_recording_list)
         def test_convert_recording_extractor_to_nwb(self, recording_interface, interface_kwargs):
-            nwbfile_path = self.savedir / f"{recording_interface.__name__}.nwb"
+            nwbfile_path = str(self.savedir / f"{recording_interface.__name__}.nwb")
 
             class TestConverter(NWBConverter):
                 data_interface_classes = dict(TestRecording=recording_interface)
@@ -102,6 +102,27 @@ if HAVE_PARAMETERIZED and HAVE_DATA:
             nwb_recording = NwbRecordingExtractor(file_path=nwbfile_path)
             check_recordings_equal(RX1=recording, RX2=nwb_recording, check_times=False, return_scaled=False)
             check_recordings_equal(RX1=recording, RX2=nwb_recording, check_times=False, return_scaled=True)
+
+        def test_recording_gain_copy_on_stub(self):
+            nwbfile_path = str(self.savedir / "test_recording_property_copy_on_stub.nwb")
+
+            class TestConverter(NWBConverter):
+                data_interface_classes = dict(TestRecording=NeuroscopeRecordingInterface)
+
+            gain = 0.195
+            for stub_test in [True, False]:
+                converter = TestConverter(
+                    source_data=dict(
+                        TestRecording=dict(file_path=str(DATA_PATH / "neuroscope" / "test1" / "test1.dat"), gain=gain)
+                    )
+                )
+                converter.run_conversion(
+                    nwbfile_path=nwbfile_path,
+                    overwrite=True,
+                    conversion_options=dict(TestRecording=dict(stub_test=stub_test)),
+                )
+                recording = converter.data_interface_objects["TestRecording"].recording_extractor
+                assert all(recording.get_channel_gains() == gain)
 
         @parameterized.expand(
             [
@@ -116,7 +137,7 @@ if HAVE_PARAMETERIZED and HAVE_DATA:
             ]
         )
         def test_convert_sorting_extractor_to_nwb(self, sorting_interface, interface_kwargs):
-            nwbfile_path = self.savedir / f"{sorting_interface.__name__}.nwb"
+            nwbfile_path = str(self.savedir / f"{sorting_interface.__name__}.nwb")
 
             class TestConverter(NWBConverter):
                 data_interface_classes = dict(TestSorting=sorting_interface)
