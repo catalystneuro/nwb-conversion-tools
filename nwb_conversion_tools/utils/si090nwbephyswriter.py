@@ -106,7 +106,7 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
         default_properties = ["location", "group"]
         if self.recording.get_channel_offsets() is not None:
             default_properties.append("offset")
-        if self.recording.get_channel_gains is not None:
+        if self.recording.get_channel_gains() is not None:
             default_properties.append("gain")
         skip_properties = ["contact_vector"]
         return list(set(self.recording.get_property_keys()).union(default_properties).difference(skip_properties))
