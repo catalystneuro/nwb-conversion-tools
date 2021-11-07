@@ -81,7 +81,7 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
     def _get_num_frames(self, segment_index=0):
         return self.recording.get_num_frames(segment_index=segment_index)
 
-    # @default_return(np.array([]))
+    @default_return(np.array([]))
     def _get_traces(self, channel_ids=None, start_frame=None, end_frame=None, return_scaled=True, segment_index=0):
         if return_scaled and not self.recording.has_scaled_traces():
             return_scaled = False
@@ -101,13 +101,13 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
                 channel_ids=self._get_channel_ids()[:1], start_frame=0, end_frame=2, return_scaled=return_scaled
             ).dtype
 
-    # @default_return([])
+    @default_return([])
     def _get_channel_property_names(self):
         default_properties = ["location", "gain", "offset", "group"]
         skip_properties = ["contact_vector"]
         return list(set(self.recording.get_property_keys()).union(default_properties).difference(skip_properties))
 
-    # @default_return([])
+    @default_return([])
     def _get_channel_property_values(self, prop):
         if prop == "location":
             try:
@@ -135,7 +135,7 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
             prop_values = self.recording.get_property(prop)
             return self._check_valid_property(prop_values)
 
-    # @default_return([])
+    @default_return([])
     def _get_recording_times(self, segment_index=0):
         return np.arange(
             0,
@@ -143,21 +143,21 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
             self._get_sampling_frequency(),
         )
 
-    # @default_return([])
+    @default_return([])
     def _get_unit_feature_names(self):
         return []
 
-    # @default_return([])
+    @default_return([])
     def _get_unit_feature_values(self, prop):
         return []
 
-    # @default_return([])
+    @default_return([])
     def _get_unit_spike_train_ids(self, unit_id, start_frame=None, end_frame=None, segment_index=None):
         return self.sorting.get_unit_spike_train(
             unit_id, start_frame=start_frame, end_frame=end_frame, segment_index=segment_index
         )
 
-    # @default_return([])
+    @default_return([])
     def _get_unit_spike_train_times(self, unit_id, segment_index=0):
         return self._get_unit_spike_train_ids(unit_id, segment_index) / self._get_unit_sampling_frequency()
 
@@ -168,7 +168,7 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
                 properties.append("max_channel")
         return properties
 
-    # @default_return([])
+    @default_return([])
     def _get_unit_property_values(self, prop):
         prop_values = self.sorting.get_property(prop)
         if self.waveforms is not None:
@@ -179,7 +179,7 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
                 prop_values = [channels_dict.get(id, np.nan) for id in self._get_unit_ids()]
         return self._check_valid_property(prop_values)
 
-    # @default_return([])
+    @default_return([])
     def _get_unit_waveforms_templates(self, unit_id, mode="mean"):
         return self.waveforms.get_template(unit_id, mode=mode)
 

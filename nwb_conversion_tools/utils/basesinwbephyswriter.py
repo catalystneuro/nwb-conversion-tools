@@ -21,23 +21,23 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
     def _make_sorting_stub(self):
         pass
 
-    # @default_return(None)
+    @default_return(None)
     def _get_sampling_frequency(self):
         return self.recording.get_sampling_frequency()
 
-    # @default_return([])
+    @default_return([])
     def _get_channel_ids(self):
         return self.recording.get_channel_ids()
 
-    # @default_return(None)
+    @default_return(None)
     def _get_unit_sampling_frequency(self):
         return self.sorting.get_sampling_frequency()
 
-    # @default_return([])
+    @default_return([])
     def _get_unit_ids(self):
         return np.array(self.sorting.get_unit_ids(), dtype="int")
 
-    # @default_return([])
+    @default_return([])
     def _check_valid_property(self, prop_values):
         if not isinstance(prop_values[0], tuple(self.dt_column_defaults)):
             return
