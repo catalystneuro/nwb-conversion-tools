@@ -124,7 +124,7 @@ def default_return(value):
                 if "NoneType" in str(e):
                     return value
                 else:
-                    return e
+                    raise e
 
         return wrapper
 
