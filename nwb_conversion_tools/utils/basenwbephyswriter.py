@@ -149,16 +149,8 @@ class BaseNwbEphysWriter(ABC):
 
     def add_electrode_groups(self):
         """
-        Auxiliary method to write electrode groups.
-
-        Adds electrode group information to nwbfile object.
-        Will always ensure nwbfile has at least one electrode group.
-        Will auto-generate a linked device if the specified name does not exist in the nwbfile.
-
-        Missing keys in an element of metadata['Ecephys']['ElectrodeGroup'] will be auto-populated with defaults.
-
-        Group names set by RecordingExtractor channel properties will also be included with passed metadata,
-        but will only use default description and location.
+        Adds electrode groups by looking for the "group" property of the channels. Overrides this with
+        supplied values under metadata["Ecephys"]["ElectrodeGroup"]
         """
         if len(self.nwbfile.devices) == 0:
             warnings.warn("When adding ElectrodeGroup, no Devices were found on nwbfile. Creating a Device now...")
@@ -202,22 +194,7 @@ class BaseNwbEphysWriter(ABC):
 
     def add_electrodes(self):
         """
-        Auxiliary static method for nwbextractor.
-
         Adds channels from recording object as electrodes to nwbfile object.
-
-        Missing keys in an element of metadata['Ecephys']['ElectrodeGroup'] will be auto-populated with defaults
-        whenever possible.
-
-        If 'my_name' is set to one of the required fields for nwbfile
-        electrodes (id, x, y, z, imp, loccation, filtering, group_name),
-        then the metadata will override their default values.
-
-        Setting 'my_name' to metadata field 'group' is not supported as the linking to
-        nwbfile.electrode_groups is handled automatically; please specify the string 'group_name' in this case.
-
-        If no group information is passed via metadata, automatic linking to existing electrode groups,
-        possibly including the default, will occur.
         """
         if self.nwbfile.electrodes is not None:
             ids_absent = [id not in self.nwbfile.electrodes.id for id in self._get_channel_ids()]
@@ -332,39 +309,8 @@ class BaseNwbEphysWriter(ABC):
 
         Parameters
         ----------
-        recording: RecordingExtractor
-        nwbfile: NWBFile
-            nwb file to which the recording information is to be added
-        metadata: dict
-            metadata info for constructing the nwb file (optional).
-            Should be of the format
-                metadata['Ecephys']['ElectricalSeries'] = {'name': my_name,
-                                                            'description': my_description}
-        buffer_mb: int (optional, defaults to 500MB)
-            maximum amount of memory (in MB) to use per iteration of the
-            DataChunkIterator (requires traces to be memmap objects)
-        use_times: bool (optional, defaults to False)
-            If True, the times are saved to the nwb file using recording.frame_to_time(). If False (defualut),
-            the sampling rate is used.
-        write_as: str (optional, defaults to 'raw')
-            How to save the traces data in the nwb file. Options:
-            - 'raw' will save it in acquisition
-            - 'processed' will save it as FilteredEphys, in a processing module
-            - 'lfp' will save it as LFP, in a processing module
-        es_key: str (optional)
-            Key in metadata dictionary containing metadata info for the specific electrical series
-        write_scaled: bool (optional, defaults to True)
-            If True, writes the scaled traces (return_scaled=True)
-        compression: str (optional, defaults to "gzip")
-            Type of compression to use. Valid types are "gzip" and "lzf".
-            Set to None to disable all compression.
-        compression_opts: int (optional, defaults to 4)
-            Only applies to compression="gzip". Controls the level of the GZIP.
-        iterate: bool (optional, defaults to True)
-            Whether or not to use DataChunkIteration. Highly recommended for large (16+ GB) recordings.
-
-        Missing keys in an element of metadata['Ecephys']['ElectrodeGroup'] will be auto-populated with defaults
-        whenever possible.
+        segment_index : int
+            the index of segment (applies to the new spikeinterface version, defaults to 0 or spikeextractors)
         """
         if self.nwbfile is not None:
             assert isinstance(self.nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile!"
@@ -673,16 +619,3 @@ class BaseNwbEphysWriter(ABC):
     @abstractmethod
     def add_epochs(self):
         pass
-
-
-def get_num_spikes(units_table, unit_id):
-    """Return the number of spikes for chosen unit."""
-    ids = np.array(units_table.id[:])
-    indexes = np.where(ids == unit_id)[0]
-    if not len(indexes):
-        raise ValueError(f"{unit_id} is an invalid unit_id. Valid ids: {ids}.")
-    index = indexes[0]
-    if index == 0:
-        return units_table["spike_times_index"].data[index]
-    else:
-        return units_table["spike_times_index"].data[index] - units_table["spike_times_index"].data[index - 1]

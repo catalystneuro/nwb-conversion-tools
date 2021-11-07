@@ -22,10 +22,10 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
     Parameters
     ----------
     object_to_write: se.RecordingExtractor or se.SortingExtractor
-    nwb_file_path: Path type
-    nwbfile: pynwb.NWBFile or None
-    metadata: dict or None
-    **kwargs: list kwargs and meaning
+    stub: bool
+        whether to write a subset of recording extractor traces array as electrical series in nwbfile
+    stub_channels: list
+        channels to include when writing as stub
     """
 
     def __init__(self, object_to_write, stub=False, stub_channels=None):
