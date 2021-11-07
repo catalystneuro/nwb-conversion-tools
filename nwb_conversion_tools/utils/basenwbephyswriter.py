@@ -19,7 +19,7 @@ from .common_writer_tools import (
     set_dynamic_table_property,
     check_module,
     DynamicTableSupportedDtypes,
-    get_num_spikes
+    get_num_spikes,
 )
 from .nwbephyswriterdatachunkiterator import NwbEphysWriterDataChunkIterator
 
