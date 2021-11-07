@@ -403,23 +403,23 @@ class BaseNwbEphysWriter(ABC):
         # channels gains - for RecordingExtractor, these are values to cast traces to uV.
         # For nwb, the conversions (gains) cast the data to Volts.
         # To get traces in Volts we take data*channel_conversion*conversion.
+        channel_conversion = np.ones(len(self._get_channel_ids()), dtype='int')
+        channel_offset = np.zeros(len(self._get_channel_ids()), dtype='int')
         if "gain" in self._get_channel_property_names() and "offset" in self._get_channel_property_names():
             channel_conversion = self._get_channel_property_values("gain")
             channel_offset = self._get_channel_property_values("offset")
-            unsigned_coercion = channel_offset / channel_conversion
-            if not np.all([x.is_integer() for x in unsigned_coercion]):
-                raise NotImplementedError(
-                    "Unable to coerce underlying unsigned data type to signed type, which is currently required for NWB "
-                    "Schema v2.2.5! Please specify 'write_scaled=True'."
-                )
-            elif np.any(unsigned_coercion != 0):
-                warnings.warn(
-                    "NWB Schema v2.2.5 does not officially support channel offsets. The data will be converted to a signed "
-                    "type that does not use offsets."
-                )
-                unsigned_coercion = unsigned_coercion.astype(int)
-        else:
-            unsigned_coercion = np.zeros(len(self._get_channel_ids))
+        unsigned_coercion = channel_offset / channel_conversion
+        if not np.all([x.is_integer() for x in unsigned_coercion]):
+            raise NotImplementedError(
+                "Unable to coerce underlying unsigned data type to signed type, which is currently required for NWB "
+                "Schema v2.2.5! Please specify 'write_scaled=True'."
+            )
+        elif np.any(unsigned_coercion != 0):
+            warnings.warn(
+                "NWB Schema v2.2.5 does not officially support channel offsets. The data will be converted to a signed "
+                "type that does not use offsets."
+            )
+            unsigned_coercion = unsigned_coercion.astype(int)
         if self._conversion_ops["write_scaled"]:
             eseries_kwargs.update(conversion=1e-6)
         else:
