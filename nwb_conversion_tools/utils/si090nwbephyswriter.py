@@ -103,7 +103,11 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
 
     @default_return([])
     def _get_channel_property_names(self):
-        default_properties = ["location", "gain", "offset", "group"]
+        default_properties = ["location", "group"]
+        if self.recording.get_channel_offsets() is None:
+            default_properties.append("offset")
+        if self.recording.get_channel_gains is not None:
+            default_properties.append("gain")
         skip_properties = ["contact_vector"]
         return list(set(self.recording.get_property_keys()).union(default_properties).difference(skip_properties))
 
@@ -115,15 +119,9 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
             except:
                 return np.nan * np.ones(len(self._get_channel_ids()), 2)
         elif prop == "gain":
-            if self.recording.get_channel_gains() is None:
-                return np.ones(len(self._get_channel_ids()))
-            else:
-                return self.recording.get_channel_gains()
+            return self.recording.get_channel_gains()
         elif prop == "offset":
-            if self.recording.get_channel_offsets() is None:
-                return np.zeros(len(self._get_channel_ids()))
-            else:
-                return self.recording.get_channel_offsets()
+            return self.recording.get_channel_offsets()
         elif prop == "group":
             if self.recording.get_property("group_name") is not None:
                 return self.recording.get_property("group_name")
