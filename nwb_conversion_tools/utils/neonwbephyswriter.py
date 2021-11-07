@@ -1,22 +1,9 @@
-import uuid
-from datetime import datetime
-import warnings
-import numpy as np
-import distutils.version
-from pathlib import Path
-from typing import Union, Optional, List
+from abc import abstractmethod
 from distutils.version import StrictVersion
-from warnings import warn
-import psutil
-from collections import defaultdict
 
 import pynwb
-from numbers import Real
-from hdmf.data_utils import DataChunkIterator
-from hdmf.backends.hdf5.h5_utils import H5DataIO
-from .json_schema import dict_deep_update
+
 from .basenwbephyswriter import BaseNwbEphysWriter
-from .common_writer_tools import ArrayType, PathType, set_dynamic_table_property, check_module, list_get
 
 try:
     import neo
@@ -36,59 +23,88 @@ class NEONwbEphysWriter(BaseNwbEphysWriter):
     Parameters
     ----------
     object_to_write: neo.RawIO or neo.IO
-    nwb_file_path: Path type
-    nwbfile: pynwb.NWBFile or None
-    metadata: dict or None
-    **kwargs: list kwargs and meaning
+    stub: bool
+        whether to write a subset of recording extractor traces array as electrical series in nwbfile
+    stub_channels: list
+        channels to include when writing as stub
     """
 
-    def __init__(
-        self,
-        object_to_write,
-        nwb_file_path: PathType = None,
-        nwbfile: pynwb.NWBFile = None,
-        metadata: dict = None,
-        **kwargs,
-    ):
+    def __init__(self, object_to_write, stub=False, stub_channels=None):
         assert HAVE_NEO
         self.recording, self.sorting, self.event = None, None, None
-        BaseNwbEphysWriter.__init__(
-            self, object_to_write, nwb_file_path=nwb_file_path, nwbfile=nwbfile, metadata=metadata, **kwargs
-        )
+        BaseNwbEphysWriter.__init__(self, object_to_write, stub=stub, stub_channels=stub_channels)
 
     @staticmethod
     def supported_types():
         assert HAVE_NEO
         return (neo.rawio.baserawio.BaseRawIO, neo.io.baseio.BaseIO)
 
-    def write_to_nwb(self):
+    def add_to_nwb(self, nwbfile: pynwb.NWBFile, metadata=None, **kwargs):
         # check what's in the neo object: analogsignals, spike trains, events and
         # write recording, sorting, events accordingly
-        pass
-
-    def write_recording(self):
         raise NotImplementedError
 
-    def write_sorting(self):
+    def add_recording(self, segment_index=0):
         raise NotImplementedError
 
-    def write_epochs(self):
+    def add_sorting(self):
         raise NotImplementedError
 
-    def get_nwb_metadata(self):
-        raise NotImplementedError
-
-    def add_electrodes(self):
-        raise NotImplementedError
-
-    def add_electrode_groups(self):
-        raise NotImplementedError
-
-    def add_electrical_series(self):
-        raise NotImplementedError
-
-    def add_units(self):
+    def add_waveforms(self):
         raise NotImplementedError
 
     def add_epochs(self):
         raise NotImplementedError
+
+    @abstractmethod
+    def _make_recording_stub(self):
+        pass
+
+    @abstractmethod
+    def _make_sorting_stub(self):
+        pass
+
+    def _get_sampling_frequency(self):
+        pass
+
+    def _get_channel_ids(self):
+        pass
+
+    def _get_unit_sampling_frequency(self):
+        pass
+
+    def _get_unit_ids(self):
+        pass
+
+    def _get_traces(self, channel_ids=None, start_frame=None, end_frame=None, return_scaled=True, segment_index=0):
+        pass
+
+    def _get_dtype(self, return_scaled=True):
+        pass
+
+    def _get_channel_property_names(self):
+        pass
+
+    def _get_channel_property_values(self, prop):
+        pass
+
+    def _get_num_frames(self, segment_index=0):
+        pass
+
+    def _get_recording_times(self, segment_index=0):
+        pass
+
+    def _get_unit_spike_train_ids(self, unit_id, start_frame=None, end_frame=None, segment_index=None):
+        pass
+
+    def _get_unit_spike_train_times(self, unit_id, segment_index=0):
+        pass
+
+    def _get_unit_property_names(self):
+        pass
+
+    def _get_unit_property_values(self, prop):
+        pass
+
+    def _get_unit_waveforms_templates(self, unit_id, mode="mean"):
+        pass
