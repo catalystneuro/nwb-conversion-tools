@@ -597,7 +597,7 @@ class BaseNwbEphysWriter(ABC):
                     index=spikes_index,
                 )
 
-    def add_units_waveforms(self):
+    def add_unit_waveforms(self):
         if self._get_unit_waveforms_templates(unit_id=0):
             if len(self.nwbfile.units) == 0:
                 warnings.warn("create a units table before adding waveforms. Skipping operation")

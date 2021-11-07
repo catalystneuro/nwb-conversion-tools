@@ -64,7 +64,7 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
 
     def add_waveforms(self):
         if self.waveforms is not None:
-            self.add_units_waveforms()
+            self.add_unit_waveforms()
 
     def add_to_nwb(self, nwbfile: pynwb.NWBFile, metadata=None, **kwargs):
         assert nwbfile is not None and isinstance(nwbfile, pynwb.NWBFile), "Instantiate an NWBFile and pass as argument"
