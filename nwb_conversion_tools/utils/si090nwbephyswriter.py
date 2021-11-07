@@ -104,7 +104,7 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
     @default_return([])
     def _get_channel_property_names(self):
         default_properties = ["location", "group"]
-        if self.recording.get_channel_offsets() is None:
+        if self.recording.get_channel_offsets() is not None:
             default_properties.append("offset")
         if self.recording.get_channel_gains is not None:
             default_properties.append("gain")
