@@ -403,7 +403,7 @@ class BaseNwbEphysWriter(ABC):
         # channels gains - for RecordingExtractor, these are values to cast traces to uV.
         # For nwb, the conversions (gains) cast the data to Volts.
         # To get traces in Volts we take data*channel_conversion*conversion.
-        if "gain" in self._get_channel_property_names and "offset" in self._get_channel_property_names():
+        if "gain" in self._get_channel_property_names() and "offset" in self._get_channel_property_names():
             channel_conversion = self._get_channel_property_values("gain")
             channel_offset = self._get_channel_property_values("offset")
             unsigned_coercion = channel_offset / channel_conversion
