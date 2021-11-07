@@ -419,7 +419,7 @@ class BaseNwbEphysWriter(ABC):
                 )
                 unsigned_coercion = unsigned_coercion.astype(int)
         else:
-            unsigned_coercion = np.zeroes(len(self._get_channel_ids))
+            unsigned_coercion = np.zeros(len(self._get_channel_ids))
         if self._conversion_ops["write_scaled"]:
             eseries_kwargs.update(conversion=1e-6)
         else:
