@@ -154,6 +154,19 @@ def check_module(nwbfile, name: str, description: str = None):
         return nwbfile.create_processing_module(name, description)
 
 
+def get_num_spikes(units_table, unit_id):
+    """Return the number of spikes for chosen unit."""
+    ids = np.array(units_table.id[:])
+    indexes = np.where(ids == unit_id)[0]
+    if not len(indexes):
+        raise ValueError(f"{unit_id} is an invalid unit_id. Valid ids: {ids}.")
+    index = indexes[0]
+    if index == 0:
+        return units_table["spike_times_index"].data[index]
+    else:
+        return units_table["spike_times_index"].data[index] - units_table["spike_times_index"].data[index - 1]
+
+
 def default_export_ops():
     return dict(
         use_times=False,
