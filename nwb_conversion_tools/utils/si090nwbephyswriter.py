@@ -104,6 +104,8 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
             default_properties.append("offset")
         if self.recording.get_channel_gains() is not None:
             default_properties.append("gain")
+        if isinstance(self.recording.get_channel_ids()[0], str):
+            default_properties.append("name")
         skip_properties = ["contact_vector"]
         return list(set(self.recording.get_property_keys()).union(default_properties).difference(skip_properties))
 
@@ -124,6 +126,10 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
                 return np.zeros(len(self._get_channel_ids()))
             else:
                 return self.recording.get_channel_groups()
+        elif prop == "name":
+            ids = self.recording.get_channel_ids()
+            if isinstance(ids[0], str):
+                return ids
         else:
             prop_values = self.recording.get_property(prop)
             return self._check_valid_property(prop_values)

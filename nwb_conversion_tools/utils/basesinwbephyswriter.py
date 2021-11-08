@@ -24,7 +24,11 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
         return self.recording.get_sampling_frequency()
 
     def _get_channel_ids(self):
-        return self.recording.get_channel_ids()
+        ids = self.recording.get_channel_ids()
+        if isinstance(ids[0], str):
+            return np.arange(len(ids))
+        else:
+            return np.array(ids, dtype="int")
 
     def _get_unit_sampling_frequency(self):
         return self.sorting.get_sampling_frequency()
