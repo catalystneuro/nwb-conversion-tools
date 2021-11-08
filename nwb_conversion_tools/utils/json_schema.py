@@ -65,7 +65,7 @@ def dict_deep_update(d: dict, u: dict, append_list: bool = True, remove_repeats:
 
 def get_base_schema(tag=None, root=False, id_=None, **kwargs) -> dict:
     """Return the base schema used for all other schemas."""
-    base_schema = dict(required=[], properties={}, type="object", additionalProperties=False)
+    base_schema = dict(required=[], properties={}, type="object", additionalProperties=True)
     if tag is not None:
         base_schema.update(tag=tag)
     if root:

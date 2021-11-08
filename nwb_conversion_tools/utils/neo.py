@@ -256,6 +256,11 @@ def add_icephys_recordings(
 
     # Loop through segments - sequential icephys recordings
     simultaneous_recordings = list()
+    if nwbfile.icephys_simultaneous_recordings is None:
+        simultaneous_recordings_offset = 0
+    else:    
+        simultaneous_recordings_offset = len(nwbfile.icephys_simultaneous_recordings)
+
     for si in range(n_segments):
         # Loop through electrodes - parallel icephys recordings
         recordings = list()
@@ -264,7 +269,7 @@ def add_icephys_recordings(
             starting_time = neo_reader.get_signal_t_start(block_index=0, seg_index=si)
             response_unit = neo_reader.header["signal_channels"]["units"][ei]
             response_gain = get_gain_from_unit(unit=response_unit)
-            response_name = f"{icephys_experiment_type}_response_{si}_ch_{ei}"
+            response_name = f"{icephys_experiment_type}_response_{si + simultaneous_recordings_offset}_ch_{ei}"
 
             response = response_classes[icephys_experiment_type](
                 name=response_name,
@@ -272,19 +277,21 @@ def add_icephys_recordings(
                 data=neo_reader.get_analogsignal_chunk(block_index=0, seg_index=si, channel_indexes=ei),
                 starting_time=starting_time,
                 rate=sampling_rate,
-                gain=response_gain,
+                conversion=response_gain,
+                gain=1.,
             )
 
             if icephys_experiment_type != "izero":
                 stim_unit = protocol[2][ei]
                 stim_gain = get_gain_from_unit(unit=stim_unit)
                 stimulus = stim_classes[icephys_experiment_type](
-                    name=f"stimulus-{si}-ch-{ei}",
+                    name=f"stimulus-{si + simultaneous_recordings_offset}-ch-{ei}",
                     electrode=electrode,
                     data=protocol[0][si][ei],
                     rate=sampling_rate,
                     starting_time=starting_time,
-                    gain=stim_gain,
+                    conversion=stim_gain,
+                    gain=1.,
                 )
                 icephys_recording = nwbfile.add_intracellular_recording(
                     electrode=electrode, response=response, stimulus=stimulus
