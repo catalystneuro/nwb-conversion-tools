@@ -258,7 +258,7 @@ def add_icephys_recordings(
     simultaneous_recordings = list()
     if nwbfile.icephys_simultaneous_recordings is None:
         simultaneous_recordings_offset = 0
-    else:    
+    else:
         simultaneous_recordings_offset = len(nwbfile.icephys_simultaneous_recordings)
 
     for si in range(n_segments):
@@ -278,7 +278,7 @@ def add_icephys_recordings(
                 starting_time=starting_time,
                 rate=sampling_rate,
                 conversion=response_gain,
-                gain=1.,
+                gain=1.0,
             )
 
             if icephys_experiment_type != "izero":
@@ -291,7 +291,7 @@ def add_icephys_recordings(
                     rate=sampling_rate,
                     starting_time=starting_time,
                     conversion=stim_gain,
-                    gain=1.,
+                    gain=1.0,
                 )
                 icephys_recording = nwbfile.add_intracellular_recording(
                     electrode=electrode, response=response, stimulus=stimulus
