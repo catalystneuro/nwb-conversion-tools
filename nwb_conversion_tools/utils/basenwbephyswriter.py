@@ -196,13 +196,8 @@ class BaseNwbEphysWriter(ABC):
         """
         Adds channels from recording object as electrodes to nwbfile object.
         """
-        channel_ids = self._get_channel_ids()
-        if isinstance(channel_ids[0], str):
-            channel_ids = np.arange(len(channel_ids))
-        else:
-            channel_ids = np.array(channel_ids, dtype="int")
         if self.nwbfile.electrodes is not None:
-            ids_absent = [id not in self.nwbfile.electrodes.id for id in channel_ids]
+            ids_absent = [id not in self.nwbfile.electrodes.id for id in self._get_channel_ids()]
             if not all(ids_absent):
                 warnings.warn("cannot create electrodes for this recording as ids already exist")
                 return
@@ -290,7 +285,7 @@ class BaseNwbEphysWriter(ABC):
         add_properties_to_dynamictable(self.nwbfile, "electrodes", elec_columns, defaults)
 
         # 4. add info to electrodes table:
-        for j, channel_id in enumerate(channel_ids):
+        for j, channel_id in enumerate(self._get_channel_ids()):
             if channel_id not in nwb_elec_ids:
                 electrode_kwargs = dict(defaults)
                 electrode_kwargs.update(id=channel_id)
