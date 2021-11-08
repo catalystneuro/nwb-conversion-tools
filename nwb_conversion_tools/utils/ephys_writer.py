@@ -60,6 +60,10 @@ def export_ecephys_to_nwb(
     nwb_file_path: str
         path to the nwbfile. if exists and overwrite is False, then it will append.
     metadata: dict
+    stub: bool
+        whether to write a subset of recording
+    stub_channels: list
+        channel ids to write to nwbfile
     kwargs:
         use_times (False): True then use timestamps array, else use starting time and rate for TimeSeries object in nwbfile
         write_as ("raw"): write the traces as raw or processed
