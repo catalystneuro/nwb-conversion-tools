@@ -38,6 +38,8 @@ def export_ecephys_to_nwb(
     nwb_file_path=None,
     nwbfile=None,
     metadata=None,
+    stub=False,
+    stub_channels=None,
     **kwargs,
 ):
     """
@@ -103,7 +105,7 @@ def export_ecephys_to_nwb(
         nwbfile = converter.run_conversion(metadata=metadata, save_to_file=False)
 
     writer_class = map_si_object_to_writer(object_to_write)
-    writer = writer_class(object_to_write)
+    writer = writer_class(object_to_write, stub=stub, stub_channels=stub_channels)
     writer.add_to_nwb(nwbfile=nwbfile, metadata=metadata, **conversion_ops)
 
     # handle modes and overwrite
