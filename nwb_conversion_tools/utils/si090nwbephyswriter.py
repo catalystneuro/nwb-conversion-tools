@@ -112,7 +112,7 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
             try:
                 return self.recording.get_channel_locations()
             except:
-                return np.nan * np.ones(len(self._get_channel_ids()), 2)
+                return np.nan * np.ones([len(self._get_channel_ids()), 2])
         elif prop == "gain":
             return self.recording.get_channel_gains()
         elif prop == "offset":
