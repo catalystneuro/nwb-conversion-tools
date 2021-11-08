@@ -106,10 +106,10 @@ class GenericDataChunkIterator(AbstractDataChunkIterator):
             assert all(
                 array_buffer_shape >= self.chunk_shape
             ), f"Some dimensions of chunk_shape ({self.chunk_shape}) exceed the manual buffer shape ({buffer_shape})!"
-            assert all(array_buffer_shape % self.chunk_shape == 0), (
-                f"Some dimensions of chunk_shape ({self.chunk_shape}) do not "
-                f"evenly divide the manual buffer shape ({buffer_shape})!"
-            )
+            # assert all(array_buffer_shape % self.chunk_shape == 0), (
+            #     f"Some dimensions of chunk_shape ({self.chunk_shape}) do not "
+            #     f"evenly divide the manual buffer shape ({buffer_shape})!"
+            # )
             self.buffer_shape = buffer_shape
 
         self.num_buffers = np.ceil(np.array(self.maxshape) / self.buffer_shape).astype(int)
@@ -206,11 +206,9 @@ class GenericDataChunkIterator(AbstractDataChunkIterator):
 
     def __next__(self) -> DataChunk:
         """Retrieve the next DataChunk object from the buffer, refilling the buffer if necessary."""
-        chunk_data, chunk_selection_in_buffer = self._get_chunk_from_buffer()
-        chunk_selection = self._chunk_map(
-            chunk_selection_in_buffer=chunk_selection_in_buffer, buffer_selection=self.buffer_selection
-        )
-        data_chunk = DataChunk(data=chunk_data, selection=chunk_selection)
+        buffer_index = next(self.buffer_index_generator)
+        self.buffer_selection = self._buffer_map(buffer_index=buffer_index)
+        data_chunk = DataChunk(data=self._get_data(selection=self.buffer_selection), selection=self.buffer_selection)
         return data_chunk
 
     @abstractmethod
