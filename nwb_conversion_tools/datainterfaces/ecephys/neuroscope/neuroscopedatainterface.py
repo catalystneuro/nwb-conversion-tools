@@ -42,7 +42,7 @@ def add_recording_extractor_properties(recording_extractor: se.RecordingExtracto
     }
     group_electrode_numbers = [x for channels in channel_groups for x, _ in enumerate(channels)]
     group_nums = [n + 1 for n, channels in enumerate(channel_groups) for _ in channels]
-    group_names = [f"Group{n + 1}" for n in group_nums]
+    group_names = [f"Group{n}" for n in group_nums]
     for channel_id in recording_extractor.get_channel_ids():
         recording_extractor.set_channel_groups(channel_ids=[channel_id], groups=group_nums[channel_map[channel_id]])
         recording_extractor.set_channel_property(
@@ -225,7 +225,7 @@ class NeuroscopeSortingInterface(BaseSortingExtractorInterface):
         self,
         folder_path: FolderPathType,
         keep_mua_units: bool = True,
-        exlude_shanks: Optional[list] = None,
+        exclude_shanks: Optional[list] = None,
         load_waveforms: bool = False,
         gain: Optional[float] = None,
     ):
@@ -234,7 +234,7 @@ class NeuroscopeSortingInterface(BaseSortingExtractorInterface):
         super().__init__(
             folder_path=folder_path,
             keep_mua_units=keep_mua_units,
-            exlude_shanks=exlude_shanks,
+            exclude_shanks=exclude_shanks,
             load_waveforms=load_waveforms,
             gain=gain,
         )
