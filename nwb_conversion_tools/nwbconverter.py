@@ -56,7 +56,6 @@ class NWBConverter:
     def validate_source(cls, source_data):
         """Validate source_data against Converter source_schema."""
         validate(instance=source_data, schema=cls.get_source_schema())
-        print("Source data is valid!")
 
     def __init__(self, source_data):
         """Validate source_data against source_schema and initialize all data interfaces."""
@@ -106,12 +105,10 @@ class NWBConverter:
     def validate_metadata(self, metadata):
         """Validate metadata against Converter metadata_schema."""
         validate(instance=metadata, schema=self.get_metadata_schema())
-        print("Metadata is valid!")
 
     def validate_conversion_options(self, conversion_options):
         """Validate conversion_options against Converter conversion_options_schema."""
         validate(instance=conversion_options, schema=self.get_conversion_options_schema())
-        print("conversion_options is valid!")
 
     def run_conversion(
         self,
