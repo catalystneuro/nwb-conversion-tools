@@ -126,6 +126,7 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
 
         if "ndx-dandi-icephys" in metadata and "DandiIcephysMetadata" not in nwbfile.lab_meta_data:
             from ndx_dandi_icephys import DandiIcephysMetadata
+
             nwbfile.add_lab_meta_data(DandiIcephysMetadata(**metadata["ndx-dandi-icephys"]))
 
         write_neo_to_nwb(
