@@ -15,10 +15,7 @@ class AbfNeoDataInterface(BaseIcephysNeoInterface):
     def get_source_schema(cls):
         """Compile input schema for the Neo class"""
         source_schema = super().get_source_schema()
-        source_schema["properties"]["file_path"].update(
-            format="file",
-            description="Path to ABF file."
-        )
+        source_schema["properties"]["file_path"].update(format="file", description="Path to ABF file.")
         return source_schema
 
     def __init__(self, file_path: str):
