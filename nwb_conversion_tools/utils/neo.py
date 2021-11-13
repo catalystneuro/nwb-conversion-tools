@@ -318,11 +318,17 @@ def add_icephys_recordings(
     )
 
     # Add a list of sequential recordings table indices as a repetition
-    run_index = nwbfile.add_icephys_repetition(sequential_recordings=[seq_rec,])
+    run_index = nwbfile.add_icephys_repetition(
+        sequential_recordings=[
+            seq_rec,
+        ]
+    )
 
     # (E) Add a list of repetition table indices as a experimental condition
     nwbfile.add_icephys_experimental_condition(
-        repetitions=[run_index,]
+        repetitions=[
+            run_index,
+        ]
     )
 
 
@@ -393,7 +399,9 @@ def add_all_to_nwbfile(
 
     add_devices(nwbfile=nwbfile, data_type="Icephys", metadata=metadata)
     add_icephys_electrode(
-        neo_reader=neo_reader, nwbfile=nwbfile, metadata=metadata,
+        neo_reader=neo_reader,
+        nwbfile=nwbfile,
+        metadata=metadata,
     )
     add_icephys_recordings(
         neo_reader=neo_reader,
