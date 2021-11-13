@@ -1,9 +1,9 @@
-from ..base_interface_icephys_neo import BaseIcephysNeoInterface
-from ....utils.json_schema import get_schema_from_method_signature
-from neo import AxonIO
-
 from datetime import datetime, timedelta
 import pytz
+
+from neo import AxonIO
+
+from ..base_interface_icephys_neo import BaseIcephysNeoInterface
 
 
 class AbfNeoDataInterface(BaseIcephysNeoInterface):
@@ -14,9 +14,11 @@ class AbfNeoDataInterface(BaseIcephysNeoInterface):
     @classmethod
     def get_source_schema(cls):
         """Compile input schema for the Neo class"""
-        source_schema = get_schema_from_method_signature(class_method=cls.__init__, exclude=[])
-        source_schema["properties"]["file_path"]["format"] = "file"
-        source_schema["properties"]["file_path"]["description"] = "Path to ABF file."
+        source_schema = super().get_source_schema()
+        source_schema["properties"]["file_path"].update(
+            format="file",
+            description="Path to ABF file."
+        )
         return source_schema
 
     def __init__(self, file_path: str):
