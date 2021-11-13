@@ -1,9 +1,7 @@
 from abc import ABC
-from typing import Union, Optional, Tuple
+from typing import Union, Optional
 from pathlib import Path
-import numpy as np
 
-import spikeextractors as se
 from pynwb import NWBFile
 from pynwb.device import Device
 from pynwb.icephys import IntracellularElectrode
@@ -12,14 +10,10 @@ from ...basedatainterface import BaseDataInterface
 from ...utils.json_schema import (
     get_schema_from_hdmf_class,
     get_schema_from_method_signature,
-    fill_defaults,
     get_base_schema,
 )
-from ...utils.spike_interface import write_recording
 from ...utils.neo import (
-    get_command_traces,
     get_number_of_electrodes,
-    get_electrodes_metadata,
     get_number_of_segments,
     write_neo_to_nwb,
 )
@@ -51,7 +45,7 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
         """Compile metadata schema for the Neo interface"""
         metadata_schema = super().get_metadata_schema()
 
-        # Initiate Ecephys metadata
+        # Initiate Icephys metadata
         metadata_schema["properties"]["Icephys"] = get_base_schema(tag="Icephys")
         metadata_schema["properties"]["Icephys"]["required"] = ["Device", "IntracellularElectrode"]
         metadata_schema["properties"]["Icephys"]["properties"] = dict(
@@ -129,6 +123,10 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
         #     recording = self.subset_recording(stub_test=stub_test)
         # else:
         #     recording = self.recording_extractor
+
+        if "ndx-dandi-icephys" in metadata and "DandiIcephysMetadata" not in nwbfile.lab_meta_data:
+            from ndx_dandi_icephys import DandiIcephysMetadata
+            nwbfile.add_lab_meta_data(DandiIcephysMetadata(**metadata["ndx-dandi-icephys"]))
 
         write_neo_to_nwb(
             neo_reader=self.reader,
