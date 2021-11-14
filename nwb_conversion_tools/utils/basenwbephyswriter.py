@@ -601,12 +601,12 @@ class BaseNwbEphysWriter(ABC):
                 )
 
     def add_unit_waveforms(self):
-        if self._get_unit_waveforms_templates(unit_id=0):
+        if self._get_unit_waveforms_templates(unit_id=0) is not None:
             if len(self.nwbfile.units) == 0:
                 warnings.warn("create a units table before adding waveforms. Skipping operation")
                 return
             units = self.nwbfile.units
-            waveform_metrics = {"mean": "mean", "std": "sd"}
+            waveform_metrics = {"average": "mean", "std": "sd"}
             for mode in waveform_metrics:
                 # construct wavforms for all units:
                 templates_all = []
@@ -614,7 +614,7 @@ class BaseNwbEphysWriter(ABC):
                     templates_all.append(self._get_unit_waveforms_templates(unit_id=id, mode=mode))
                 set_dynamic_table_property(
                     dynamic_table=units,
-                    row_ids=units.id.data,
+                    row_ids=[int(unit_id) for unit_id in units.id.data],
                     property_name=f"waveform_{waveform_metrics[mode]}",
                     values=templates_all,
                 )

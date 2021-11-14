@@ -11,6 +11,7 @@ from pynwb import NWBHDF5IO, NWBFile
 from nwb_conversion_tools.utils import export_ecephys_to_nwb, SI090NwbEphysWriter, create_si090_example
 from spikeinterface.core.testing import check_sortings_equal, check_recordings_equal
 from spikeinterface.extractors import NwbRecordingExtractor, NwbSortingExtractor
+from spikeinterface import extract_waveforms
 
 
 class TestExtractors(unittest.TestCase):
@@ -116,6 +117,25 @@ class TestExtractors(unittest.TestCase):
         SX_nwb = NwbSortingExtractor(path, sampling_frequency=sf)
         assert "stability" not in SX_nwb.get_property_keys()
         check_sortings_equal(self.SX, SX_nwb)
+        
+    def test_write_waveforms(self):
+        path = self.test_dir + "/test_wf.nwb"
+        # set is_filtered=True for waveforms
+        self.RX.annotate(is_filtered=True)
+        we = extract_waveforms(self.RX, self.SX, folder=Path(self.test_dir) / "waveforms")
+        
+        nwbfile = export_ecephys_to_nwb(
+            object_to_write=we, nwb_file_path=path, 
+            overwrite=True
+        )
+        
+        assert "waveform_mean" in nwbfile.units.colnames
+        assert "waveform_sd" in nwbfile.units.colnames
+        
+        # check waveform_mean and sd shapes
+        assert nwbfile.units["waveform_mean"][0].shape[1] == self.RX.get_num_channels()
+        assert nwbfile.units["waveform_sd"][0].shape[1] == self.RX.get_num_channels()
+        assert nwbfile.units["waveform_mean"][0].shape[0] == nwbfile.units["waveform_sd"][0].shape[0]
 
 
 class TestWriteElectrodes(unittest.TestCase):

@@ -172,7 +172,7 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
                 prop_values = [channels_dict.get(id, np.nan) for id in self._get_unit_ids()]
         return self._check_valid_property(prop_values)
 
-    def _get_unit_waveforms_templates(self, unit_id, mode="mean"):
+    def _get_unit_waveforms_templates(self, unit_id, mode="average"):
         return self.waveforms.get_template(unit_id, mode=mode)
 
     def add_epochs(self):
