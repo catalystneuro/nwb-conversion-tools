@@ -65,28 +65,35 @@ def export_ecephys_to_nwb(
     stub_channels: list
         channel ids to write to nwbfile
     kwargs:
-        use_times (False): True then use timestamps array, else use starting time and rate for TimeSeries object in nwbfile
+        use_times (False): True then use timestamps array, else use starting time and rate for TimeSeries object 
+            in nwbfile
         write_as ("raw"): write the traces as raw or processed
         es_key (str): Key in metadata dictionary containing metadata info for the specific electrical series
-        buffer_gb (float): If buffer_shape is not specified, it will be inferred as the smallest chunk below the buffer_gb threshold.
-            Defaults to 1 GB.
+        buffer_gb (float): If buffer_shape is not specified, it will be inferred as the smallest chunk below the 
+            buffer_gb threshold. Defaults to 1 GB.
         buffer_shape (tuple): Manually defined shape of the buffer. Defaults to None.
-        chunk_mb (float): If chunk_shape is not specified, it will be inferred as the smallest chunk below the chunk_mb threshold.
-            H5 reccomends setting this to around 1 MB (our default) for optimal performance.
-        iterator_type ("v2"): v2 is using the custom datachunkiterator for chunking, v1 is using the built in datachunk iterator from hdf5
+        chunk_mb (float): If chunk_shape is not specified, it will be inferred as the smallest chunk below the 
+            chunk_mb threshold. H5 reccomends setting this to around 1 MB (our default) for optimal performance.
+        iterator_type ("v2"): v2 is using the custom datachunkiterator for chunking, v1 is using the built in 
+            datachunk iterator from hdf5
         chunk_shape (tuple): Manually defined shape of the chunks. Defaults to None.
         write_scaled (False): If True, writes the scaled traces (return_scaled=True)
-        compression ("gzip"): Type of compression to use. Valid types are "gzip" and "lzf". Set to None to disable all compression.
+        compression ("gzip"): Type of compression to use. Valid types are "gzip" and "lzf". 
+            Set to None to disable all compression.
         compression_opts (int): Only applies to compression="gzip". Controls the level of the GZIP.
         skip_unit_properties (list): names of unit properties to skip writing to nwbfile,
         skip_unit_features (list): names of unit features (old spikeextractors) to skip,
         skip_electrode_properties= (list): extractors' channel properties to skip,
-        unit_property_descriptions(dict()): custom descriptions for the unit properties (units column in nwbfile) defaults to "no description"
+        unit_property_descriptions(dict()): custom descriptions for the unit properties 
+            (units column in nwbfile) defaults to "no description"
         write_electrical_series (True): whether to store traces as electricalseries in nwb object.
         overwrite (True): whether to overwrite the nwbfile or not, only valid if the file path exists.
 
     Returns
     -------
+    
+    nwbfile: pynwb.NWBFile
+        The output NWBfile object
 
     """
     conversion_ops = default_export_ops()

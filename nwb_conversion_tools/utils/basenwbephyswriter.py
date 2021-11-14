@@ -574,7 +574,7 @@ class BaseNwbEphysWriter(ABC):
                 if not isinstance(feat_vals[0], Iterable):
                     feat_vals = [[val] for val in feat_vals]
                 for no, unit_id in enumerate(unit_ids):
-                    if len(feat_vals[no]) < nspikes[unit_id]:  # TODO: why is this necessary
+                    if len(feat_vals[no]) < nspikes[unit_id]:  
                         self._conversion_ops["skip_unit_features"].append(ft)
                         print(f"Skipping feature '{ft}' because it is not defined for all spikes.")
                         break
@@ -585,10 +585,10 @@ class BaseNwbEphysWriter(ABC):
                     else:
                         values.append(feat_vals[no])
                 if len(values) != len(unit_ids):
-                    break
+                    continue
                 flatten_vals = [item for sublist in values for item in sublist]
                 nspks_list = [sp for sp in nspikes.values()]
-                spikes_index = np.cumsum(nspks_list).astype("int64")
+                spikes_index = list(np.cumsum(nspks_list).astype("int64"))
                 if ft in self.nwbfile.units:  # If property already exists, skip it
                     warnings.warn(f"Feature {ft} already present in units table, skipping it")
                     continue
