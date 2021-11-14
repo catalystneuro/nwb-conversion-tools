@@ -573,7 +573,7 @@ class BaseNwbEphysWriter(ABC):
                 if not isinstance(feat_vals[0], Iterable):
                     feat_vals = [[val] for val in feat_vals]
                 for no, unit_id in enumerate(unit_ids):
-                    if len(feat_vals[no]) < nspikes[unit_id]:  
+                    if len(feat_vals[no]) < nspikes[unit_id]:
                         self._conversion_ops["skip_unit_features"].append(ft)
                         print(f"Skipping feature '{ft}' because it is not defined for all spikes.")
                         break
