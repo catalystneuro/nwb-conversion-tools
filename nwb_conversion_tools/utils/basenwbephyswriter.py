@@ -367,7 +367,7 @@ class BaseNwbEphysWriter(ABC):
             es_key = es_key if es_key is not None else eseries_kwargs["name"]
             if es_key not in self.metadata["Ecephys"]:
                 warnings.warn(
-                    f"metadata['Ecephys'] dictionary does not contain key '{es_key}'" f"picking default arguments"
+                    f"metadata['Ecephys'] dictionary does not contain key '{es_key}'. Using default arguments"
                 )
             else:
                 eseries_kwargs.update(self.metadata["Ecephys"][self._conversion_ops["es_key"]])
@@ -516,7 +516,6 @@ class BaseNwbEphysWriter(ABC):
         # 1. Build column details from unit properties: dict(name: dict(description='',data=data, index=False))
         unit_columns = defaultdict(dict)
         property_names = self._get_unit_property_names()
-        print(property_names)
         exclude_names = self._conversion_ops["skip_unit_properties"]
         for prop in property_names:
             if prop not in exclude_names:
