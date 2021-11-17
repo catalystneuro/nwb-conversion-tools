@@ -57,7 +57,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
     @staticmethod
     def supported_types():
         assert HAVE_SI013
-        return (se.RecordingExtractor, se.SortingExtractor)
+        return se.RecordingExtractor, se.SortingExtractor
 
     def get_num_segments(self):
         return 1
