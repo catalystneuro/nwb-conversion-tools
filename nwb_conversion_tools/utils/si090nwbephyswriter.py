@@ -1,8 +1,6 @@
 from distutils.version import StrictVersion
-from typing import Union
 
 import numpy as np
-import pynwb
 
 from .basesinwbephyswriter import BaseSINwbEphysWriter
 
@@ -71,7 +69,7 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
     @staticmethod
     def supported_types():
         assert HAVE_SI_090
-        return (si.BaseRecording, si.BaseSorting, si.BaseEvent, si.WaveformExtractor)
+        return si.BaseRecording, si.BaseSorting, si.BaseEvent, si.WaveformExtractor
 
     def get_num_segments(self):
         return self.object_to_write.get_num_segments()
