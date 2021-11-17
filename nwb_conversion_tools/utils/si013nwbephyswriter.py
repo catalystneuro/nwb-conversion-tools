@@ -77,12 +77,12 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                 property_names.add(i)
         return list(property_names)
 
-    def _fill_missing_property_values(self, ids, prop, get_prop_func):
+    def _fill_missing_property_values(self, channel_ids, prop, get_prop_func):
         self.dt_column_defaults = {list: [], str: "", Real: np.nan, np.ndarray: np.array([np.nan])}
         # find the size of ndarray dtype:
-        for id in ids:
+        for chan_id in channel_ids:
             try:
-                id_data = get_prop_func(id, prop)
+                id_data = get_prop_func(chan_id, prop)
                 if isinstance(id_data, np.ndarray):
                     self.dt_column_defaults.update({np.ndarray: np.nan * np.ones(shape=[1, id_data.shape[1:]])})
                     break
@@ -92,9 +92,9 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                 continue
         # find the channel property dtype:
         found_property_types = Real
-        for id in ids:
+        for chan_id in channel_ids:
             try:
-                id_data = get_prop_func(id, prop)
+                id_data = get_prop_func(chan_id, prop)
                 proptype = [proptype for proptype in self.dt_column_defaults if isinstance(id_data, proptype)]
                 if len(proptype) > 0:
                     found_property_types = proptype[0]
@@ -105,9 +105,9 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                 continue
         # build data array:
         data = []
-        for id in ids:
+        for chan_id in channel_ids:
             try:
-                id_data = get_prop_func(id, prop)
+                id_data = get_prop_func(chan_id, prop)
             except:
                 id_data = self.dt_column_defaults[found_property_types]
             if found_property_types == Real:
