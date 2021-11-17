@@ -35,6 +35,14 @@ class BaseNwbEphysWriter(ABC):
         self.metadata = dict()
 
     @abstractmethod
+    def _make_recording_stub(self):
+        pass
+
+    @abstractmethod
+    def _make_sorting_stub(self):
+        pass
+
+    @abstractmethod
     def get_num_segments(self):
         pass
 

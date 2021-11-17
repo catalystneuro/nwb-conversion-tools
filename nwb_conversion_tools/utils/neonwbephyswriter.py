@@ -56,13 +56,11 @@ class NEONwbEphysWriter(BaseNwbEphysWriter):
     def add_epochs(self):
         raise NotImplementedError
 
-    @abstractmethod
     def _make_recording_stub(self):
-        pass
+        raise NotImplementedError
 
-    @abstractmethod
     def _make_sorting_stub(self):
-        pass
+        raise NotImplementedError
 
     def _get_sampling_frequency(self):
         pass
