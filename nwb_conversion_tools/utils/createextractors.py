@@ -116,4 +116,4 @@ def create_si013_example(seed):
         times=times,
     )
 
-    return (RX, RX2, RX3, SX, SX2, SX3, example_info)
+    return RX, RX2, RX3, SX, SX2, SX3, example_info
