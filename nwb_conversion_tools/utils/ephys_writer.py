@@ -84,7 +84,7 @@ def export_ecephys_to_nwb(
         compression_opts (int): Only applies to compression="gzip". Controls the level of the GZIP.
         skip_unit_properties (list): names of unit properties to skip writing to nwbfile,
         skip_unit_features (list): names of unit features (old spikeextractors) to skip,
-        skip_electrode_properties= (list): extractors' channel properties to skip,
+        skip_electrode_properties= (list): extractor's channel properties to skip,
         unit_property_descriptions(dict()): custom descriptions for the unit properties
             (units column in nwbfile) defaults to "no description"
         write_electrical_series (True): whether to store traces as electricalseries in nwb object.
