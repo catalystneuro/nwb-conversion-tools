@@ -177,15 +177,3 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
 
     def add_epochs(self):
         return
-
-
-def create_si090_example():
-    RX = generate_recording(durations=[2], num_channels=4)
-    # RX.set_property("prop1", np.arange(RX.get_num_channels()))
-    # RX.set_property("prop2", np.arange(RX.get_num_channels()) * 2)
-
-    SX = generate_sorting(durations=[2])
-    # SX.set_property("prop1", np.arange(SX.get_num_units()))
-    # SX.set_property("prop2", np.arange(SX.get_num_units()) * 2)
-
-    return RX, SX
