@@ -45,18 +45,19 @@ def export_ecephys_to_nwb(
     """
     Writes one object to NWB.
 
-    Supported objects are:
-        - spikeinterface version <= 0.13 extractors
-          (spikeextractors.RecordingExtractor / spikeextractors.SortingExtractor)
-        - spikeinterface version >= 0.90 objects
-          (spikeinterface.RecordingExtractor / spikeinterface.SortingExtractor / spikeinterface.WaveformExtractor)
-        - NEO >= 0.10 objects
-          (neo.rawIO / neo.IO)
+
 
     Parameters
     ----------
     object_to_write: object
         spike interface/extractors object
+            Supported objects are:
+            - spikeinterface version <= 0.13 extractors
+              (spikeextractors.RecordingExtractor / spikeextractors.SortingExtractor)
+            - spikeinterface version >= 0.90 objects
+              (spikeinterface.RecordingExtractor / spikeinterface.SortingExtractor / spikeinterface.WaveformExtractor)
+            - NEO >= 0.10 objects
+              (neo.rawIO / neo.IO)
     nwb_file_path: str
         path to the nwbfile. if exists and overwrite is False, then it will append.
     metadata: dict
