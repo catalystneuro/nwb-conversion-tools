@@ -10,14 +10,6 @@ ArrayType = Union[list, np.ndarray]
 DynamicTableSupportedDtypes = {list: [], np.ndarray: np.array(np.nan), str: "", Real: np.nan}
 
 
-def list_get(li: list, idx: int, default):
-    """Safe index retrieval from list."""
-    try:
-        return li[idx]
-    except IndexError:
-        return default
-
-
 def set_dynamic_table_property(
     dynamic_table,
     row_ids,

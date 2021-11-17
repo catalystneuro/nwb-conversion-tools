@@ -12,14 +12,6 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
         self.recording, self.sorting, self.waveforms, self.event = None, None, None, None
         BaseNwbEphysWriter.__init__(self, object_to_write, stub=stub, stub_channels=stub_channels)
 
-    @abstractmethod
-    def _make_recording_stub(self):
-        pass
-
-    @abstractmethod
-    def _make_sorting_stub(self):
-        pass
-
     def _get_sampling_frequency(self):
         return self.recording.get_sampling_frequency()
 

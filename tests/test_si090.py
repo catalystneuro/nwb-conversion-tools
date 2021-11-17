@@ -145,8 +145,6 @@ class TestWriteElectrodes(unittest.TestCase):
         self.path2 = self.test_dir + "/test_electrodes2.nwb"
         self.path3 = self.test_dir + "/test_electrodes3.nwb"
         self.nwbfile1 = NWBFile("sess desc1", "file id1", datetime.now())
-        self.nwbfile2 = NWBFile("sess desc2", "file id2", datetime.now())
-        self.nwbfile3 = NWBFile("sess desc3", "file id3", datetime.now())
         self.metadata_list = [dict(Ecephys={i: dict(name=i, description="desc")}) for i in ["es1", "es2"]]
         # change channel_ids
         id_offset = np.max(self.RX.get_channel_ids())
