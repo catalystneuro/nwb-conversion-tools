@@ -90,7 +90,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                 else:
                     break
             except (RuntimeError, ValueError, TypeError) as e:
-                warnings.warn(f'retrieving property for channel errored with {e}')
+                warnings.warn(f"retrieving property for channel errored with {e}")
                 continue
         # find the channel property dtype:
         found_property_types = Real
@@ -104,7 +104,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                 else:  # if property not found in the supported self.dt_column_defaults, then return None
                     return
             except (RuntimeError, ValueError, TypeError) as e:
-                warnings.warn(f'retrieving property for channel errored with {e}')
+                warnings.warn(f"retrieving property for channel errored with {e}")
                 continue
         # build data array:
         data = []
