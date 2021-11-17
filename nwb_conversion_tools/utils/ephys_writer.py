@@ -7,7 +7,7 @@ from jsonschema import validate
 from .si013nwbephyswriter import SI013NwbEphysWriter
 from .si090nwbephyswriter import SI090NwbEphysWriter
 from .neonwbephyswriter import NEONwbEphysWriter
-from nwb_conversion_tools.nwbconverter import NWBConverter
+from ..nwbconverter import NWBConverter
 from .common_writer_tools import default_export_ops, default_export_ops_schema
 
 
@@ -60,6 +60,8 @@ def export_ecephys_to_nwb(
               (neo.rawIO / neo.IO)
     nwb_file_path: str
         path to the nwbfile. if exists and overwrite is False, then it will append.
+    nwbfile: pynwb.NWBFile
+        existing nwbfile to append to.
     metadata: dict
     stub: bool
         whether to write a subset of recording
