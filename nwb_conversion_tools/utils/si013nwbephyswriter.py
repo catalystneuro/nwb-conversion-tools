@@ -78,41 +78,37 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                 property_names.add(i)
         return list(property_names)
 
-    def _fill_missing_property_values(self, channel_ids, prop, get_prop_func):
+    def _fill_missing_property_values(self, channel_ids, prop, get_prop_func, get_prop_names_func):
         self.dt_column_defaults = {list: [], str: "", Real: np.nan, np.ndarray: np.array([np.nan])}
         # find the size of ndarray dtype:
         for chan_id in channel_ids:
-            try:
-                id_data = get_prop_func(chan_id, prop)
-                if isinstance(id_data, np.ndarray):
-                    self.dt_column_defaults.update({np.ndarray: np.nan * np.ones(shape=[1, id_data.shape[1:]])})
-                    break
-                else:
-                    break
-            except (RuntimeError, ValueError, TypeError) as e:
-                warnings.warn(f"retrieving property for channel errored with {e}")
+            if prop not in get_prop_names_func(chan_id):
                 continue
+            id_data = get_prop_func(chan_id, prop)
+            if isinstance(id_data, np.ndarray):
+                self.dt_column_defaults.update({np.ndarray: np.nan * np.ones(shape=[1, id_data.shape[1:]])})
+                break
+            else:
+                break
         # find the channel property dtype:
         found_property_types = Real
         for chan_id in channel_ids:
-            try:
-                id_data = get_prop_func(chan_id, prop)
-                proptype = [proptype for proptype in self.dt_column_defaults if isinstance(id_data, proptype)]
-                if len(proptype) > 0:
-                    found_property_types = proptype[0]
-                    break
-                else:  # if property not found in the supported self.dt_column_defaults, then return None
-                    return
-            except (RuntimeError, ValueError, TypeError) as e:
-                warnings.warn(f"retrieving property for channel errored with {e}")
+            if prop not in get_prop_names_func(chan_id):
                 continue
+            id_data = get_prop_func(chan_id, prop)
+            proptype = [proptype for proptype in self.dt_column_defaults if isinstance(id_data, proptype)]
+            if len(proptype) > 0:
+                found_property_types = proptype[0]
+                break
+            else:  # if property not found in the supported self.dt_column_defaults, then return None
+                return
         # build data array:
         data = []
         for chan_id in channel_ids:
-            try:
-                id_data = get_prop_func(chan_id, prop)
-            except:
+            if prop not in get_prop_names_func(chan_id):
                 id_data = self.dt_column_defaults[found_property_types]
+            else:
+                id_data = get_prop_func(chan_id, prop)
             if found_property_types == Real:
                 data.append(np.float(id_data))
             else:
@@ -120,6 +116,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
         return np.array(data)
 
     def _get_channel_property_values(self, prop):
+        assert isinstance(prop, str), "prop name must be a string"
         if prop == "location":
             return self.recording.get_channel_locations()
         elif prop == "gain":
@@ -134,13 +131,19 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                 ]
             ):
                 prop_values = self._fill_missing_property_values(
-                    self._get_channel_ids(), "group_name", self.recording.get_channel_property
+                    self._get_channel_ids(),
+                    "group_name",
+                    self.recording.get_channel_property,
+                    self.recording.get_channel_property_names,
                 )
                 return self._check_valid_property(prop_values)
             return self.recording.get_channel_groups()
         else:
             prop_values = self._fill_missing_property_values(
-                self._get_channel_ids(), prop, self.recording.get_channel_property
+                self._get_channel_ids(),
+                prop,
+                self.recording.get_channel_property,
+                self.recording.get_channel_property_names,
             )
             return self._check_valid_property(prop_values)
 
@@ -159,7 +162,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
 
     def _get_unit_feature_values(self, prop):
         feat_values = self._fill_missing_property_values(
-            self._get_unit_ids(), prop, self.sorting.get_unit_spike_features
+            self._get_unit_ids(), prop, self.sorting.get_unit_spike_features, self.sorting.get_unit_spike_feature_names
         )
         return self._check_valid_property(feat_values)
 
@@ -177,7 +180,9 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
         return list(property_names)
 
     def _get_unit_property_values(self, prop):
-        prop_values = self._fill_missing_property_values(self._get_unit_ids(), prop, self.sorting.get_unit_property)
+        prop_values = self._fill_missing_property_values(
+            self._get_unit_ids(), prop, self.sorting.get_unit_property, self.sorting.get_unit_property_names
+        )
         return self._check_valid_property(prop_values)
 
     def _get_unit_waveforms_templates(self, unit_id, mode="mean"):
