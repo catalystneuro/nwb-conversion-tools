@@ -139,26 +139,25 @@ def get_num_spikes(units_table, unit_id):
         return units_table["spike_times_index"].data[index] - units_table["spike_times_index"].data[index - 1]
 
 
-def default_export_ops():
-    return dict(
-        use_times=False,
-        write_as="raw",
-        es_key=None,
-        buffer_gb=None,
-        buffer_shape=None,
-        chunk_mb=None,
-        iterator_type="v2",
-        chunk_shape=None,
-        write_scaled=False,
-        compression="gzip",
-        compression_opts=4,
-        skip_unit_properties=[],
-        skip_unit_features=[],
-        skip_electrode_properties=[],
-        unit_property_descriptions=dict(),
-        write_electrical_series=True,
-        overwrite=True,
-    )
+default_export_ops =  dict(
+    use_times=False,
+    write_as="raw",
+    es_key=None,
+    buffer_gb=None,
+    buffer_shape=None,
+    chunk_mb=None,
+    iterator_type="v2",
+    chunk_shape=None,
+    write_scaled=False,
+    compression="gzip",
+    compression_opts=4,
+    skip_unit_properties=[],
+    skip_unit_features=[],
+    skip_electrode_properties=[],
+    unit_property_descriptions=dict(),
+    write_electrical_series=True,
+    overwrite=True,
+)
 
 
 def default_export_ops_schema():
