@@ -139,7 +139,7 @@ def get_num_spikes(units_table, unit_id):
         return units_table["spike_times_index"].data[index] - units_table["spike_times_index"].data[index - 1]
 
 
-default_export_ops =  dict(
+default_export_ops = dict(
     use_times=False,
     write_as="raw",
     es_key=None,
