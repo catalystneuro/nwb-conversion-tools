@@ -86,7 +86,7 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                 continue
             id_data = get_prop_func(chan_id, prop)
             if isinstance(id_data, np.ndarray):
-                self.dt_column_defaults.update({np.ndarray: np.nan * np.ones(shape=[1, id_data.shape[1:]])})
+                self.dt_column_defaults.update({np.ndarray: np.nan * np.ones(shape=[1, *id_data.shape[1:]])})
                 break
             else:
                 break
