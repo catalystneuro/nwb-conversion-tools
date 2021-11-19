@@ -23,11 +23,11 @@ except ImportError:
 
 def create_si090_example():
     assert HAVE_SI_090, "spikeinterface 0.90 not installed"
-    RX = generate_recording(durations=[2000], num_channels=4)
+    RX = generate_recording(durations=[10], num_channels=4)
     # RX.set_property("prop1", np.arange(RX.get_num_channels()))
     # RX.set_property("prop2", np.arange(RX.get_num_channels()) * 2)
 
-    SX = generate_sorting(durations=[2000])
+    SX = generate_sorting(durations=[10])
     # SX.set_property("prop1", np.arange(SX.get_num_units()))
     # SX.set_property("prop2", np.arange(SX.get_num_units()) * 2)
 
