@@ -4,11 +4,9 @@ import numpy as np
 from pynwb.base import ProcessingModule
 from spikeextractors import NumpyRecordingExtractor
 
+from nwb_conversion_tools.utils.nwbfile_tools import (get_module, make_nwbfile_from_metadata)
 from nwb_conversion_tools.utils.conversion_tools import (
-    check_regular_timestamps,
-    get_module,
-    make_nwbfile_from_metadata,
-    estimate_recording_conversion_time,
+    check_regular_timestamps, estimate_recording_conversion_time, reverse_fstring, infer_path_levels
 )
 
 
@@ -44,3 +42,24 @@ class TestConversionTools(TestCase):
         estimated_write_time, estimated_write_speed = estimate_recording_conversion_time(
             recording=recording, write_kwargs=dict(compression=None)
         )
+        
+    def test_reverse_fstring(self):
+        sample_string = "MyFolder/{session_id}/{subject_id}"
+        for sample_string in [
+            "MyFolder/{session_id}/{subject_id}",
+            "/MyFolder/{session_id}/{subject_id}",
+            "MyFolder/{session_id}/{subject_id}/",
+            "/MyFolder/{session_id}/{subject_id}/",
+        ]:
+            extracted_keywords = reverse_fstring(string=sample_string)
+            self.assertEqual(extracted_keywords, ["session_id", "subject_id"])
+
+    def test_infer_path_levels(self):
+        for sample_string in [
+            "MyFolder/{session_id}/{subject_id}",
+            "/MyFolder/{session_id}/{subject_id}",
+            "MyFolder/{session_id}/{subject_id}/",
+            "/MyFolder/{session_id}/{subject_id}/",
+        ]:
+            levels = infer_path_levels(keys=["session_id", "subject_id"], string=sample_string)
+            self.assertEqual(levels, [1, 2])

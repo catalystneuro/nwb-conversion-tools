@@ -1,11 +1,12 @@
 """Authors: Cody Baker, Alessio Buccino."""
 import yaml
+import re
 import numpy as np
 from pathlib import Path
 from tempfile import mkdtemp
 from shutil import rmtree
 from time import perf_counter
-from typing import Optional
+from typing import Optional, Iterable
 from importlib import import_module
 from itertools import chain
 
@@ -126,3 +127,24 @@ def run_conversion_from_yaml(file_path: FilePathType, overwrite: bool = False):
                 overwrite=overwrite,
                 conversion_options=session.get("conversion_options", dict()),
             )
+
+def reverse_fstring(string: str):
+    return re.findall(pattern="\\{(.*?)\\}", string=string)
+
+def infer_path_levels(keys: Iterable[str], string: str):
+    adj_idx = 0
+    if string[0] != "/":
+        adj_string = "/" + string
+        adj_idx += 1
+    else:
+        adj_string = string
+    if adj_string[-1] != "/":
+        adj_string = adj_string + "/"
+
+    pars = [idx for idx, ch in enumerate(adj_string) if ch == "/"]
+    levels = []
+    for key in keys:
+        key_start = string.find(key)
+        level_finder = (i - 1 for i, v in enumerate(np.array(pars) < key_start + adj_idx) if v == False)
+        levels.append(next(level_finder))
+    return levels
