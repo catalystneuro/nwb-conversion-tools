@@ -11,11 +11,12 @@ here = os.path.abspath(os.path.dirname(__file__))
 # Get the long description from the README file
 with open(os.path.join(here, "README.md")) as f:
     long_description = f.read()
-
 # Get remote version
 remote_version = subprocess.run(["git", "describe", "--tags"], stdout=subprocess.PIPE).stdout.decode("utf-8").strip()
 assert "." in remote_version
 
+with open(os.path.join(here, "requirements-minimal.txt")) as f:
+    install_requires = f.read().strip().split("\n")
 setup(
     name="nwb-conversion-tools",
     version="0.9.5",
@@ -30,24 +31,7 @@ setup(
     package_data={"": ["template_metafile.yml"]},
     include_package_data=True,
     python_requires=">=3.7",
-    install_requires=[
-        "pynwb",
-        "tqdm",
-        "natsort",
-        "numpy",
-        "pandas",
-        "scipy",
-        "h5py",
-        "PyYAML",
-        "jsonschema",
-        "psutil",
-        "lxml",
-        "spikeextractors",
-        "spikesorters",
-        "spiketoolkit",
-        "neo",
-        "roiextractors",
-    ],
+    install_requires=install_requires,
     entry_points={
         "console_scripts": ["nwb-gui=nwb_conversion_tools.gui.command_line:main"],
     },
