@@ -1,20 +1,12 @@
 from setuptools import setup, find_packages
-import subprocess
-
-# To use a consistent encoding
 from codecs import open
 import os
-
 
 here = os.path.abspath(os.path.dirname(__file__))
 
 # Get the long description from the README file
 with open(os.path.join(here, "README.md")) as f:
     long_description = f.read()
-# Get remote version
-remote_version = subprocess.run(["git", "describe", "--tags"], stdout=subprocess.PIPE).stdout.decode("utf-8").strip()
-assert "." in remote_version
-
 with open(os.path.join(here, "requirements-minimal.txt")) as f:
     install_requires = f.read().strip().split("\n")
 setup(
