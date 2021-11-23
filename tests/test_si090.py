@@ -36,7 +36,7 @@ class TestExtractors(unittest.TestCase):
         export_ecephys_to_nwb(object_to_write=self.RX2, nwb_file_path=path, overwrite=True)
         RX_nwb = NwbRecordingExtractor(path)
         check_recordings_equal(self.RX2, RX_nwb, return_scaled=False)
-
+        del RX_nwb
         # Writing multiple recordings using metadata
         path_multi = self.test_dir + "/test_multiple.nwb"
         nwbfile = export_ecephys_to_nwb(
@@ -98,6 +98,7 @@ class TestExtractors(unittest.TestCase):
             io.write(nwbfile)
         SX_nwb = NwbSortingExtractor(path)
         check_sortings_equal(self.SX, SX_nwb)
+        del SX_nwb
 
         # Test for handling unit property descriptions argument
         property_descriptions = dict(stability="This is a description of stability.")
@@ -109,6 +110,7 @@ class TestExtractors(unittest.TestCase):
         )
         SX_nwb = NwbSortingExtractor(path, sampling_frequency=sf)
         check_sortings_equal(self.SX, SX_nwb)
+        del SX_nwb
 
         # Test for handling skip_properties argument
         nwbfile = export_ecephys_to_nwb(
@@ -117,6 +119,7 @@ class TestExtractors(unittest.TestCase):
         SX_nwb = NwbSortingExtractor(path, sampling_frequency=sf)
         assert "stability" not in SX_nwb.get_property_keys()
         check_sortings_equal(self.SX, SX_nwb)
+        del SX_nwb
 
     def test_write_waveforms(self):
         path = self.test_dir + "/test_wf.nwb"
