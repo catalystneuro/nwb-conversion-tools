@@ -22,6 +22,7 @@ jobs:
       env:
           NWB_CONVERSION_INSTALL_MODE: production
       run: |
+        pip install -r requirements-minimal.txt
         pip install .
         pip install pytest
     - name: Run tests
