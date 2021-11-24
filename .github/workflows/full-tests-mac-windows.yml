@@ -19,6 +19,7 @@ jobs:
       env:
           NWB_CONVERSION_INSTALL_MODE: development
       run: |
+        pip install -r requirements-full.txt
         pip install -e .
         pip install pytest
     - name: Get ephy_testing_data current head hash
