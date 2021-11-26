@@ -68,7 +68,7 @@ def append_replace_dict_in_list(ls, d, compare_key, list_dict_deep_update: bool 
                     ls[idx] = d
         else:
             ls.append(d)
-    elif not(d in ls and remove_repeats):
+    elif not (d in ls and remove_repeats):
         ls.append(d)
     return ls
 
@@ -130,7 +130,9 @@ def dict_deep_update(
             d[k] = dict_deep_update(d.get(k, None), v, append_list=append_list, remove_repeats=remove_repeats)
         elif append_list and isinstance(v, list):
             for vv in v:
-                d[k] = append_replace_dict_in_list(d.get(k, None), vv, compare_key, list_dict_deep_update, remove_repeats)
+                d[k] = append_replace_dict_in_list(
+                    d.get(k, None), vv, compare_key, list_dict_deep_update, remove_repeats
+                )
         else:
             d[k] = v
     return d
