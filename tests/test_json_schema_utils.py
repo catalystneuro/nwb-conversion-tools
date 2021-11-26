@@ -64,6 +64,7 @@ def test_dict_deep_update_1():
     correct_result = dict(a=3, b="goodbye", c=23, d="compare")
     compare_dicts(result1, correct_result)
 
+
 def test_dict_deep_update_2():
     # 2. test dict update with values as dictionaries themselves
     a1 = dict(a=1, b="hello", c=23)
@@ -74,6 +75,7 @@ def test_dict_deep_update_2():
     result2 = dict_deep_update(a2, b2)
     correct_result = dict(a=3, b="compare", c=dict_deep_update(a1, b1))
     compare_dicts(result2, correct_result)
+
 
 def test_dict_deep_update_3():
     # 3.1 test merge of dicts with a key's value as a list of int/str
@@ -98,6 +100,7 @@ def test_dict_deep_update_3():
     result3_2 = dict_deep_update(a3, b3, append_list=False)
     correct_result = dict(dict_deep_update(a2, b2), ls1=b3["ls1"])
     compare_dicts(result3_2, correct_result)
+
 
 def test_dict_deep_update_4():
     # 4. case of dicts with key's values as a list of dicts.
