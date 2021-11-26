@@ -1,12 +1,14 @@
-"""Authors: Luiz Tauffer, Cody Baker, and Ben Dichter."""
+"""Authors: Luiz Tauffer, Cody Baker, Saksham Sharda and Ben Dichter."""
 import collections.abc
 import inspect
-import numpy as np
+import warnings
+from copy import deepcopy
 from datetime import datetime
-from typing import TypeVar
 from pathlib import Path
 from typing import Optional, Union
-from copy import deepcopy
+from typing import TypeVar
+
+import numpy as np
 import pynwb
 
 FilePathType = TypeVar("FilePathType", str, Path)
@@ -23,15 +25,18 @@ def exist_dict_in_list(d, ls):
     return any([d == i for i in ls])
 
 
-def append_replace_dict_in_list(d, ls, k, list_dict_deep_update: bool = True):
+def append_replace_dict_in_list(ls, d, compare_key, list_dict_deep_update: bool = True, remove_repeats: bool = True):
     """
     Append a dictionary to a list of dictionaries.
 
     If some dictionary already contains the same value as d[k], it gets replaced by the new dict.
     """
-    if k in d and len(ls) > 0:
-        # Index where the value dictionary[k] exists in the list of dicts
-        indxs = np.where([d[k] == i[k] for i in ls])[0]
+    if not isinstance(ls, list):
+        return d
+    if isinstance(d, collections.abc.Mapping):
+        indxs = np.where(
+            [d.get(compare_key, None) == i[compare_key] for i in ls if isinstance(i, collections.abc.Mapping)]
+        )[0]
         if len(indxs) > 0:
             for idx in indxs:
                 if list_dict_deep_update:
@@ -40,17 +45,9 @@ def append_replace_dict_in_list(d, ls, k, list_dict_deep_update: bool = True):
                     ls[idx] = d
         else:
             ls.append(d)
-    else:
+    elif not(d in ls and remove_repeats):
         ls.append(d)
     return ls
-
-
-def dict_get_dtype(d: collections.abc.Mapping, key: str, default_val=None):
-    ret_val = d.get(key, default_val)
-    if isinstance(ret_val, type(default_val)) or default_val is None:
-        return ret_val
-    else:
-        return default_val
 
 
 def dict_deep_update(
@@ -61,26 +58,55 @@ def dict_deep_update(
     copy: bool = False,
     compare_key: str = "name",
     list_dict_deep_update: bool = True,
-) -> dict:
-    """Perform an update to all nested keys of dictionary d from dictionary u."""
+) -> collections.abc.Mapping:
+    """
+    Perform an update to all nested keys of dictionary d(input) from dictionary u(updating dict).
+    Parameters
+    ----------
+    d: dict
+        dictionary to update
+    u: dict
+        dictionary to update from
+    append_list: bool
+        if the item to update is a list, whether to append the lists or replace the list in d
+        eg. d = dict(key1=[1,2,3]), u = dict(key1=[3,4,5]).
+        If True then updated dictionary d=dict(key1=[1,2,3,4,5]) else d=dict(key1=[3,4,5])
+    remove_repeats: bool
+        for updating list in d[key] with list in u[key]: if true then remove repeats: list(set(ls))
+    copy: bool
+        whether to deepcopy the input dict d
+    compare_key: str
+        the key that is used to compare dicts (and perform update op) and update d[key] when it is a list if dicts.
+        example:
+            >>> d = {'input': [{'name':'timeseries1', 'desc':'desc1 of d', 'starting_time':0.0}, {'name':'timeseries2', 'desc':'desc2'}]}
+            >>> u = ['input': {'name':'timeseries1', 'desc':'desc2 of u', 'unit':'n.a.'}]
+            >>> # if compre_key='name' output is below
+            >>> output = ['input': {'name':'timeseries1', 'desc':'desc2 of u', 'starting_time':0.0, 'unit':'n.a.'}, {'name':'timeseries2', 'desc':'desc2'}]
+            >>> # else the output is:
+            >>> # dict with the same key will be updated instead of being appended to the list
+            >>> output = ['input': {'name':'timeseries1', 'desc':'desc1 of d', 'starting_time': 0.0}, {'name':'timeseries2', 'desc':'desc2'}, {'name':'timeseries1', 'desc':'desc2 of u', 'unit':'n.a.'}]
+    list_dict_deep_update: bool
+        for back compatibility, if False, this would work as before:
+        example: if True then for the compare_key example, the output would be:
+            >>> output = ['input': {'name':'timeseries1', 'desc':'desc2 of u', 'starting_time':0.0, 'unit':'n.a.'}, {'name':'timeseries2', 'desc':'desc2'}]
+            >>> # if False:
+            >>> output = ['input': {'name':'timeseries1', 'desc':'desc2 of u', 'starting_time':0.0}, {'name':'timeseries2', 'desc':'desc2'}]# unit key is absent since its a replacement
+
+    Returns
+    -------
+
+    """
+    if not isinstance(d, collections.abc.Mapping):
+        warnings.warn("input to update should be a dict, returning output")
+        return u
     if copy:
         d = deepcopy(d)
     for k, v in u.items():
         if isinstance(v, collections.abc.Mapping):
-            d[k] = dict_deep_update(dict_get_dtype(d, k, {}), v, append_list=append_list, remove_repeats=remove_repeats)
+            d[k] = dict_deep_update(d.get(k, None), v, append_list=append_list, remove_repeats=remove_repeats)
         elif append_list and isinstance(v, list):
-            d[k] = dict_get_dtype(d, k, [])
             for vv in v:
-                if isinstance(vv, collections.abc.Mapping):
-                    d[k] = append_replace_dict_in_list(
-                        d=vv, ls=dict_get_dtype(d, k, []), k=compare_key, list_dict_deep_update=list_dict_deep_update
-                    )
-                else:
-                    if vv not in d[k] or not remove_repeats:
-                        if isinstance(vv, list):
-                            d[k].extend(vv)
-                        else:
-                            d[k].append(vv)
+                d[k] = append_replace_dict_in_list(d.get(k, None), vv, compare_key, list_dict_deep_update, remove_repeats)
         else:
             d[k] = v
     return d
