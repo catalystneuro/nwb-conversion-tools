@@ -11,7 +11,7 @@ with open(os.path.join(path, "requirements-minimal.txt")) as f:
     install_requires = f.read().strip().split("\n")
 setup(
     name="nwb-conversion-tools",
-    version="0.10.0",
+    version="0.10.1",
     description="Convert data from proprietary formats to NWB format.",
     long_description=long_description,
     long_description_content_type="text/markdown",
