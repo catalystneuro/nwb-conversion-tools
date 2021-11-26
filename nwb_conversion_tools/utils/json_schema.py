@@ -37,6 +37,7 @@ def append_replace_dict_in_list(ls, d, compare_key, list_dict_deep_update: bool 
     2.  If d is of immutable types like str, int etc, the ls is either appended with d or not.
         This depends on the value of remove_repeats. If remove_repeats is False, then ls is always appended with d.
         If remove_repeats is True, then if value d is present then its not appended else it is.
+
     Parameters
     ----------
     ls: list
@@ -49,6 +50,7 @@ def append_replace_dict_in_list(ls, d, compare_key, list_dict_deep_update: bool 
         whether to update a dict in ls with compare_key present OR simply replace it.
     remove_repeats: bool
         keep repeated values in the updated ls
+
     Returns
     -------
     ls: list
@@ -84,6 +86,7 @@ def dict_deep_update(
 ) -> collections.abc.Mapping:
     """
     Perform an update to all nested keys of dictionary d(input) from dictionary u(updating dict).
+
     Parameters
     ----------
     d: dict
