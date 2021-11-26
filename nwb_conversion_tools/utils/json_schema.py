@@ -27,9 +27,32 @@ def exist_dict_in_list(d, ls):
 
 def append_replace_dict_in_list(ls, d, compare_key, list_dict_deep_update: bool = True, remove_repeats: bool = True):
     """
-    Append a dictionary to a list of dictionaries.
+    Correctly updates the list ls with the dict d.
 
-    If some dictionary already contains the same value as d[k], it gets replaced by the new dict.
+    Cases:
+    1.  If d is a dict and ls a list of dicts and ints/str, then for a given compare key, if for any element of ls
+        (which is a dict) say: ls[3][compare_key] == d[compare_key], then it will dict_deep_update these instead of appending d
+        to list ls. Only if compare_key is not present in any of dicts in the list ls, then d is simply appended
+        to ls.
+    2.  If d is of immutable types like str, int etc, the ls is either appended with d or not.
+        This depends on the value of remove_repeats. If remove_repeats is False, then ls is always appended with d.
+        If remove_repeats is True, then if value d is present then its not appended else it is.
+    Parameters
+    ----------
+    ls: list
+        list of a dicts or int/str or a combination. This is the object to update
+    d: list/str/int
+        this is the object from which ls is updated.
+    compare_key: str
+        name of the key for which to check the presence of dicts in ls which need dict_deep_update
+    list_dict_deep_update: bool
+        whether to update a dict in ls with compare_key present OR simply replace it.
+    remove_repeats: bool
+        keep repeated values in the updated ls
+    Returns
+    -------
+    ls: list
+        updated list
     """
     if not isinstance(ls, list):
         return d
@@ -55,7 +78,7 @@ def dict_deep_update(
     u: collections.abc.Mapping,
     append_list: bool = True,
     remove_repeats: bool = True,
-    copy: bool = False,
+    copy: bool = True,
     compare_key: str = "name",
     list_dict_deep_update: bool = True,
 ) -> collections.abc.Mapping:
@@ -94,7 +117,8 @@ def dict_deep_update(
 
     Returns
     -------
-
+    d: dict
+        return the updated dictionary
     """
     if not isinstance(d, collections.abc.Mapping):
         warnings.warn("input to update should be a dict, returning output")
