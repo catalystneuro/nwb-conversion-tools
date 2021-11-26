@@ -19,24 +19,13 @@ def compare_dicts_2(a: dict, b: dict):
     assert json.dumps(a) == json.dumps(b)
 
 
-def sort_dict(a: dict):
-    b = {i: a[i] for i in sorted(a)}
-    for key, val in b.items():
-        if isinstance(val, dict):
-            b[key] = sort_dict(val)
-        elif isinstance(val, list):
-            b[key] = sort_list(val)
-    return b
-
-
-def sort_list(b: list):
-    b.sort(key=str)
-    for bb in b:
-        if isinstance(bb, list):
-            b = sort_list(b)
-        elif isinstance(bb, dict):
-            b = sort_dict(bb)
-    return b
+def sort_item(item):
+    if isinstance(item, list):
+        return [sort_item(x) for x in sorted(item, key=str)]
+    elif isinstance(item, dict):
+        return {k: sort_item(item[k]) for k in sorted(item)}
+    else:
+        return item
 
 
 def test_get_schema_from_method_signature():
