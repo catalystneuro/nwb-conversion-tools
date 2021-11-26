@@ -122,9 +122,7 @@ class NeuroscopeRecordingInterface(BaseRecordingExtractorInterface):
         session_id = session_path.stem
         xml_file_path = self.source_data.get("xml_file_path", str(session_path / f"{session_id}.xml"))
         metadata = super().get_metadata()
-        metadata["Ecephys"].update(
-            NeuroscopeRecordingInterface.get_ecephys_metadata(xml_file_path=xml_file_path)
-        )
+        metadata["Ecephys"].update(NeuroscopeRecordingInterface.get_ecephys_metadata(xml_file_path=xml_file_path))
         metadata["Ecephys"].update(
             ElectricalSeries_raw=dict(name="ElectricalSeries_raw", description="Raw acquisition traces.")
         )
@@ -216,9 +214,7 @@ class NeuroscopeLFPInterface(BaseLFPExtractorInterface):
         session_id = session_path.stem
         xml_file_path = self.source_data.get("xml_file_path", str(session_path / f"{session_id}.xml"))
         metadata = super().get_metadata()
-        metadata["Ecephys"].update(
-            NeuroscopeRecordingInterface.get_ecephys_metadata(xml_file_path=xml_file_path)
-        )
+        metadata["Ecephys"].update(NeuroscopeRecordingInterface.get_ecephys_metadata(xml_file_path=xml_file_path))
         return metadata
 
 
@@ -287,7 +283,5 @@ class NeuroscopeSortingInterface(BaseSortingExtractorInterface):
         session_path = Path(self.source_data["folder_path"])
         session_id = session_path.stem
         xml_file_path = self.source_data.get("xml_file_path", str(session_path / f"{session_id}.xml"))
-        metadata = dict(
-            Ecephys=NeuroscopeRecordingInterface.get_ecephys_metadata(xml_file_path=xml_file_path)
-        )
+        metadata = dict(Ecephys=NeuroscopeRecordingInterface.get_ecephys_metadata(xml_file_path=xml_file_path))
         return metadata
