@@ -8,14 +8,14 @@ from nwb_conversion_tools.utils.metadata import load_metadata_from_file
 
 
 def compare_dicts(a: dict, b: dict):
-    a = sort_dict(a)
-    b = sort_dict(b)
+    a = sort_item(a)
+    b = sort_item(b)
     assert json.dumps(a, indent=2) == json.dumps(b, indent=2)
 
 
 def compare_dicts_2(a: dict, b: dict):
-    a = sort_dict(a)
-    b = sort_dict(b)
+    a = sort_item(a)
+    b = sort_item(b)
     assert json.dumps(a) == json.dumps(b)
 
 
