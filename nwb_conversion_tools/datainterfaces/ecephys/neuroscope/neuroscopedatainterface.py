@@ -118,9 +118,12 @@ class NeuroscopeRecordingInterface(BaseRecordingExtractorInterface):
         return metadata_schema
 
     def get_metadata(self):
+        session_path = Path(self.source_data["file_path"]).parent
+        session_id = session_path.stem
+        xml_file_path = self.source_data.get("xml_file_path", str(session_path / f"{session_id}.xml"))
         metadata = super().get_metadata()
         metadata["Ecephys"].update(
-            NeuroscopeRecordingInterface.get_ecephys_metadata(xml_file_path=self.source_data["xml_file_path"])
+            NeuroscopeRecordingInterface.get_ecephys_metadata(xml_file_path=xml_file_path)
         )
         metadata["Ecephys"].update(
             ElectricalSeries_raw=dict(name="ElectricalSeries_raw", description="Raw acquisition traces.")
@@ -209,9 +212,12 @@ class NeuroscopeLFPInterface(BaseLFPExtractorInterface):
         add_recording_extractor_properties(recording_extractor=self.recording_extractor, xml_file_path=xml_file_path)
 
     def get_metadata(self):
+        session_path = Path(self.source_data["file_path"]).parent
+        session_id = session_path.stem
+        xml_file_path = self.source_data.get("xml_file_path", str(session_path / f"{session_id}.xml"))
         metadata = super().get_metadata()
         metadata["Ecephys"].update(
-            NeuroscopeRecordingInterface.get_ecephys_metadata(xml_file_path=self.source_data["xml_file_path"])
+            NeuroscopeRecordingInterface.get_ecephys_metadata(xml_file_path=xml_file_path)
         )
         return metadata
 
@@ -226,12 +232,12 @@ class NeuroscopeSortingInterface(BaseSortingExtractorInterface):
         folder_path: FolderPathType,
         keep_mua_units: bool = True,
         exclude_shanks: Optional[list] = None,
+        xml_file_path: OptionalFilePathType = None,
         # TODO: we can enable this once
         #     a) waveforms on unit columns support conversion factor in NWB
         #     b) write_sorting utils support writing said waveforms properly to a units table
         # load_waveforms: bool = False,
         # gain: Optional[float] = None,
-        xml_file_path: OptionalFilePathType = None,
     ):
         """
         Load and prepare spike sorted data and corresponding metadata from the Neuroscope format (.res/.clu files).
@@ -240,13 +246,6 @@ class NeuroscopeSortingInterface(BaseSortingExtractorInterface):
         ----------
         folder_path : FolderPathType
             Path to folder containing .clu and .res files.
-        gain : Optional[float], optional
-            Conversion factors from int16 to Volts are not contained in xml_file_path; set them explicitly here.
-            Most common value is 0.195 for an intan recording system.
-            The default is None.
-        xml_file_path : OptionalFilePathType, optional
-            Path to .xml file containing device and electrode configuration.
-            If unspecified, it will be automatically set as the only .xml file in the same folder as the .dat file.
             The default is None.
         keep_mua_units : bool
             Optional. Whether or not to return sorted spikes from multi-unit activity.
@@ -254,6 +253,10 @@ class NeuroscopeSortingInterface(BaseSortingExtractorInterface):
         exclude_shanks : list
             Optional. List of indices to ignore. The set of all possible indices is chosen by default, extracted as the
             final integer of all the .res.%i and .clu.%i pairs.
+        xml_file_path : OptionalFilePathType, optional
+            Path to .xml file containing device and electrode configuration.
+            If unspecified, it will be automatically set as the only .xml file in the same folder as the .dat file.
+            The default is None.
         load_waveforms : bool, optional
             If True, extracts waveform data from .spk.%i files in the path corresponding to
             the .res.%i and .clue.%i files and sets these as unit spike features.
@@ -265,8 +268,6 @@ class NeuroscopeSortingInterface(BaseSortingExtractorInterface):
             Most common value is 0.195 for an intan recording system.
             The default is None.
             Not currently in use pending updates to NWB waveforms.
-        xml_file_path : PathType, optional
-            Path to the .xml file referenced by this sorting.
         """
         assert HAVE_LXML, INSTALL_MESSAGE
 
@@ -274,6 +275,7 @@ class NeuroscopeSortingInterface(BaseSortingExtractorInterface):
             folder_path=folder_path,
             keep_mua_units=keep_mua_units,
             exclude_shanks=exclude_shanks,
+            xml_file_path=xml_file_path,
             # TODO: we can enable this once
             #     a) waveforms on unit columns support conversion factor in NWB
             #     b) write_sorting utils support writing said waveforms properly to a units table
@@ -284,9 +286,8 @@ class NeuroscopeSortingInterface(BaseSortingExtractorInterface):
     def get_metadata(self):
         session_path = Path(self.source_data["folder_path"])
         session_id = session_path.stem
-        metadata = dict()
-        metadata["Ecephys"] = NeuroscopeRecordingInterface.get_ecephys_metadata(
-            xml_file_path=str((session_path / f"{session_id}.xml").absolute())
+        xml_file_path = self.source_data.get("xml_file_path", str(session_path / f"{session_id}.xml"))
+        metadata = dict(
+            Ecephys=NeuroscopeRecordingInterface.get_ecephys_metadata(xml_file_path=xml_file_path)
         )
-        metadata["Ecephys"].update(UnitProperties=[])
         return metadata
