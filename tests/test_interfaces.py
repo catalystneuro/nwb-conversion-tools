@@ -31,6 +31,7 @@ from nwb_conversion_tools.utils import create_si013_example, export_ecephys_to_n
 from nwb_conversion_tools.datainterfaces.ecephys.basesortingextractorinterface import BaseSortingExtractorInterface
 from nwb_conversion_tools.utils.conversion_tools import get_default_nwbfile_metadata
 
+
 @pytest.mark.parametrize("data_interface", interface_list)
 def test_interface_source_schema(data_interface):
     schema = data_interface.get_source_schema()
@@ -233,14 +234,13 @@ def test_sorting_extractor_interface():
 
         def __init__(self):
             super(TempSortingInterface, self).__init__()
-            self.sorting_extractor.load_from_extractor(sortingextractor,
-                                                       copy_unit_properties=True,
-                                                       copy_unit_spike_features=True)
+            self.sorting_extractor.load_from_extractor(
+                sortingextractor, copy_unit_properties=True, copy_unit_spike_features=True
+            )
 
         def get_metadata(self):
             metadata = super(TempSortingInterface, self).get_metadata()
-            metadata["Ecephys"] = dict(UnitProperties=[dict(name="custom_prop",
-                                                            description="custom description")])
+            metadata["Ecephys"] = dict(UnitProperties=[dict(name="custom_prop", description="custom description")])
             return metadata
 
     class TempSortingNWBConverter(NWBConverter):
@@ -250,13 +250,13 @@ def test_sorting_extractor_interface():
     converter = TempSortingNWBConverter(source_data)
 
     # make custom metadata with UnitProperties:
-    nwbfile_path = Path(mkdtemp())/"test_sorting_extractor.nwb"
+    nwbfile_path = Path(mkdtemp()) / "test_sorting_extractor.nwb"
     converter.run_conversion(nwbfile_path=str(nwbfile_path), overwrite=True)
 
     with NWBHDF5IO(path=str(nwbfile_path), mode="r") as io:
         nwbfile = io.read()
         assert "custom_prop" in nwbfile.units.colnames
-        assert nwbfile.units['custom_prop'].description == "custom description"
-        np.testing.assert_array_equal(nwbfile.units["custom_prop"].data[()],
-                                      np.zeros(len(sortingextractor.get_unit_ids())))
-
+        assert nwbfile.units["custom_prop"].description == "custom description"
+        np.testing.assert_array_equal(
+            nwbfile.units["custom_prop"].data[()], np.zeros(len(sortingextractor.get_unit_ids()))
+        )
