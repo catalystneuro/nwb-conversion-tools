@@ -28,7 +28,7 @@ class CEDRecordingInterface(BaseRecordingExtractorInterface):
 
     @classmethod
     def get_all_channels_info(cls, file_path: FilePathType):
-        """Retrieve and inspepct necessary channel information prior to initialization."""
+        """Retrieve and inspect necessary channel information prior to initialization."""
         assert HAVE_SONPY, INSTALL_MESSAGE
         return cls.RX.get_all_channels_info(file_path=file_path)
 
