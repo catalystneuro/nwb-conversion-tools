@@ -16,6 +16,7 @@ from nwb_conversion_tools import (
     SpikeGLXRecordingInterface,
     BlackrockRecordingExtractorInterface,
     BlackrockSortingExtractorInterface,
+    CEDRecordingInterface,
 )
 
 try:
@@ -29,7 +30,7 @@ except ImportError:
 #   ecephys: https://gin.g-node.org/NeuralEnsemble/ephy_testing_data
 #   ophys: TODO
 #   icephys: TODO
-LOCAL_PATH = Path(".")  # Must be set to "." for CI - temporarily override for local testing
+LOCAL_PATH = Path("/home/jovyan/")  # Must be set to "." for CI - temporarily override for local testing
 DATA_PATH = LOCAL_PATH / "ephy_testing_data"
 HAVE_DATA = DATA_PATH.exists()
 
@@ -63,6 +64,7 @@ if HAVE_PARAMETERIZED and HAVE_DATA:
                 interface_kwargs=dict(filename=str(DATA_PATH / "blackrock" / "FileSpec2.3001.ns5")),
             ),
         ]
+
         for suffix in ["rhd", "rhs"]:
             parameterized_recording_list.append(
                 param(
@@ -70,6 +72,7 @@ if HAVE_PARAMETERIZED and HAVE_DATA:
                     interface_kwargs=dict(file_path=str(DATA_PATH / "intan" / f"intan_{suffix}_test_1.{suffix}")),
                 )
             )
+
         for file_name, num_channels in zip(["20210225_em8_minirec2_ac", "W122_06_09_2019_1_fromSD"], [512, 128]):
             for gains in [None, [0.195], [0.385] * num_channels]:
                 interface_kwargs = dict(filename=str(DATA_PATH / "spikegadgets" / f"{file_name}.rec"))
@@ -81,6 +84,7 @@ if HAVE_PARAMETERIZED and HAVE_DATA:
                         interface_kwargs=interface_kwargs,
                     )
                 )
+
         for suffix in ["ap", "lf"]:
             sub_path = Path("spikeglx") / "Noise4Sam_g0" / "Noise4Sam_g0_imec0"
             parameterized_recording_list.append(
@@ -89,6 +93,22 @@ if HAVE_PARAMETERIZED and HAVE_DATA:
                     interface_kwargs=dict(file_path=str(DATA_PATH / sub_path / f"Noise4Sam_g0_t0.imec0.{suffix}.bin")),
                 )
             )
+
+        ced_file_path = str(DATA_PATH / "spike2" / "m365_1sec.smrx")
+        channel_info = CEDRecordingInterface.get_all_channels_info(file_path=ced_file_path)
+        rhd_channels = []
+        stim_channels = []
+        for ch, info in channel_info.items():
+            if "Rhd" in info["title"]:
+                rhd_channels.append(ch)
+            if info["title"] in ["CED_Mech", "MechTTL", "Laser"]:
+                stim_channels.append(ch)
+        parameterized_recording_list.append(
+            param(
+                recording_interface=CEDRecordingInterface,
+                interface_kwargs=dict(file_path=ced_file_path, smrx_channel_ids=rhd_channels),
+            ),
+        )
 
         @parameterized.expand(parameterized_recording_list)
         def test_convert_recording_extractor_to_nwb(self, recording_interface, interface_kwargs):
