@@ -29,6 +29,18 @@ jobs:
         key: ecephys-dset-${{ steps.vars.outputs.HASH_EPHY_DATASET }}
         restore-keys: |
           ecephys-dset-${{ steps.vars.outputs.HASH_EPHY_DATASET }}
-    - name: Update dataset
+    - name: Get ophys_testing_data current head hash
+      id: vars
+      run: |
+        echo "::set-output name=HASH_OPHYS_DATASET::$(git ls-remote https://gin.g-node.org/CatalystNeuro/ophys_testing_data.git HEAD | cut -f1)"
+    - uses: actions/cache@v2
+      id: cache-datasets
+      with:
+        path: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/ophys_testing_data
+        key: ophys-dset-${{ steps.vars.outputs.HASH_OPHYS_DATASET }}}
+        restore-keys: |
+          ophys-dset-${{ steps.vars.outputs.HASH_OPHYS_DATASET }}
+    - name: Update datasets
       run: |
         datalad install -r -g https://gin.g-node.org/NeuralEnsemble/ephy_testing_data
+        datalad install -r -g https://gin.g-node.org/CatalystNeuro/ophys_testing_data
