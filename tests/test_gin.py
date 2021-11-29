@@ -30,9 +30,9 @@ except ImportError:
     HAVE_PARAMETERIZED = False
 # Path to dataset downloaded from https://gin.g-node.org/NeuralEnsemble/ephy_testing_data
 #   ecephys: https://gin.g-node.org/NeuralEnsemble/ephy_testing_data
-#   ophys: TODO
+#   ophys: https://gin.g-node.org/CatalystNeuro/ophys_testing_data
 #   icephys: TODO
-LOCAL_PATH = Path(".")  # Must be set to "." for CI - temporarily override for local testing
+LOCAL_PATH = Path("/home/jovyan/")  # Must be set to "." for CI - temporarily override for local testing
 ECEPHYS_DATA_PATH = LOCAL_PATH / "ephy_testing_data"
 HAVE_ECEPHYS_DATA = ECEPHYS_DATA_PATH.exists()
 OPHYS_DATA_PATH = LOCAL_PATH / "ophys_testing_data"
@@ -55,22 +55,22 @@ if HAVE_PARAMETERIZED and HAVE_ECEPHYS_DATA:
             param(
                 data_interface=NeuralynxRecordingInterface,
                 interface_kwargs=dict(
-                    folder_path=str(HAVE_ECEPHYS_DATA / "neuralynx" / "Cheetah_v5.7.4" / "original_data")
+                    folder_path=str(ECEPHYS_DATA_PATH / "neuralynx" / "Cheetah_v5.7.4" / "original_data")
                 ),
             ),
             param(
                 data_interface=NeuroscopeRecordingInterface,
-                interface_kwargs=dict(file_path=str(HAVE_ECEPHYS_DATA / "neuroscope" / "test1" / "test1.dat")),
+                interface_kwargs=dict(file_path=str(ECEPHYS_DATA_PATH / "neuroscope" / "test1" / "test1.dat")),
             ),
             param(
                 data_interface=OpenEphysRecordingExtractorInterface,
                 interface_kwargs=dict(
-                    folder_path=str(HAVE_ECEPHYS_DATA / "openephysbinary" / "v0.4.4.1_with_video_tracking")
+                    folder_path=str(ECEPHYS_DATA_PATH / "openephysbinary" / "v0.4.4.1_with_video_tracking")
                 ),
             ),
             param(
                 data_interface=BlackrockRecordingExtractorInterface,
-                interface_kwargs=dict(filename=str(HAVE_ECEPHYS_DATA / "blackrock" / "FileSpec2.3001.ns5")),
+                interface_kwargs=dict(filename=str(ECEPHYS_DATA_PATH / "blackrock" / "FileSpec2.3001.ns5")),
             ),
         ]
         for suffix in ["rhd", "rhs"]:
@@ -78,13 +78,13 @@ if HAVE_PARAMETERIZED and HAVE_ECEPHYS_DATA:
                 param(
                     data_interface=IntanRecordingInterface,
                     interface_kwargs=dict(
-                        file_path=str(HAVE_ECEPHYS_DATA / "intan" / f"intan_{suffix}_test_1.{suffix}")
+                        file_path=str(ECEPHYS_DATA_PATH / "intan" / f"intan_{suffix}_test_1.{suffix}")
                     ),
                 )
             )
         for file_name, num_channels in zip(["20210225_em8_minirec2_ac", "W122_06_09_2019_1_fromSD"], [512, 128]):
             for gains in [None, [0.195], [0.385] * num_channels]:
-                interface_kwargs = dict(filename=str(HAVE_ECEPHYS_DATA / "spikegadgets" / f"{file_name}.rec"))
+                interface_kwargs = dict(filename=str(ECEPHYS_DATA_PATH / "spikegadgets" / f"{file_name}.rec"))
                 if gains is not None:
                     interface_kwargs.update(gains=gains)
                 parameterized_recording_list.append(
@@ -99,7 +99,7 @@ if HAVE_PARAMETERIZED and HAVE_ECEPHYS_DATA:
                 param(
                     data_interface=SpikeGLXRecordingInterface,
                     interface_kwargs=dict(
-                        file_path=str(HAVE_ECEPHYS_DATA / sub_path / f"Noise4Sam_g0_t0.imec0.{suffix}.bin")
+                        file_path=str(ECEPHYS_DATA_PATH / sub_path / f"Noise4Sam_g0_t0.imec0.{suffix}.bin")
                     ),
                 )
             )
@@ -127,11 +127,11 @@ if HAVE_PARAMETERIZED and HAVE_ECEPHYS_DATA:
             [
                 param(
                     data_interface=PhySortingInterface,
-                    interface_kwargs=dict(folder_path=str(HAVE_ECEPHYS_DATA / "phy" / "phy_example_0")),
+                    interface_kwargs=dict(folder_path=str(ECEPHYS_DATA_PATH / "phy" / "phy_example_0")),
                 ),
                 param(
                     data_interface=BlackrockSortingExtractorInterface,
-                    interface_kwargs=dict(filename=str(HAVE_ECEPHYS_DATA / "blackrock" / "FileSpec2.3001.nev")),
+                    interface_kwargs=dict(filename=str(ECEPHYS_DATA_PATH / "blackrock" / "FileSpec2.3001.nev")),
                 ),
             ],
             name_func=custom_name_func,
@@ -159,10 +159,14 @@ if HAVE_PARAMETERIZED and HAVE_OPHYS_DATA:
         savedir = Path(tempfile.mkdtemp())
 
         @parameterized.expand(
-            param(
-                data_interface=TiffImagingInterface,
-                interface_kwargs=dict(file_path=str(OPHYS_DATA_PATH / "imaging_datasets" / "Tif" / "demoMovie.tif")),
-            ),
+            [
+                param(
+                    data_interface=TiffImagingInterface,
+                    interface_kwargs=dict(
+                        file_path=str(OPHYS_DATA_PATH / "imaging_datasets" / "Tif" / "demoMovie.tif")
+                    ),
+                ),
+            ],
             name_func=custom_name_func,
         )
         def test_convert_imaging_extractor_to_nwb(self, data_interface, interface_kwargs):
