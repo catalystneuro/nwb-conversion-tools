@@ -96,13 +96,7 @@ if HAVE_PARAMETERIZED and HAVE_DATA:
 
         ced_file_path = str(DATA_PATH / "spike2" / "m365_1sec.smrx")
         channel_info = CEDRecordingInterface.get_all_channels_info(file_path=ced_file_path)
-        rhd_channels = []
-        stim_channels = []
-        for ch, info in channel_info.items():
-            if "Rhd" in info["title"]:
-                rhd_channels.append(ch)
-            if info["title"] in ["CED_Mech", "MechTTL", "Laser"]:
-                stim_channels.append(ch)
+        rhd_channels = [ch for ch, info in channel_info.items() if "Rhd" in info["title"]]
         parameterized_recording_list.append(
             param(
                 recording_interface=CEDRecordingInterface,
