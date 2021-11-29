@@ -5,6 +5,8 @@ import numpy.testing as npt
 
 from spikeextractors import NwbRecordingExtractor, NwbSortingExtractor
 from spikeextractors.testing import check_recordings_equal, check_sortings_equal
+from roiextractors import NwbImagingExtractor, NwbSegmentationExtractor
+from roiextractors.testing import check_imaging_equal, check_segmentations_equal
 from nwb_conversion_tools import (
     NWBConverter,
     IntanRecordingInterface,
@@ -16,6 +18,8 @@ from nwb_conversion_tools import (
     SpikeGLXRecordingInterface,
     BlackrockRecordingExtractorInterface,
     BlackrockSortingExtractorInterface,
+    TiffImagingInterface,
+    CaimanSegmentationInterface,
 )
 
 try:
@@ -156,10 +160,8 @@ if HAVE_PARAMETERIZED and HAVE_OPHYS_DATA:
 
         @parameterized.expand(
             param(
-                data_interface=NeuralynxRecordingInterface,
-                interface_kwargs=dict(
-                    folder_path=str(OPHYS_DATA_PATH / "neuralynx" / "Cheetah_v5.7.4" / "original_data")
-                ),
+                data_interface=TiffImagingInterface,
+                interface_kwargs=dict(file_path=str(OPHYS_DATA_PATH / "imaging_datasets" / "Tif" / "demoMovie.tif")),
             ),
             name_func=custom_name_func,
         )
@@ -167,25 +169,21 @@ if HAVE_PARAMETERIZED and HAVE_OPHYS_DATA:
             nwbfile_path = str(self.savedir / f"{data_interface.__name__}.nwb")
 
             class TestConverter(NWBConverter):
-                data_interface_classes = dict(TestRecording=data_interface)
+                data_interface_classes = dict(TestImaging=data_interface)
 
-            converter = TestConverter(source_data=dict(TestRecording=dict(interface_kwargs)))
+            converter = TestConverter(source_data=dict(TestImaging=dict(interface_kwargs)))
             converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True)
-            recording = converter.data_interface_objects["TestRecording"].recording_extractor
-            nwb_recording = NwbRecordingExtractor(file_path=nwbfile_path)
-            check_recordings_equal(RX1=recording, RX2=nwb_recording, check_times=False, return_scaled=False)
-            check_recordings_equal(RX1=recording, RX2=nwb_recording, check_times=False, return_scaled=True)
-            # Technically, check_recordings_equal only tests a snippet of data. Above tests are for metadata mostly.
-            # For GIN test data, sizes should be OK to load all into RAM even on CI
-            npt.assert_array_equal(
-                x=recording.get_traces(return_scaled=False), y=nwb_recording.get_traces(return_scaled=False)
-            )
+            imaging = converter.data_interface_objects["TestImaging"].imaging_extractor
+            nwb_imaging = NwbImagingExtractor(file_path=nwbfile_path)
+            check_imaging_equal(img1=imaging, img2=nwb_imaging)
 
         @parameterized.expand(
             [
                 param(
-                    data_interface=PhySortingInterface,
-                    interface_kwargs=dict(folder_path=str(OPHYS_DATA_PATH / "phy" / "phy_example_0")),
+                    data_interface=CaimanSegmentationInterface,
+                    interface_kwargs=dict(
+                        file_path=str(OPHYS_DATA_PATH / "segmentation_datasets" / "caiman" / "caiman_analysis.hdf5")
+                    ),
                 ),
             ],
             name_func=custom_name_func,
@@ -194,17 +192,13 @@ if HAVE_PARAMETERIZED and HAVE_OPHYS_DATA:
             nwbfile_path = str(self.savedir / f"{data_interface.__name__}.nwb")
 
             class TestConverter(NWBConverter):
-                data_interface_classes = dict(TestSorting=data_interface)
+                data_interface_classes = dict(TestSegmentation=data_interface)
 
-            converter = TestConverter(source_data=dict(TestSorting=dict(interface_kwargs)))
+            converter = TestConverter(source_data=dict(TestSegmentation=dict(interface_kwargs)))
             converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True)
-            sorting = converter.data_interface_objects["TestSorting"].sorting_extractor
-            sf = sorting.get_sampling_frequency()
-            if sf is None:  # need to set dummy sampling frequency since no associated acquisition in file
-                sf = 30000
-                sorting.set_sampling_frequency(sf)
-            nwb_sorting = NwbSortingExtractor(file_path=nwbfile_path, sampling_frequency=sf)
-            check_sortings_equal(SX1=sorting, SX2=nwb_sorting)
+            segmentation = converter.data_interface_objects["TestSegmentation"].segmentation_extractor
+            nwb_segmentation = NwbSegmentationExtractor(file_path=nwbfile_path)
+            check_segmentations_equal(seg1=segmentation, seg2=nwb_segmentation)
 
 
 if __name__ == "__main__":
