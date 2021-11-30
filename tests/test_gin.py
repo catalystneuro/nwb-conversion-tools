@@ -2,7 +2,9 @@ import tempfile
 import unittest
 import numpy.testing as npt
 from pathlib import Path
+from platform import python_version
 from sys import platform
+from packaging import version
 
 import pytest
 from spikeextractors import NwbRecordingExtractor, NwbSortingExtractor
@@ -96,9 +98,7 @@ if HAVE_PARAMETERIZED and HAVE_DATA:
                 )
             )
 
-        if platform == "darwin":
-            pytest.skip("Skipping GIN test for CED with MacOSX and Python<3.8!")
-        else:
+        if platform != "darwin" or version.parse(python_version()) >= version.parse("3.8"):
             ced_file_path = str(DATA_PATH / "spike2" / "m365_1sec.smrx")
             channel_info = CEDRecordingInterface.get_all_channels_info(file_path=ced_file_path)
             rhd_channels = [ch for ch, info in channel_info.items() if "Rhd" in info["title"]]
