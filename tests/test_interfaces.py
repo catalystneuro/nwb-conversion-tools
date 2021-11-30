@@ -39,7 +39,7 @@ class test(TestCase):
         if platform == "darwin" and version.parse(python_version()) < version.parse("3.8"):
             with self.assertRaisesWith(
                 exc_type=AssertionError,
-                exc_msg="The sonpy package (CED dependency) is not available on Mac for Python versions below 3.8!"
+                exc_msg="The sonpy package (CED dependency) is not available on Mac for Python versions below 3.8!",
             ):
                 CEDRecordingInterface.get_all_channels_info(file_path="does_not_matter.smrx")
         else:
