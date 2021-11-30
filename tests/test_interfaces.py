@@ -37,7 +37,6 @@ class test(TestCase):
     def test_import_assertions(self):
         # Very specific test for importing CEDRecordingInterface with MacOSX and Python<3.8
         if platform == "darwin" and version.parse(python_version()) < version.parse("3.8"):
-            self.assertR
             with self.assertRaisesWith(
                 exc_type=AssertionError,
                 exc_msg="The sonpy package (CED dependency) is not available on Mac for Python versions below 3.8!",
