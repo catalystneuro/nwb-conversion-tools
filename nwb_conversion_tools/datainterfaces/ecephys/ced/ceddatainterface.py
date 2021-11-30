@@ -1,26 +1,31 @@
 """Authors: Luiz Tauffer."""
-import spikeextractors as se
+from platform import python_version
+from sys import platform
+from packaging import version
+
+from spikeextractors import CEDRecordingExtractor
 
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ....utils.json_schema import get_schema_from_method_signature, FilePathType
 
+HAVE_SONPY = True
 try:
     import sonpy
-
-    HAVE_SONPY = True
 except ImportError:
     HAVE_SONPY = False
 INSTALL_MESSAGE = "Please install sonpy to use this interface (pip install sonpy)!"
+if platform == "darwin" and version.parse(python_version()) < version.parse("3.8"):
+    HAVE_SONPY = False
+    INSTALL_MESSAGE = "The sonpy package (CED dependency) is not available on Mac for Python versions below 3.8!"
 
 
 class CEDRecordingInterface(BaseRecordingExtractorInterface):
     """Primary data interface class for converting a CEDRecordingExtractor."""
 
-    RX = se.CEDRecordingExtractor
+    RX = CEDRecordingExtractor
 
     @classmethod
     def get_source_schema(cls):
-        """Compile input schema for the RecordingExtractor."""
         source_schema = get_schema_from_method_signature(class_method=cls.__init__, exclude=["smrx_channel_ids"])
         source_schema.update(additionalProperties=True)
         source_schema["properties"]["file_path"].update(description="Path to CED data file.")

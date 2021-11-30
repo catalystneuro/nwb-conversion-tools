@@ -4,6 +4,10 @@ from tempfile import mkdtemp
 from shutil import rmtree
 from pathlib import Path
 from itertools import product
+from platform import python_version
+from sys import platform
+from packaging import version
+from unittest import TestCase
 
 import pytest
 import spikeextractors as se
@@ -24,8 +28,20 @@ from nwb_conversion_tools import (
     SortingTutorialInterface,
     SIPickleRecordingExtractorInterface,
     SIPickleSortingExtractorInterface,
+    CEDRecordingInterface,
     interface_list,
 )
+
+
+class test(TestCase):
+    def test_import_assertions(self):
+        # Very specific test for importing CEDRecordingInterface with MacOSX and Python<3.8
+        if platform == "darwin" and version.parse(python_version) < version.parse("3.8"):
+            with self.assertRaisesWith(
+                exc_type=AssertionError,
+                exc_msg="The sonpy package (CED dependency) is not available on Mac for Python versions below 3.8!"
+            ):
+                CEDRecordingInterface.get_all_channels_info(file_path="does_not_matter.smrx")
 
 
 @pytest.mark.parametrize("data_interface", interface_list)
