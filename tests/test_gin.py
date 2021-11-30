@@ -4,6 +4,7 @@ import numpy.testing as npt
 from pathlib import Path
 from sys import platform
 
+import pytest
 from spikeextractors import NwbRecordingExtractor, NwbSortingExtractor
 from spikeextractors.testing import check_recordings_equal, check_sortings_equal
 from nwb_conversion_tools import (
@@ -95,7 +96,9 @@ if HAVE_PARAMETERIZED and HAVE_DATA:
                 )
             )
 
-        if platform != "darwin":  # Bizarre import issues with sonpy on mac
+        if platform == "darwin":
+            pytest.skip("Skipping GIN test for CED with MacOSX and Python<3.8!")
+        else:
             ced_file_path = str(DATA_PATH / "spike2" / "m365_1sec.smrx")
             channel_info = CEDRecordingInterface.get_all_channels_info(file_path=ced_file_path)
             rhd_channels = [ch for ch, info in channel_info.items() if "Rhd" in info["title"]]
