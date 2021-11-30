@@ -35,7 +35,6 @@ from nwb_conversion_tools import (
 
 class test(TestCase):
     def test_import_assertions(self):
-        # Very specific test for importing CEDRecordingInterface with MacOSX and Python<3.8
         if platform == "darwin" and version.parse(python_version()) < version.parse("3.8"):
             with self.assertRaisesWith(
                 exc_type=AssertionError,
