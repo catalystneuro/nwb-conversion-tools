@@ -7,12 +7,12 @@ from itertools import product
 from platform import python_version
 from sys import platform
 from packaging import version
-from unittest import TestCase
 
 import pytest
 import spikeextractors as se
 from spikeextractors.testing import check_recordings_equal, check_sortings_equal
 from pynwb import NWBHDF5IO
+from hdmf.testing import TestCase
 
 try:
     import cv2
@@ -37,6 +37,7 @@ class test(TestCase):
     def test_import_assertions(self):
         # Very specific test for importing CEDRecordingInterface with MacOSX and Python<3.8
         if platform == "darwin" and version.parse(python_version()) < version.parse("3.8"):
+            self.assertR
             with self.assertRaisesWith(
                 exc_type=AssertionError,
                 exc_msg="The sonpy package (CED dependency) is not available on Mac for Python versions below 3.8!",
