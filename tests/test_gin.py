@@ -32,7 +32,7 @@ except ImportError:
 #   ecephys: https://gin.g-node.org/NeuralEnsemble/ephy_testing_data
 #   ophys: https://gin.g-node.org/CatalystNeuro/ophys_testing_data
 #   icephys: TODO
-LOCAL_PATH = Path("/home/jovyan/")  # Must be set to "." for CI - temporarily override for local testing
+LOCAL_PATH = Path(".")  # Must be set to "." for CI - temporarily override for local testing
 ECEPHYS_DATA_PATH = LOCAL_PATH / "ephy_testing_data"
 HAVE_ECEPHYS_DATA = ECEPHYS_DATA_PATH.exists()
 OPHYS_DATA_PATH = LOCAL_PATH / "ophys_testing_data"
