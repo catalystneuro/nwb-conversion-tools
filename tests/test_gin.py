@@ -19,7 +19,12 @@ from nwb_conversion_tools import (
     BlackrockRecordingExtractorInterface,
     BlackrockSortingExtractorInterface,
     TiffImagingInterface,
+    Hdf5ImagingInterface,
+    SbxImagingInterface,
     CaimanSegmentationInterface,
+    CnmfeSegmentationInterface,
+    ExtractSegmentationInterface,
+    Suite2pSegmentationInterface,
 )
 
 try:
@@ -158,17 +163,27 @@ if HAVE_PARAMETERIZED and HAVE_OPHYS_DATA:
     class TestOphysNwbConversions(unittest.TestCase):
         savedir = Path(tempfile.mkdtemp())
 
-        @parameterized.expand(
-            [
+        imaging_interface_list = [
+            param(
+                data_interface=TiffImagingInterface,
+                interface_kwargs=dict(file_path=str(OPHYS_DATA_PATH / "imaging_datasets" / "Tif" / "demoMovie.tif")),
+            ),
+            param(
+                data_interface=Hdf5ImagingInterface,
+                interface_kwargs=dict(file_path=str(OPHYS_DATA_PATH / "imaging_datasets" / "hdf5" / "demoMovie.hdf5")),
+            ),
+        ]
+        for suffix in [".mat", ".sbx"]:
+            imaging_interface_list.append(
                 param(
-                    data_interface=TiffImagingInterface,
+                    data_interface=SbxImagingInterface,
                     interface_kwargs=dict(
-                        file_path=str(OPHYS_DATA_PATH / "imaging_datasets" / "Tif" / "demoMovie.tif")
+                        file_path=str(OPHYS_DATA_PATH / "imaging_datasets" / "Scanbox" / f"sample.{suffix}")
                     ),
                 ),
-            ],
-            name_func=custom_name_func,
-        )
+            )
+
+        @parameterized.expand(imaging_interface_list, name_func=custom_name_func)
         def test_convert_imaging_extractor_to_nwb(self, data_interface, interface_kwargs):
             nwbfile_path = str(self.savedir / f"{data_interface.__name__}.nwb")
 
@@ -187,6 +202,35 @@ if HAVE_PARAMETERIZED and HAVE_OPHYS_DATA:
                     data_interface=CaimanSegmentationInterface,
                     interface_kwargs=dict(
                         file_path=str(OPHYS_DATA_PATH / "segmentation_datasets" / "caiman" / "caiman_analysis.hdf5")
+                    ),
+                ),
+                param(
+                    data_interface=CnmfeSegmentationInterface,
+                    interface_kwargs=dict(
+                        file_path=str(
+                            OPHYS_DATA_PATH
+                            / "segmentation_datasets"
+                            / "cnmfe"
+                            / "2014_04_01_p203_m19_check01_cnmfeAnalysis.mat"
+                        )
+                    ),
+                ),
+                param(
+                    data_interface=ExtractSegmentationInterface,
+                    interface_kwargs=dict(
+                        file_path=str(
+                            OPHYS_DATA_PATH
+                            / "segmentation_datasets"
+                            / "extract"
+                            / "2014_04_01_p203_m19_check01_extractAnalysis.mat"
+                        )
+                    ),
+                ),
+                param(
+                    data_interface=Suite2pSegmentationInterface,
+                    interface_kwargs=dict(
+                        # TODO: argument name is 'file_path' on roiextractors, but it clearly refers to a folder_path
+                        file_path=str(OPHYS_DATA_PATH / "segmentation_datasets" / "suite2p" / "plane0")
                     ),
                 ),
             ],
