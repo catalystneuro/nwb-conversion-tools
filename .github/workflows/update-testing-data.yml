@@ -1,7 +1,5 @@
 name: Update testing data
-on:
-  schedule:
-    - cron:  "0 0 * * *"
+on: push
 jobs:
   run:
     name: Update testing data
@@ -34,7 +32,7 @@ jobs:
       id: cache-ophys-dataset
       with:
         path: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/ophys_testing_data
-        key: ophys-dset-${{ steps.vars.outputs.HASH_OPHYS_DATASET }}}
+        key: ophys-dset-${{ steps.vars.outputs.HASH_OPHYS_DATASET }}
         restore-keys: ophys-dset-${{ steps.vars.outputs.HASH_OPHYS_DATASET }}
     - name: Update datasets
       run: |
