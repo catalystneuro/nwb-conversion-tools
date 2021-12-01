@@ -28,6 +28,35 @@ class BaseSortingExtractorInterface(BaseDataInterface, ABC):
         self.sorting_extractor = self.SX(**source_data)
         self.writer_class = map_si_object_to_writer(self.sorting_extractor)(self.sorting_extractor)
 
+    def get_metadata_schema(self):
+        """Compile metadata schema for the RecordingExtractor."""
+        metadata_schema = super().get_metadata_schema()
+
+        # Initiate Ecephys metadata
+        metadata_schema["properties"]["Ecephys"] = get_base_schema(tag="Ecephys")
+        metadata_schema["properties"]["Ecephys"]["required"] = []
+        metadata_schema["properties"]["Ecephys"]["properties"] = dict(
+            UnitProperties=dict(
+                type="array",
+                minItems=0,
+                renderForm=False,
+                items={"$ref": "#/properties/Ecephys/properties/definitions/UnitProperties"},
+            ),
+        )
+        # Schema definition for arrays
+        metadata_schema["properties"]["Ecephys"]["properties"]["definitions"] = dict(
+            UnitProperties=dict(
+                type="object",
+                additionalProperties=False,
+                required=["name"],
+                properties=dict(
+                    name=dict(type="string", description="name of this units column"),
+                    description=dict(type="string", description="description of this units column"),
+                ),
+            ),
+        )
+        return metadata_schema
+
     def subset_sorting(self):
         """
         Subset a recording extractor according to stub and channel subset options.
@@ -80,7 +109,8 @@ class BaseSortingExtractorInterface(BaseDataInterface, ABC):
             >>> dict(prop_name='description')
             the Other way to add custom descrptions is to override the default metadata:
             >>> metadata = self.get_metadata()
-            >>> metadata.update(Units=[dict(name='prop_name1', description='description1'),
+            >>> metadata["Ecephys"] = dict()
+            >>> metadata["Ecephys"].update(UnitProperties=[dict(name='prop_name1', description='description1'),
             >>>                        dict(name='prop_name1', description='description1')])
         """
         if stub_test:
@@ -96,6 +126,12 @@ class BaseSortingExtractorInterface(BaseDataInterface, ABC):
 
         conversion_opts = default_export_ops()
         conversion_opts.update(**kwargs)
+        # construct unit property descriptions:
+        property_descriptions = dict()
+        for metadata_column in metadata.get("Ecephys", dict()).get("UnitProperties", []):
+            property_descriptions.update({metadata_column["name"]: metadata_column["description"]})
+        conversion_opts["unit_property_descriptions"].update(property_descriptions)
+
         conversion_opt_schema = default_export_ops_schema()
         validate(instance=conversion_opts, schema=conversion_opt_schema)
 
