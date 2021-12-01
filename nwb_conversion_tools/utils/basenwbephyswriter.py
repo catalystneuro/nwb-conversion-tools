@@ -2,7 +2,8 @@
 import distutils.version
 import warnings
 from abc import ABC, abstractmethod
-from collections import defaultdict, Iterable
+from collections import defaultdict
+from collections.abc import Iterable
 from numbers import Real
 from warnings import warn
 from copy import deepcopy
