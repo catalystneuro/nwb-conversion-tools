@@ -8,13 +8,14 @@ jobs:
       fail-fast: false
       matrix:
         os: ["macos-latest", "windows-latest"]
+        python-version: [3.7, 3.8]
     steps:
     - uses: actions/checkout@v2
     - run: git fetch --prune --unshallow --tags
-    - name: Setup Python
+    - name: Setup Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
-        python-version: 3.7
+        python-version: ${{ matrix.python-version }}
     - name: Install this package and pytest, on development mode
       env:
           NWB_CONVERSION_INSTALL_MODE: development
