@@ -2,7 +2,8 @@
 import distutils.version
 import warnings
 from abc import ABC, abstractmethod
-from collections import defaultdict, Iterable
+from collections import defaultdict
+from collections.abc import Iterable
 from numbers import Real
 from warnings import warn
 from copy import deepcopy
@@ -505,9 +506,6 @@ class BaseNwbEphysWriter(ABC):
         if fs is None:
             raise ValueError("Writing a SortingExtractor to an NWBFile requires a known sampling frequency!")
 
-        if "units" not in self.metadata:
-            self.metadata["units"] = []
-
         if self._conversion_ops["unit_property_descriptions"] is None:
             property_descriptions = dict(_default_sorting_property_descriptions)
         else:
@@ -542,12 +540,6 @@ class BaseNwbEphysWriter(ABC):
                         set(self.nwbfile.electrodes.id.data)
                     ), "sorting and recording extractor should be for the same data"
                     unit_columns[prop].update(table=self.nwbfile.electrodes)
-
-        # 2. fill with provided custom descriptions
-        for x in self.metadata["units"]:
-            if x["name"] not in list(unit_columns):
-                raise ValueError(f'"{x["name"]}" not a property of sorting object, set it first and rerun')
-            unit_columns[x["name"]]["description"] = x["description"]
 
         # 3. For existing electrodes table, add the additional columns and fill with default data:
         add_properties_to_dynamictable(self.nwbfile, "units", unit_columns, defaults)
