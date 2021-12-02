@@ -163,7 +163,7 @@ if HAVE_PARAMETERIZED and HAVE_OPHYS_DATA:
 
     class TestOphysNwbConversions(unittest.TestCase):
         savedir = Path(tempfile.mkdtemp())
-        imaging_interface_list = []#debug
+        imaging_interface_list = []  # debug
 
         # imaging_interface_list = [
         #     param(
@@ -191,16 +191,17 @@ if HAVE_PARAMETERIZED and HAVE_OPHYS_DATA:
 
             class TestConverter(NWBConverter):
                 data_interface_classes = dict(TestImaging=data_interface)
+
                 def get_metadata(self):
                     metadata = super().get_metadata()
                     # attach device to ImagingPlane lacking property
                     # assume single device and single imaging plane
-                    if 'device' not in metadata['Ophys']['ImagingPlane'][0].keys():
-                        metadata['Ophys']['ImagingPlane'][0]['device'] = metadata['Ophys']['Device']
+                    if "device" not in metadata["Ophys"]["ImagingPlane"][0].keys():
+                        metadata["Ophys"]["ImagingPlane"][0]["device"] = metadata["Ophys"]["Device"]
                     # attach ImagingPlane to TwoPhotonSeries lacking property
                     # assume single device and single imaging plane and two photon series
-                    if 'imaging_plane' not in metadata['Ophys']['TwoPhotonSeries'][0].keys():
-                        metadata['Ophys']['TwoPhotonSeries'][0]['imaging_plane'] = metadata['Ophys']['ImagingPlane'][0]
+                    if "imaging_plane" not in metadata["Ophys"]["TwoPhotonSeries"][0].keys():
+                        metadata["Ophys"]["TwoPhotonSeries"][0]["imaging_plane"] = metadata["Ophys"]["ImagingPlane"][0]
                     return metadata
 
             converter = TestConverter(source_data=dict(TestImaging=dict(interface_kwargs)))
