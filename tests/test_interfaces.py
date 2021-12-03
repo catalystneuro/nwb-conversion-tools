@@ -1,5 +1,5 @@
-from jsonschema import Draft7Validator
 import numpy as np
+from jsonschema import Draft7Validator
 from tempfile import mkdtemp
 from shutil import rmtree
 from pathlib import Path
@@ -8,6 +8,7 @@ from itertools import product
 import pytest
 import spikeextractors as se
 from spikeextractors.testing import check_recordings_equal, check_sortings_equal
+from pynwb import NWBHDF5IO
 
 try:
     import cv2
@@ -25,6 +26,10 @@ from nwb_conversion_tools import (
     SIPickleSortingExtractorInterface,
     interface_list,
 )
+
+from nwb_conversion_tools.utils import create_si013_example, export_ecephys_to_nwb
+from nwb_conversion_tools.datainterfaces.ecephys.basesortingextractorinterface import BaseSortingExtractorInterface
+from nwb_conversion_tools.utils.conversion_tools import get_default_nwbfile_metadata
 
 
 @pytest.mark.parametrize("data_interface", interface_list)
@@ -178,4 +183,80 @@ def test_movie_interface():
             conversion_options=dict(Movie=dict(module_name=module_name, module_description=module_description)),
         )
         assert module_name in nwbfile.modules and nwbfile.modules[module_name].description == module_description
+
+        metadata.update(
+            Behavior=dict(
+                Movies=[
+                    dict(
+                        name="CustomName",
+                        description="CustomDescription",
+                        unit="CustomUnit",
+                        resolution=12.3,
+                        comments="CustomComments",
+                    )
+                ]
+            )
+        )
+        converter.run_conversion(metadata=metadata, nwbfile_path=nwbfile_path, overwrite=True)
+        with NWBHDF5IO(path=nwbfile_path, mode="r") as io:
+            nwbfile = io.read()
+            custom_name = metadata["Behavior"]["Movies"][0]["name"]
+            assert custom_name in nwbfile.acquisition
+            assert metadata["Behavior"]["Movies"][0]["description"] == nwbfile.acquisition[custom_name].description
+            assert metadata["Behavior"]["Movies"][0]["comments"] == nwbfile.acquisition[custom_name].comments
+
+        converter.run_conversion(
+            metadata=metadata,
+            nwbfile_path=nwbfile_path,
+            overwrite=True,
+            conversion_options=dict(Movie=dict(external_mode=False, stub_test=True)),
+        )
+        with NWBHDF5IO(path=nwbfile_path, mode="r") as io:
+            nwbfile = io.read()
+            custom_name = metadata["Behavior"]["Movies"][0]["name"]
+            assert custom_name in nwbfile.acquisition
+            assert metadata["Behavior"]["Movies"][0]["description"] == nwbfile.acquisition[custom_name].description
+            assert metadata["Behavior"]["Movies"][0]["unit"] == nwbfile.acquisition[custom_name].unit
+            assert metadata["Behavior"]["Movies"][0]["resolution"] == nwbfile.acquisition[custom_name].resolution
+            assert metadata["Behavior"]["Movies"][0]["comments"] == nwbfile.acquisition[custom_name].comments
+
         rmtree(test_dir)
+
+
+def test_sorting_extractor_interface():
+    output = create_si013_example(seed=0)
+    sortingextractor = output[3]
+    for unit_id in sortingextractor.get_unit_ids():
+        sortingextractor.set_unit_property(unit_id, "custom_prop", 0)
+
+    class TempSortingInterface(BaseSortingExtractorInterface):
+        SX = se.NumpySortingExtractor
+
+        def __init__(self):
+            super(TempSortingInterface, self).__init__()
+            self.sorting_extractor.load_from_extractor(
+                sortingextractor, copy_unit_properties=True, copy_unit_spike_features=True
+            )
+
+        def get_metadata(self):
+            metadata = super(TempSortingInterface, self).get_metadata()
+            metadata["Ecephys"] = dict(UnitProperties=[dict(name="custom_prop", description="custom description")])
+            return metadata
+
+    class TempSortingNWBConverter(NWBConverter):
+        data_interface_classes = dict(TempSortingInterface=TempSortingInterface)
+
+    source_data = dict(TempSortingInterface=dict())
+    converter = TempSortingNWBConverter(source_data)
+
+    # make custom metadata with UnitProperties:
+    nwbfile_path = Path(mkdtemp()) / "test_sorting_extractor.nwb"
+    converter.run_conversion(nwbfile_path=str(nwbfile_path), overwrite=True)
+
+    with NWBHDF5IO(path=str(nwbfile_path), mode="r") as io:
+        nwbfile = io.read()
+        assert "custom_prop" in nwbfile.units.colnames
+        assert nwbfile.units["custom_prop"].description == "custom description"
+        np.testing.assert_array_equal(
+            nwbfile.units["custom_prop"].data[()], np.zeros(len(sortingextractor.get_unit_ids()))
+        )
