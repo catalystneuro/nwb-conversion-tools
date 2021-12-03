@@ -117,7 +117,7 @@ if HAVE_PARAMETERIZED and HAVE_DATA:
                 ),
                 param(
                     sorting_interface=BlackrockSortingExtractorInterface,
-                    interface_kwargs=dict(file_path=str(data_path / "blackrock" / "FileSpec2.3001.nev")),
+                    interface_kwargs=dict(file_path=str(DATA_PATH / "blackrock" / "FileSpec2.3001.nev")),
                 ),
             ]
         )
