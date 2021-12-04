@@ -34,7 +34,11 @@ LOCAL_PATH = Path("/home/jovyan/")  # Must be set to "." for CI - temporarily ov
 DATA_PATH = LOCAL_PATH / "ephy_testing_data"
 HAVE_DATA = DATA_PATH.exists()
 
-pytest.fail("test")
+if not HAVE_PARAMETERIZED:
+    pytest.fail("parameterized module is not installed! Please install (`pip install parameterized`).")
+
+if not HAVE_DATA:
+    pytest.fail("No ephy_testing_data folder found in location: {DATA_PATH}!")
 
 
 def custom_name_func(testcase_func, param_num, param):
@@ -46,14 +50,6 @@ def custom_name_func(testcase_func, param_num, param):
 
 class TestNwbConversions(unittest.TestCase):
     savedir = Path(tempfile.mkdtemp())
-
-    def check_parameterized(self):
-        if not HAVE_PARAMETERIZED:
-            pytest.skip("parameterized module is not installed! Skipping GIN tests.")
-
-    def check_data(self):
-        if not HAVE_DATA:
-            pytest.fail("No ephy_testing_data folder found in location: {DATA_PATH}!")
 
     parameterized_recording_list = [
         param(
@@ -102,9 +98,6 @@ class TestNwbConversions(unittest.TestCase):
 
     @parameterized.expand(parameterized_recording_list)
     def test_convert_recording_extractor_to_nwb(self, recording_interface, interface_kwargs):
-        self.check_parameterized()
-        self.check_data()
-
         nwbfile_path = str(self.savedir / f"{recording_interface.__name__}.nwb")
 
         class TestConverter(NWBConverter):
