@@ -30,4 +30,4 @@ jobs:
         key: ecephys-dset-${{ steps.vars.outputs.HASH_EPHY_DATASET }}
         restore-keys: ecephys-dset-${{ steps.vars.outputs.HASH_EPHY_DATASET }}
     - name: Run pytest (internals only; no GIN caching yet on Windows)
-      run: pytest test_internals
+      run: pytest /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/tests/test_internals

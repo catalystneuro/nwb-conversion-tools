@@ -26,4 +26,4 @@ jobs:
         pip install .
         pip install pytest
     - name: Run tests
-      run: pytest test_internals
+      run: pytest /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/tests/test_internals
