@@ -1,4 +1,4 @@
-name: Full tests on Mac and Windows
+name: Full tests on Mac
 on: push
 jobs:
   run:
