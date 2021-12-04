@@ -30,7 +30,7 @@ except ImportError:
 #   ecephys: https://gin.g-node.org/NeuralEnsemble/ephy_testing_data
 #   ophys: TODO
 #   icephys: TODO
-LOCAL_PATH = Path("/home/jovyan/")  # Must be set to "." for CI - temporarily override for local testing
+LOCAL_PATH = Path(".")  # Must be set to "." for CI - temporarily override for local testing
 DATA_PATH = LOCAL_PATH / "ephy_testing_data"
 HAVE_DATA = DATA_PATH.exists()
 
@@ -38,7 +38,7 @@ if not HAVE_PARAMETERIZED:
     pytest.fail("parameterized module is not installed! Please install (`pip install parameterized`).")
 
 if not HAVE_DATA:
-    pytest.fail("No ephy_testing_data folder found in location: {DATA_PATH}!")
+    pytest.fail(f"No ephy_testing_data folder found in location: {DATA_PATH}!")
 
 
 def custom_name_func(testcase_func, param_num, param):
