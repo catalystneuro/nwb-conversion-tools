@@ -17,6 +17,8 @@ from nwb_conversion_tools import (
     SpikeGLXRecordingInterface,
     BlackrockRecordingExtractorInterface,
     BlackrockSortingExtractorInterface,
+    AxonaRecordingExtractorInterface,
+    AxonaLFPDataInterface,
 )
 
 try:
@@ -30,7 +32,7 @@ except ImportError:
 #   ecephys: https://gin.g-node.org/NeuralEnsemble/ephy_testing_data
 #   ophys: TODO
 #   icephys: TODO
-LOCAL_PATH = Path(".")  # Must be set to "." for CI - temporarily override for local testing
+LOCAL_PATH = Path("/home/jovyan/")  # Must be set to "." for CI - temporarily override for local testing
 DATA_PATH = LOCAL_PATH / "ephy_testing_data"
 HAVE_DATA = DATA_PATH.exists()
 
@@ -67,6 +69,14 @@ class TestNwbConversions(unittest.TestCase):
         param(
             recording_interface=BlackrockRecordingExtractorInterface,
             interface_kwargs=dict(filename=str(DATA_PATH / "blackrock" / "FileSpec2.3001.ns5")),
+        ),
+        param(
+            recording_interface=AxonaRecordingExtractorInterface,
+            interface_kwargs=dict(filename=str(DATA_PATH / "axona" / "axona_raw.bin")),
+        ),
+        param(
+            recording_interface=AxonaLFPDataInterface,
+            interface_kwargs=dict(filename=str(DATA_PATH / "axona" / "dataset_unit_spikes" / "20140815-180secs.eeg")),
         ),
     ]
     for suffix in ["rhd", "rhs"]:
