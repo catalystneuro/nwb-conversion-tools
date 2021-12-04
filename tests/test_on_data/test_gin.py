@@ -128,9 +128,6 @@ class TestNwbConversions(unittest.TestCase):
         ]
     )
     def test_convert_sorting_extractor_to_nwb(self, sorting_interface, interface_kwargs):
-        self.check_parameterized()
-        self.check_data()
-
         nwbfile_path = str(self.savedir / f"{sorting_interface.__name__}.nwb")
 
         class TestConverter(NWBConverter):
