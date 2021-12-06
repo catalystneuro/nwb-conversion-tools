@@ -17,6 +17,7 @@ jobs:
       env:
           NWB_CONVERSION_INSTALL_MODE: development
       run: |
+        pip install -r requirements-full.txt
         pip install -e .
         pip install pytest
         pip install pytest-cov

@@ -1,12 +1,15 @@
-from unittest import TestCase
+from unittest import TestCase, skip
 import numpy as np
 
 from pynwb.base import ProcessingModule
 from spikeextractors import NumpyRecordingExtractor
 
-from nwb_conversion_tools.utils.nwbfile_tools import (get_module, make_nwbfile_from_metadata)
+from nwb_conversion_tools.utils.nwbfile_tools import get_module, make_nwbfile_from_metadata
 from nwb_conversion_tools.utils.conversion_tools import (
-    check_regular_timestamps, estimate_recording_conversion_time, reverse_fstring, infer_path_levels
+    check_regular_timestamps,
+    estimate_recording_conversion_time,
+    reverse_fstring,
+    infer_path_levels,
 )
 
 
@@ -31,6 +34,7 @@ class TestConversionTools(TestCase):
         assert mod_2.description == description_2
         self.assertWarns(UserWarning, get_module, **dict(nwbfile=nwbfile, name=name_1, description=description_2))
 
+    @skip("to be implemented")
     def test_estimate_recording_conversion_time(self):
         num_channels = 4
         sampling_frequency = 30000
@@ -42,7 +46,7 @@ class TestConversionTools(TestCase):
         estimated_write_time, estimated_write_speed = estimate_recording_conversion_time(
             recording=recording, write_kwargs=dict(compression=None)
         )
-        
+
     def test_reverse_fstring(self):
         sample_string = "MyFolder/{session_id}/{subject_id}"
         for sample_string in [

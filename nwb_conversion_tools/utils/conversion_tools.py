@@ -128,8 +128,10 @@ def run_conversion_from_yaml(file_path: FilePathType, overwrite: bool = False):
                 conversion_options=session.get("conversion_options", dict()),
             )
 
+
 def reverse_fstring(string: str):
     return re.findall(pattern="\\{(.*?)\\}", string=string)
+
 
 def infer_path_levels(keys: Iterable[str], string: str):
     adj_idx = 0
