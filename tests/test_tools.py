@@ -5,12 +5,7 @@ from pynwb.base import ProcessingModule
 from spikeextractors import NumpyRecordingExtractor
 
 from nwb_conversion_tools.utils.nwbfile_tools import get_module, make_nwbfile_from_metadata
-from nwb_conversion_tools.utils.conversion_tools import (
-    check_regular_timestamps,
-    estimate_recording_conversion_time,
-    reverse_fstring,
-    infer_path_levels,
-)
+from nwb_conversion_tools.utils.conversion_tools import check_regular_timestamps, reverse_fstring_path
 
 
 class TestConversionTools(TestCase):
@@ -34,36 +29,39 @@ class TestConversionTools(TestCase):
         assert mod_2.description == description_2
         self.assertWarns(UserWarning, get_module, **dict(nwbfile=nwbfile, name=name_1, description=description_2))
 
-    @skip("to be implemented")
-    def test_estimate_recording_conversion_time(self):
-        num_channels = 4
-        sampling_frequency = 30000
-        num_frames = sampling_frequency * 1
-        timeseries = np.random.randint(low=-32768, high=32767, size=[num_channels, num_frames], dtype=np.dtype("int16"))
-        recording = NumpyRecordingExtractor(timeseries=timeseries, sampling_frequency=sampling_frequency)
+    # @skip("to be implemented")
+    # def test_estimate_recording_conversion_time(self):
+    #     num_channels = 4
+    #     sampling_frequency = 30000
+    #     num_frames = sampling_frequency * 1
+    #     timeseries = np.random.randint(low=-32768, high=32767, size=[num_channels, num_frames], dtype=np.dtype("int16"))
+    #     recording = NumpyRecordingExtractor(timeseries=timeseries, sampling_frequency=sampling_frequency)
 
-        estimated_write_time, estimated_write_speed = estimate_recording_conversion_time(recording=recording)
-        estimated_write_time, estimated_write_speed = estimate_recording_conversion_time(
-            recording=recording, write_kwargs=dict(compression=None)
-        )
+    #     estimated_write_time, estimated_write_speed = estimate_recording_conversion_time(recording=recording)
+    #     estimated_write_time, estimated_write_speed = estimate_recording_conversion_time(
+    #         recording=recording, write_kwargs=dict(compression=None)
+    #     )
 
-    def test_reverse_fstring(self):
-        sample_string = "MyFolder/{session_id}/{subject_id}"
+    def test_reverse_fstring_start_end_path_slash(self):
         for sample_string in [
             "MyFolder/{session_id}/{subject_id}",
             "/MyFolder/{session_id}/{subject_id}",
             "MyFolder/{session_id}/{subject_id}/",
             "/MyFolder/{session_id}/{subject_id}/",
         ]:
-            extracted_keywords = reverse_fstring(string=sample_string)
-            self.assertEqual(extracted_keywords, ["session_id", "subject_id"])
+            info = reverse_fstring_path(string=sample_string)
+            self.assertEqual(list(info.keys()), ["session_id", "subject_id"])
 
-    def test_infer_path_levels(self):
+    def test_reverse_f_string_infer_path_levels_start_end_path_slash(self):
         for sample_string in [
             "MyFolder/{session_id}/{subject_id}",
             "/MyFolder/{session_id}/{subject_id}",
             "MyFolder/{session_id}/{subject_id}/",
             "/MyFolder/{session_id}/{subject_id}/",
         ]:
-            levels = infer_path_levels(keys=["session_id", "subject_id"], string=sample_string)
-            self.assertEqual(levels, [1, 2])
+            info = reverse_fstring_path(string=sample_string)
+            self.assertEqual(list(info.values()), [[1], [2]])
+
+    def test_reverse_f_string_repetition(self):
+        info = reverse_fstring_path(string="/MyFolder/{session_id}/{subject_id}/{session_id}_test.txt")
+        self.assertEqual(list(info.keys), [[1, 3], [2]])

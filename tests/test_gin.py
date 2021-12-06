@@ -1,11 +1,8 @@
 import tempfile
 import unittest
-from pathlib import Path
-<<<<<<< HEAD
-from datetime import datetime
-=======
 import numpy.testing as npt
->>>>>>> master
+from pathlib import Path
+from datetime import datetime
 
 from spikeextractors import NwbRecordingExtractor, NwbSortingExtractor
 from spikeextractors.testing import check_recordings_equal, check_sortings_equal

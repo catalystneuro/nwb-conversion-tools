@@ -1,0 +1,30 @@
+metadata:
+  NWBFile:
+    lab: My Lab
+    institution: My Institution
+data_interfaces:
+  - IntanRecordingInterface
+  - NeuroscopeSortingInterface
+
+dataset_path: /ephy_testing_data/
+
+experiments:
+  experiment_path: /{session_id}/{subject_id}/
+  ymaze:
+    metadata:
+      NWBFile:
+        session_description: Subject navigating a Y-shaped maze.
+    sessions:
+      - nwbfile_name: example_converter_spec_1
+        source_data:
+          IntanRecordingInterface:
+            file_path: /ephy_testing_data/{session_id}/{subject_id}/{session_id}_intan_rhd_test_1.rhd
+          NeuroscopeSortingInterface:
+            folder_path: /ephy_testing_data/{session_id}/{subject_id}/
+        metadata:
+          NWBFile:
+            session_start_time: 2020-11-09T21:19:09+00:00
+      - nwbfile_path: example_converter_spec_2
+        metadata:
+          NWBFile:
+            session_start_time: 2020-11-10T21:19:09+00:00

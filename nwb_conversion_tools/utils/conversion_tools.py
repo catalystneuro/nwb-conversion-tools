@@ -3,17 +3,10 @@ import yaml
 import re
 import numpy as np
 from pathlib import Path
-from tempfile import mkdtemp
-from shutil import rmtree
-from time import perf_counter
-from typing import Optional, Iterable
 from importlib import import_module
 from itertools import chain
 
-from spikeextractors import RecordingExtractor, SubRecordingExtractor
-
 from .json_schema import dict_deep_update, FilePathType
-from .spike_interface import write_recording
 from ..nwbconverter import NWBConverter
 
 
@@ -130,24 +123,28 @@ def run_conversion_from_yaml(file_path: FilePathType, overwrite: bool = False):
             )
 
 
-def reverse_fstring(string: str):
-    return re.findall(pattern="\\{(.*?)\\}", string=string)
+def reverse_fstring_path(string: str):
+    keys = set(re.findall(pattern="\\{(.*?)\\}", string=string))
 
-
-def infer_path_levels(keys: Iterable[str], string: str):
-    adj_idx = 0
+    adjusted_idx = 0
     if string[0] != "/":
-        adj_string = "/" + string
-        adj_idx += 1
+        adjusted_string = "/" + string
+        adjusted_idx += 1
     else:
-        adj_string = string
-    if adj_string[-1] != "/":
-        adj_string = adj_string + "/"
+        adjusted_string = string
+    if adjusted_string[-1] != "/":
+        adjusted_string = adjusted_string + "/"
 
-    pars = [idx for idx, ch in enumerate(adj_string) if ch == "/"]
-    levels = []
+    sub_paths = string.split("/")
+    output = dict()
     for key in keys:
-        key_start = string.find(key)
-        level_finder = (i - 1 for i, v in enumerate(np.array(pars) < key_start + adj_idx) if v == False)
-        levels.append(next(level_finder))
-    return levels
+        sub_levels = []
+        for j, sub_path in enumerate(sub_paths, start=-1):
+            if key in sub_path:
+                sub_levels.append(j)
+        output[key] = sub_levels
+    return output
+
+
+def collect_reverse_fstring_files(string: str):
+    keys, levels = reverse_fstring_path(string=string)
