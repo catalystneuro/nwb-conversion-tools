@@ -86,19 +86,19 @@ def test_dict_deep_update_3():
     b2 = dict(a=3, b="compare", c=b1)
 
     a3 = dict(a2, ls1=[1, 2, "test"])
-    b3 = dict(b2, ls1=[3, 1, "test2"])
+    b3 = dict(b2, ls1=[3, 1, "test2"], ls3=[2,3,'test4'])
     # test whether repeated values are not removed
     result3_1 = dict_deep_update(a3, b3, remove_repeats=False)
-    correct_result = dict(dict_deep_update(a2, b2), ls1=[1, 1, 2, 3, "test", "test2"])
+    correct_result = dict(dict_deep_update(a2, b2), ls1=[1, 1, 2, 3, "test", "test2"], ls3=[2,3,'test4'])
     compare_dicts(result3_1, correct_result)
     # test removing repeats
     result3_1 = dict_deep_update(a3, b3)
-    correct_result = dict(dict_deep_update(a2, b2), ls1=[1, 2, 3, "test", "test2"])
+    correct_result = dict(dict_deep_update(a2, b2), ls1=[1, 2, 3, "test", "test2"], ls3=[2,3,'test4'])
     compare_dicts(result3_1, correct_result)
 
     # 3.2 test without append: in this case ls1 would be overwritten
     result3_2 = dict_deep_update(a3, b3, append_list=False)
-    correct_result = dict(dict_deep_update(a2, b2), ls1=b3["ls1"])
+    correct_result = dict(dict_deep_update(a2, b2), ls1=b3["ls1"], ls3=[2,3,'test4'])
     compare_dicts(result3_2, correct_result)
 
 

@@ -134,7 +134,7 @@ def dict_deep_update(
         elif append_list and isinstance(v, list):
             for vv in v:
                 d[k] = append_replace_dict_in_list(
-                    d.get(k, None), vv, compare_key, list_dict_deep_update, remove_repeats
+                    d.get(k, []), vv, compare_key, list_dict_deep_update, remove_repeats
                 )
         else:
             d[k] = v
