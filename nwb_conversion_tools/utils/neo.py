@@ -94,8 +94,14 @@ def get_command_traces(neo_reader, block: int = 0, segment: int = 0, cmd_channel
     Returns:
         list: [description]
     """
-    traces, titles, units = neo_reader.read_raw_protocol()
-    return traces[segment][cmd_channel], titles[segment][cmd_channel], units[segment][cmd_channel]
+    try:
+        traces, titles, units = neo_reader.read_raw_protocol()
+        return traces[segment][cmd_channel], titles[segment][cmd_channel], units[segment][cmd_channel]
+    except Exception as e:
+        msg = ".\n\n WARNING - get_command_traces() only works for AxonIO interface."
+        e.args = (str(e) + msg,)
+        return e
+
 
 
 # Get gain (to Volt or Ampere) from unit in string format
