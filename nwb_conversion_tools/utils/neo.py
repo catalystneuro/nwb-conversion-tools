@@ -103,7 +103,6 @@ def get_command_traces(neo_reader, block: int = 0, segment: int = 0, cmd_channel
         return e
 
 
-
 # Get gain (to Volt or Ampere) from unit in string format
 def get_gain_from_unit(unit: str) -> float:
     """
