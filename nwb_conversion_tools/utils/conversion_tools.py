@@ -176,7 +176,7 @@ def add_devices(nwbfile=None, data_type: str = "Ecephys", metadata: dict = None)
         if dev.get("name", defaults["name"]) not in nwbfile.devices:
             nwbfile.create_device(**dict(defaults, **dev))
 
-            
+
 # TODO update this to handle with different types
 # def estimate_recording_conversion_time(
 #     recording: RecordingExtractor, mb_threshold: float = 100.0, write_kwargs: Optional[dict] = None
