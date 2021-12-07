@@ -7,6 +7,9 @@ from spikeextractors import NwbRecordingExtractor, NwbSortingExtractor
 from spikeextractors.testing import check_recordings_equal, check_sortings_equal
 from roiextractors import NwbImagingExtractor, NwbSegmentationExtractor
 from roiextractors.testing import check_imaging_equal, check_segmentations_equal
+#for debugging
+import sys
+sys.path.append('/Users/cesar/Repositories/nwb-conversion-tools')
 from nwb_conversion_tools import (
     NWBConverter,
     IntanRecordingInterface,
@@ -52,111 +55,110 @@ def custom_name_func(testcase_func, param_num, param):
     )
 
 
-if HAVE_PARAMETERIZED and HAVE_ECEPHYS_DATA:
+# if HAVE_PARAMETERIZED and HAVE_ECEPHYS_DATA:
 
-    class TestEcephysNwbConversions(unittest.TestCase):
-        savedir = Path(tempfile.mkdtemp())
+#     class TestEcephysNwbConversions(unittest.TestCase):
+#         savedir = Path(tempfile.mkdtemp())
+        # parameterized_recording_list = [
+        #     param(
+        #         data_interface=NeuralynxRecordingInterface,
+        #         interface_kwargs=dict(
+        #             folder_path=str(ECEPHYS_DATA_PATH / "neuralynx" / "Cheetah_v5.7.4" / "original_data")
+        #         ),
+        #     ),
+        #     param(
+        #         data_interface=NeuroscopeRecordingInterface,
+        #         interface_kwargs=dict(file_path=str(ECEPHYS_DATA_PATH / "neuroscope" / "test1" / "test1.dat")),
+        #     ),
+        #     param(
+        #         data_interface=OpenEphysRecordingExtractorInterface,
+        #         interface_kwargs=dict(
+        #             folder_path=str(ECEPHYS_DATA_PATH / "openephysbinary" / "v0.4.4.1_with_video_tracking")
+        #         ),
+        #     ),
+        #     param(
+        #         data_interface=BlackrockRecordingExtractorInterface,
+        #         interface_kwargs=dict(filename=str(ECEPHYS_DATA_PATH / "blackrock" / "FileSpec2.3001.ns5")),
+        #     ),
+        # ]
+        # for suffix in ["rhd", "rhs"]:
+        #     parameterized_recording_list.append(
+        #         param(
+        #             data_interface=IntanRecordingInterface,
+        #             interface_kwargs=dict(
+        #                 file_path=str(ECEPHYS_DATA_PATH / "intan" / f"intan_{suffix}_test_1.{suffix}")
+        #             ),
+        #         )
+        #     )
+        # for file_name, num_channels in zip(["20210225_em8_minirec2_ac", "W122_06_09_2019_1_fromSD"], [512, 128]):
+        #     for gains in [None, [0.195], [0.385] * num_channels]:
+        #         interface_kwargs = dict(filename=str(ECEPHYS_DATA_PATH / "spikegadgets" / f"{file_name}.rec"))
+        #         if gains is not None:
+        #             interface_kwargs.update(gains=gains)
+        #         parameterized_recording_list.append(
+        #             param(
+        #                 data_interface=SpikeGadgetsRecordingInterface,
+        #                 interface_kwargs=interface_kwargs,
+        #             )
+        #         )
+        # for suffix in ["ap", "lf"]:
+        #     sub_path = Path("spikeglx") / "Noise4Sam_g0" / "Noise4Sam_g0_imec0"
+        #     parameterized_recording_list.append(
+        #         param(
+        #             data_interface=SpikeGLXRecordingInterface,
+        #             interface_kwargs=dict(
+        #                 file_path=str(ECEPHYS_DATA_PATH / sub_path / f"Noise4Sam_g0_t0.imec0.{suffix}.bin")
+        #             ),
+        #         )
+        #     )
 
-        parameterized_recording_list = [
-            param(
-                data_interface=NeuralynxRecordingInterface,
-                interface_kwargs=dict(
-                    folder_path=str(ECEPHYS_DATA_PATH / "neuralynx" / "Cheetah_v5.7.4" / "original_data")
-                ),
-            ),
-            param(
-                data_interface=NeuroscopeRecordingInterface,
-                interface_kwargs=dict(file_path=str(ECEPHYS_DATA_PATH / "neuroscope" / "test1" / "test1.dat")),
-            ),
-            param(
-                data_interface=OpenEphysRecordingExtractorInterface,
-                interface_kwargs=dict(
-                    folder_path=str(ECEPHYS_DATA_PATH / "openephysbinary" / "v0.4.4.1_with_video_tracking")
-                ),
-            ),
-            param(
-                data_interface=BlackrockRecordingExtractorInterface,
-                interface_kwargs=dict(filename=str(ECEPHYS_DATA_PATH / "blackrock" / "FileSpec2.3001.ns5")),
-            ),
-        ]
-        for suffix in ["rhd", "rhs"]:
-            parameterized_recording_list.append(
-                param(
-                    data_interface=IntanRecordingInterface,
-                    interface_kwargs=dict(
-                        file_path=str(ECEPHYS_DATA_PATH / "intan" / f"intan_{suffix}_test_1.{suffix}")
-                    ),
-                )
-            )
-        for file_name, num_channels in zip(["20210225_em8_minirec2_ac", "W122_06_09_2019_1_fromSD"], [512, 128]):
-            for gains in [None, [0.195], [0.385] * num_channels]:
-                interface_kwargs = dict(filename=str(ECEPHYS_DATA_PATH / "spikegadgets" / f"{file_name}.rec"))
-                if gains is not None:
-                    interface_kwargs.update(gains=gains)
-                parameterized_recording_list.append(
-                    param(
-                        data_interface=SpikeGadgetsRecordingInterface,
-                        interface_kwargs=interface_kwargs,
-                    )
-                )
-        for suffix in ["ap", "lf"]:
-            sub_path = Path("spikeglx") / "Noise4Sam_g0" / "Noise4Sam_g0_imec0"
-            parameterized_recording_list.append(
-                param(
-                    data_interface=SpikeGLXRecordingInterface,
-                    interface_kwargs=dict(
-                        file_path=str(ECEPHYS_DATA_PATH / sub_path / f"Noise4Sam_g0_t0.imec0.{suffix}.bin")
-                    ),
-                )
-            )
+        # @parameterized.expand(parameterized_recording_list, name_func=custom_name_func)
+        # def test_convert_recording_extractor_to_nwb(self, data_interface, interface_kwargs):
+        #     nwbfile_path = str(self.savedir / f"{data_interface.__name__}.nwb")
 
-        @parameterized.expand(parameterized_recording_list, name_func=custom_name_func)
-        def test_convert_recording_extractor_to_nwb(self, data_interface, interface_kwargs):
-            nwbfile_path = str(self.savedir / f"{data_interface.__name__}.nwb")
+        #     class TestConverter(NWBConverter):
+        #         data_interface_classes = dict(TestRecording=data_interface)
 
-            class TestConverter(NWBConverter):
-                data_interface_classes = dict(TestRecording=data_interface)
+        #     converter = TestConverter(source_data=dict(TestRecording=dict(interface_kwargs)))
+        #     converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True)
+        #     recording = converter.data_interface_objects["TestRecording"].recording_extractor
+        #     nwb_recording = NwbRecordingExtractor(file_path=nwbfile_path)
+        #     check_recordings_equal(RX1=recording, RX2=nwb_recording, check_times=False, return_scaled=False)
+        #     check_recordings_equal(RX1=recording, RX2=nwb_recording, check_times=False, return_scaled=True)
+        #     # Technically, check_recordings_equal only tests a snippet of data. Above tests are for metadata mostly.
+        #     # For GIN test data, sizes should be OK to load all into RAM even on CI
+        #     npt.assert_array_equal(
+        #         x=recording.get_traces(return_scaled=False), y=nwb_recording.get_traces(return_scaled=False)
+        #     )
 
-            converter = TestConverter(source_data=dict(TestRecording=dict(interface_kwargs)))
-            converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True)
-            recording = converter.data_interface_objects["TestRecording"].recording_extractor
-            nwb_recording = NwbRecordingExtractor(file_path=nwbfile_path)
-            check_recordings_equal(RX1=recording, RX2=nwb_recording, check_times=False, return_scaled=False)
-            check_recordings_equal(RX1=recording, RX2=nwb_recording, check_times=False, return_scaled=True)
-            # Technically, check_recordings_equal only tests a snippet of data. Above tests are for metadata mostly.
-            # For GIN test data, sizes should be OK to load all into RAM even on CI
-            npt.assert_array_equal(
-                x=recording.get_traces(return_scaled=False), y=nwb_recording.get_traces(return_scaled=False)
-            )
+        # @parameterized.expand(
+        #     [
+        #         param(
+        #             data_interface=PhySortingInterface,
+        #             interface_kwargs=dict(folder_path=str(ECEPHYS_DATA_PATH / "phy" / "phy_example_0")),
+        #         ),
+        #         param(
+        #             data_interface=BlackrockSortingExtractorInterface,
+        #             interface_kwargs=dict(filename=str(ECEPHYS_DATA_PATH / "blackrock" / "FileSpec2.3001.nev")),
+        #         ),
+        #     ],
+        #     name_func=custom_name_func,
+        # )
+        # def test_convert_sorting_extractor_to_nwb(self, data_interface, interface_kwargs):
+        #     nwbfile_path = str(self.savedir / f"{data_interface.__name__}.nwb")
 
-        @parameterized.expand(
-            [
-                param(
-                    data_interface=PhySortingInterface,
-                    interface_kwargs=dict(folder_path=str(ECEPHYS_DATA_PATH / "phy" / "phy_example_0")),
-                ),
-                param(
-                    data_interface=BlackrockSortingExtractorInterface,
-                    interface_kwargs=dict(filename=str(ECEPHYS_DATA_PATH / "blackrock" / "FileSpec2.3001.nev")),
-                ),
-            ],
-            name_func=custom_name_func,
-        )
-        def test_convert_sorting_extractor_to_nwb(self, data_interface, interface_kwargs):
-            nwbfile_path = str(self.savedir / f"{data_interface.__name__}.nwb")
+        #     class TestConverter(NWBConverter):
+        #         data_interface_classes = dict(TestSorting=data_interface)
 
-            class TestConverter(NWBConverter):
-                data_interface_classes = dict(TestSorting=data_interface)
-
-            converter = TestConverter(source_data=dict(TestSorting=dict(interface_kwargs)))
-            converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True)
-            sorting = converter.data_interface_objects["TestSorting"].sorting_extractor
-            sf = sorting.get_sampling_frequency()
-            if sf is None:  # need to set dummy sampling frequency since no associated acquisition in file
-                sf = 30000
-                sorting.set_sampling_frequency(sf)
-            nwb_sorting = NwbSortingExtractor(file_path=nwbfile_path, sampling_frequency=sf)
-            check_sortings_equal(SX1=sorting, SX2=nwb_sorting)
+        #     converter = TestConverter(source_data=dict(TestSorting=dict(interface_kwargs)))
+        #     converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True)
+        #     sorting = converter.data_interface_objects["TestSorting"].sorting_extractor
+        #     sf = sorting.get_sampling_frequency()
+        #     if sf is None:  # need to set dummy sampling frequency since no associated acquisition in file
+        #         sf = 30000
+        #         sorting.set_sampling_frequency(sf)
+        #     nwb_sorting = NwbSortingExtractor(file_path=nwbfile_path, sampling_frequency=sf)
+        #     check_sortings_equal(SX1=sorting, SX2=nwb_sorting)
 
 
 if HAVE_PARAMETERIZED and HAVE_OPHYS_DATA:
@@ -194,13 +196,13 @@ if HAVE_PARAMETERIZED and HAVE_OPHYS_DATA:
                 def get_metadata(self):
                     metadata = super().get_metadata()
                     # attach device to ImagingPlane lacking property
-                    # assume single device and single imaging plane
+                    device_name = metadata['Ophys']['Device'][0]['name']
                     if 'device' not in metadata['Ophys']['ImagingPlane'][0].keys():
-                        metadata['Ophys']['ImagingPlane'][0]['device'] = metadata['Ophys']['Device']
+                        metadata['Ophys']['ImagingPlane'][0]['device'] = device_name
                     # attach ImagingPlane to TwoPhotonSeries lacking property
-                    # assume single device and single imaging plane and two photon series
+                    plane_name = metadata['Ophys']['ImagingPlane'][0]['name']
                     if 'imaging_plane' not in metadata['Ophys']['TwoPhotonSeries'][0].keys():
-                        metadata['Ophys']['TwoPhotonSeries'][0]['imaging_plane'] = metadata['Ophys']['ImagingPlane'][0]
+                        metadata['Ophys']['TwoPhotonSeries'][0]['imaging_plane'] = plane_name
                     return metadata
 
             converter = TestConverter(source_data=dict(TestImaging=dict(interface_kwargs)))
