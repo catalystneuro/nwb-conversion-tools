@@ -125,6 +125,9 @@ def get_gain_from_unit(unit: str) -> float:
         gain = 10 ** -3
     elif unit in ["A", "V"]:
         gain = 10 ** 0
+    else:
+        gain = 10 ** 0
+        warnings.warn("No valid units found for traces in the current file. Gain is set to 1, but this might be wrong.")
     return float(gain)
 
 
