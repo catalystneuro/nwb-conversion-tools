@@ -1,7 +1,5 @@
 name: Update testing data
-on:
-  schedule:
-    - cron: "0 0 * * *"
+on: push
 jobs:
   run:
     name: Update testing data
@@ -41,4 +39,5 @@ jobs:
       - name: Update datasets
         run: |
           datalad install -r -g https://gin.g-node.org/NeuralEnsemble/ephy_testing_data
-          datalad install -r -g https://gin.g-node.org/CatalystNeuro/ophys_testing_data
+          datalad install -r -g https://gin.g-node.org/CatalystNeuro/ophys_testing_data/imaging_datasets
+          datalad install -r -g https://gin.g-node.org/CatalystNeuro/ophys_testing_data/segmentation_dataset
