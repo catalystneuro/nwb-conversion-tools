@@ -32,6 +32,8 @@ jobs:
         key: ecephys-dset-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
         restore-keys: ecephys-dset-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
     - name: Run pytest with coverage
+      env:
+        TEST_ENV: ci  
       run: pytest --cov=./ --cov-report xml:/home/runner/work/nwb-conversion-tools/nwb-conversion-tools/coverage.xml
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
