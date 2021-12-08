@@ -20,7 +20,7 @@ class AbfNeoDataInterface(BaseIcephysNeoInterface):
 
     def __init__(self, **source_data):
         self.source_data = source_data
-        
+
         self.reader = self.neo_class(**source_data)
         self.subset_channels = None
         self.n_segments = get_number_of_segments(neo_reader=self.reader, block=0)
