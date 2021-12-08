@@ -93,7 +93,7 @@ class NWBConverter:
         metadata = get_default_nwbfile_metadata()
         for interface in self.data_interface_objects.values():
             interface_metadata = interface.get_metadata()
-            metadata = dict_deep_update(metadata, interface_metadata)
+            metadata = dict_deep_update(metadata, interface_metadata, append_list=False)
         return metadata
 
     def get_conversion_options(self):
@@ -147,7 +147,6 @@ class NWBConverter:
         ) or nwbfile is None, (
             "Either pass a nwbfile_path location with save_to_file=True, or a nwbfile object, but not both!"
         )
-
         # Validate metadata
         if metadata is None:
             metadata = self.get_metadata()
