@@ -33,17 +33,11 @@ except ImportError:
 #   icephys: TODO
 
 if os.getenv('CI'):
-    print('Looks like GitHub!')
+    LOCAL_PATH = "."
+    print("running on Github CI")
 else:
-    print('Maybe running locally?')
-
-TEST_ENV = os.environ.get("TEST_ENV", "local")
-if TEST_ENV == "local":
     LOCAL_PATH = Path(".")  # Must be set to "." for CI - temporarily override for local testing
-elif TEST_ENV == "ci":
-    LOCAL_PATH = "."
-else:
-    LOCAL_PATH = "."
+    print("running locally")
 
 DATA_PATH = LOCAL_PATH / "ephy_testing_data"
 HAVE_DATA = DATA_PATH.exists()
