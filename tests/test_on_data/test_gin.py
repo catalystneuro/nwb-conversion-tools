@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 import numpy.testing as npt
-import os 
+import os
 
 import pytest
 from spikeextractors import NwbRecordingExtractor, NwbSortingExtractor
