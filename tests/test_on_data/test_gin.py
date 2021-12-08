@@ -32,10 +32,10 @@ except ImportError:
 #   ophys: TODO
 #   icephys: TODO
 
-if os.getenv('CI'):
-    print('Looks like GitHub!')
+if os.getenv("CI"):
+    print("Looks like GitHub!")
 else:
-    print('Maybe running locally?')
+    print("Maybe running locally?")
 
 TEST_ENV = os.environ.get("TEST_ENV", "local")
 if TEST_ENV == "local":
