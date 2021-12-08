@@ -18,8 +18,13 @@ class AbfNeoDataInterface(BaseIcephysNeoInterface):
         source_schema["properties"]["file_path"].update(format="file", description="Path to ABF file.")
         return source_schema
 
-    def __init__(self, file_path: str):
-        super().__init__(filename=file_path)
+    def __init__(self, **source_data):
+        self.source_data = source_data
+        
+        self.reader = self.neo_class(**source_data)
+        self.subset_channels = None
+        self.n_segments = get_number_of_segments(neo_reader=self.reader, block=0)
+        self.n_channels = get_number_of_electrodes(neo_reader=self.reader)
 
     def get_metadata(self):
         """Auto-fill as much of the metadata as possible. Must comply with metadata schema."""
