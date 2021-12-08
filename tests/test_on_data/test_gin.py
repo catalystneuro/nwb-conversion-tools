@@ -32,7 +32,7 @@ except ImportError:
 #   ophys: TODO
 #   icephys: TODO
 
-if os.getenv('CI'):
+if os.getenv("CI"):
     LOCAL_PATH = "."
     print("running on Github CI")
 else:
