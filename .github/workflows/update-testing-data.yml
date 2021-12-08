@@ -39,5 +39,7 @@ jobs:
       - name: Update datasets
         run: |
           # datalad install -r -g https://gin.g-node.org/NeuralEnsemble/ephy_testing_data
-          datalad install -r -g https://gin.g-node.org/CatalystNeuro/ophys_testing_data/src/master/imaging_datasets
-          datalad install -r -g https://gin.g-node.org/CatalystNeuro/ophys_testing_data/src/master/segmentation_dataset
+          datalad install https://gin.g-node.org/CatalystNeuro/ophys_testing_data
+          cd ophys_testing_data
+          datalad get -r ./imaging_datasets/
+          datalad get -r ./segmentation_datasets/
