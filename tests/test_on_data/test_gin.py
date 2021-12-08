@@ -2,6 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 import numpy.testing as npt
+import os
 
 import pytest
 from spikeextractors import NwbRecordingExtractor, NwbSortingExtractor
@@ -32,7 +33,14 @@ except ImportError:
 #   ecephys: https://gin.g-node.org/NeuralEnsemble/ephy_testing_data
 #   ophys: TODO
 #   icephys: TODO
-LOCAL_PATH = Path(".")  # Must be set to "." for CI - temporarily override for local testing
+
+if os.getenv("CI"):
+    LOCAL_PATH = Path(".")  # Must be set to "." for CI
+    print("Running GIN tests on Github CI!")
+else:
+    LOCAL_PATH = Path(".")  # Override this on personal device for local testing
+    print("Running GIN tests locally!")
+
 DATA_PATH = LOCAL_PATH / "ephy_testing_data"
 HAVE_DATA = DATA_PATH.exists()
 
