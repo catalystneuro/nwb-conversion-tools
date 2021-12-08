@@ -31,6 +31,12 @@ except ImportError:
 #   ecephys: https://gin.g-node.org/NeuralEnsemble/ephy_testing_data
 #   ophys: TODO
 #   icephys: TODO
+
+if os.getenv('CI'):
+    print('Looks like GitHub!')
+else:
+    print('Maybe running locally?')
+
 TEST_ENV = os.environ.get("TEST_ENV", "local")
 if TEST_ENV == "local":
     LOCAL_PATH = Path(".")  # Must be set to "." for CI - temporarily override for local testing
