@@ -34,6 +34,9 @@ jobs:
     - name: Set environment variables
       run: |
         echo "TEST_ENV=ci" >> $GITHUB_ENV
+    - name: Show environment variables
+      run: |
+        env
     - name: Run pytest with coverage  
       run: pytest --cov=./ --cov-report xml:/home/runner/work/nwb-conversion-tools/nwb-conversion-tools/coverage.xml
     - name: Upload coverage to Codecov
