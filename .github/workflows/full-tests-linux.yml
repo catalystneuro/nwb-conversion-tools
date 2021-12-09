@@ -30,17 +30,25 @@ jobs:
         id: cache-datasets
         with:
           path: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/ephy_testing_data
-          key: ecephys-datasets-1-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
-          restore-keys: ecephys-datasets-1-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
+          key: ecephys-datasets-2-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
+          restore-keys: ecephys-datasets-2-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
       - name: Force GIN download
-        if: steps.cache-datasets.outputs.cache-hit != 'true'
+        if: steps.cache-datasets.outputs.cache-hit == 'false'
         run: |
           conda install -c conda-forge datalad==0.14.5
           git config --global user.email "CI@example.com"
           git config --global user.name "CI Almighty"
           datalad install https://gin.g-node.org/NeuralEnsemble/ephy_testing_data
           cd ephy_testing_data
-          datalad get -r ./neuralynx/Cheetah_v5.7.4/original_data
+          datalad get -r ./neuralynx/Cheetah_v5.7.4/original_data/
+          datalad get -r ./neuroscope/test1/
+          datalad get -r ./openephysbinary/v0.4.4.1_with_video_tracking/"
+          datalad get -r ./blackrock/
+          datalad get -r ./intan/
+          datalad get -r ./spikegadgets/
+          datalad get -r ./spikeglx/Noise4Sam_g0/Noise4Sam_g0_imec0/
+          datalad get -r ./phy/phy_example_0/
+          datalad get -r ./blackrock/
       - name: Run pytest with coverage  
         run: pytest --cov=./ --cov-report xml:/home/runner/work/nwb-conversion-tools/nwb-conversion-tools/coverage.xml
       - name: Upload coverage to Codecov
