@@ -93,7 +93,7 @@ class NWBConverter:
         metadata = get_default_nwbfile_metadata()
         for interface in self.data_interface_objects.values():
             interface_metadata = interface.get_metadata()
-            metadata = dict_deep_update(metadata, interface_metadata, append_list=False)
+            metadata = dict_deep_update(metadata, interface_metadata)
         return metadata
 
     def get_conversion_options(self):
