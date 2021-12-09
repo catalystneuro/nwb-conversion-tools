@@ -1,9 +1,9 @@
-name: Full tests on Linux
+name: Full tests on Mac
 on: pull_request
 jobs:
   run:
-    name: Full tests on Linux
-    runs-on: ubuntu-latest
+    name: Full tests on ${{ matrix.os }}
+    runs-on: macos-latest
     strategy:
       fail-fast: false
     steps:
@@ -20,7 +20,6 @@ jobs:
           pip install -r requirements-full.txt
           pip install -e .
           pip install pytest
-          pip install pytest-cov
       - name: Get ephy_testing_data current head hash
         id: ephys
         run: echo "::set-output name=HASH_EPHY_DATASET::$(git ls-remote https://gin.g-node.org/NeuralEnsemble/ephy_testing_data.git HEAD | cut -f1)"
@@ -31,13 +30,5 @@ jobs:
           path: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/ephy_testing_data
           key: ecephys-datasets-1-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
           restore-keys: ecephys-datasets-1-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
-      - name: Run pytest with coverage  
-        run: pytest --cov=./ --cov-report xml:/home/runner/work/nwb-conversion-tools/nwb-conversion-tools/coverage.xml
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/coverage.xml
-          flags: unittests
-          name: codecov-umbrella 
-          yml: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/codecov.yml
+      - name: Run pytest
+        run: pytest
