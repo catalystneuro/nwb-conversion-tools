@@ -13,6 +13,7 @@ from ....utils.json_schema import get_schema_from_method_signature, FilePathType
 from ....basedatainterface import BaseDataInterface
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ..baselfpextractorinterface import BaseLFPExtractorInterface
+from ....utils import map_si_object_to_writer
 from ....utils.conversion_tools import get_module
 
 
@@ -519,7 +520,7 @@ def read_all_eeg_file_lfp_data(filename: FilePathType):
 class AxonaLFPDataInterface(BaseLFPExtractorInterface):
     """..."""
 
-    RX = se.AxonaRecordingExtractor
+    RX = se.NumpyRecordingExtractor
 
     @classmethod
     def get_source_schema(cls):
@@ -531,9 +532,10 @@ class AxonaLFPDataInterface(BaseLFPExtractorInterface):
         )
 
     def __init__(self, filename: FilePathType):
-        self.recording_extractor = se.NumpyRecordingExtractor(
+        self.recording_extractor = self.RX(
             timeseries=read_all_eeg_file_lfp_data(filename),
             sampling_frequency=get_eeg_sampling_frequency(filename),
         )
+        self.writer_class = map_si_object_to_writer(self.recording_extractor)(self.recording_extractor)
         self.subset_channels = None
         self.source_data = dict(filename=filename)

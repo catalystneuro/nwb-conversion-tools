@@ -30,8 +30,8 @@ jobs:
         id: cache-datasets
         with:
           path: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/ephy_testing_data
-          key: ecephys-datasets-3-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
-          restore-keys: ecephys-datasets-3-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
+          key: ecephys-datasets-7-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
+          restore-keys: ecephys-datasets-7-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
       - name: Force GIN download
         if: steps.cache-datasets.outputs.cache-hit == false
         run: |
@@ -49,6 +49,7 @@ jobs:
           datalad get -r ./spikeglx/Noise4Sam_g0/Noise4Sam_g0_imec0/
           datalad get -r ./phy/phy_example_0/
           datalad get -r ./blackrock/
+          datalad get -r ./axona/
       - name: Run pytest with coverage  
         run: pytest --cov=./ --cov-report xml:/home/runner/work/nwb-conversion-tools/nwb-conversion-tools/coverage.xml
       - name: Upload coverage to Codecov
