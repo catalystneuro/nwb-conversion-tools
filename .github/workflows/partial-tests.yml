@@ -1,5 +1,5 @@
-name: CI production
-on: [pull_request]
+name: Partial (lazy) tests on all OS
+on: pull_request
 jobs:
   run:
     name: Lazy tests on (${{ matrix.os }})
@@ -26,5 +26,4 @@ jobs:
         pip install .
         pip install pytest
     - name: Run tests
-      run: |
-        pytest
+      run: pytest tests/test_internals
