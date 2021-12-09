@@ -1,5 +1,5 @@
 name: Full tests on Linux
-on: pull_request
+on: push
 jobs:
   run:
     name: Full tests on Linux
@@ -42,7 +42,7 @@ jobs:
           cd ephy_testing_data
           datalad get -r ./neuralynx/Cheetah_v5.7.4/original_data/
           datalad get -r ./neuroscope/test1/
-          datalad get -r ./openephysbinary/v0.4.4.1_with_video_tracking/"
+          datalad get -r ./openephysbinary/v0.4.4.1_with_video_tracking/
           datalad get -r ./blackrock/
           datalad get -r ./intan/
           datalad get -r ./spikegadgets/
