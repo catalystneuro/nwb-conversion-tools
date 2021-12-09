@@ -30,8 +30,8 @@ jobs:
         id: cache-datasets
         with:
           path: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/ephy_testing_data
-          key: ecephys-datasets-5-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
-          restore-keys: ecephys-datasets-5-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
+          key: ecephys-datasets-6-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
+          restore-keys: ecephys-datasets-6-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
       - name: Force GIN download
         if: steps.cache-datasets.outputs.cache-hit == false
         run: |
