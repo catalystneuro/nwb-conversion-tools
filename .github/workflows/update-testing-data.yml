@@ -29,8 +29,8 @@ jobs:
         id: cache-ephys-dataset
         with:
           path: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/ephy_testing_data
-          key: ephys-datasets-3-${{ steps.ephys.outputs.HASH_EPHYS_DATASET }}
-          restore-keys: ephys-datasets-3-${{ steps.ephys.outputs.HASH_EPHYS_DATASET }}
+          key: ephys-datasets-5-${{ steps.ephys.outputs.HASH_EPHYS_DATASET }}
+          restore-keys: ephys-datasets-5-${{ steps.ephys.outputs.HASH_EPHYS_DATASET }}
       - name: Update datasets
         if: steps.cache-datasets.outputs.cache-hit == false
         run: |

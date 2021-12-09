@@ -28,8 +28,8 @@ jobs:
         id: cache-datasets
         with:
           path: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/ephy_testing_data
-          key: ecephys-datasets-3-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
-          restore-keys: ecephys-datasets-3-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
+          key: ecephys-datasets-4-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
+          restore-keys: ecephys-datasets-4-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
       - name: Run pytest with GIN data
         if: steps.cache-datasets.outputs.cache-hit == true
         run: pytest
