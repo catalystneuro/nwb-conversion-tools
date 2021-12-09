@@ -28,7 +28,7 @@ jobs:
         id: cache-datasets
         with:
           path: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/ephy_testing_data
-          key: ecephys-datasets-1-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
-          restore-keys: ecephys-datasets-1-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
+          key: ecephys-datasets-3-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
+          restore-keys: ecephys-datasets-3-${{ steps.ephys.outputs.HASH_EPHY_DATASET }}
       - name: Run pytest (internals only; no GIN caching yet on Windows)
         run: pytest tests/test_internals
