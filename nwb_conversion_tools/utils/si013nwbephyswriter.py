@@ -1,8 +1,7 @@
-import warnings
-from numbers import Real
-from typing import Union
-
+"""Authors: Saksham Sharda."""
 import numpy as np
+from numbers import Real
+
 import pynwb
 
 from .basesinwbephyswriter import BaseSINwbEphysWriter
@@ -17,7 +16,7 @@ except ImportError:
 
 class SI013NwbEphysWriter(BaseSINwbEphysWriter):
     """
-    Class to write RecordingExtractor and SortingExtractor object from SI<=0.13 to NWB
+    Class to write RecordingExtractor and SortingExtractor object from SI<=0.13 to NWB.
 
     Parameters
     ----------

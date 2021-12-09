@@ -1,6 +1,6 @@
-from distutils.version import StrictVersion
-
+"""Authors: Saksham Sharda."""
 import numpy as np
+from distutils.version import StrictVersion
 
 from .basesinwbephyswriter import BaseSINwbEphysWriter
 
