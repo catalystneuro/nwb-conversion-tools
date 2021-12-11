@@ -29,7 +29,7 @@ from nwb_conversion_tools import (
 
 from nwb_conversion_tools.utils import create_si013_example, export_ecephys_to_nwb
 from nwb_conversion_tools.datainterfaces.ecephys.basesortingextractorinterface import BaseSortingExtractorInterface
-from nwb_conversion_tools.utils.conversion_tools import get_default_nwbfile_metadata
+from nwb_conversion_tools.utils.nwbfile_tools import get_default_nwbfile_metadata
 
 
 @pytest.mark.parametrize("data_interface", interface_list)
