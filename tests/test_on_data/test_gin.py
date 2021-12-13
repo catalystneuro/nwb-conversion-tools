@@ -66,7 +66,7 @@ if not OPHYS_DATA_PATH:
 def custom_name_func(testcase_func, param_num, param):
     return (
         f"{testcase_func.__name__}_{param_num}_"
-        f"{parameterized.to_safe_name(param.kwargs['recording_interface'].__name__)}"
+        f"{parameterized.to_safe_name(param.kwargs['data_interface'].__name__)}"
     )
 
 
