@@ -57,11 +57,11 @@ class BaseNwbEphysWriter(ABC):
     @abstractmethod
     def _get_dtype(self):
         pass
-    
+
     @abstractmethod
     def _get_gains(self):
         pass
-    
+
     @abstractmethod
     def _get_offsets(self):
         pass
@@ -439,7 +439,7 @@ class BaseNwbEphysWriter(ABC):
                 )
                 unsigned_coercion = unsigned_coercion.astype(int)
             unsigned_coercion = list(unsigned_coercion)
-            
+
         if self._conversion_ops["write_scaled"]:
             eseries_kwargs.update(conversion=1e-6)
         else:
@@ -453,10 +453,10 @@ class BaseNwbEphysWriter(ABC):
             i: self._conversion_ops[i] for i in ["write_scaled", "buffer_gb", "buffer_shape", "chunk_mb", "chunk_shape"]
         }
         iterator_opts["unsigned_coercion"] = unsigned_coercion
-        
+
         if self._conversion_ops["iterator_type"] == "v2":
             from .nwbephyswriterdatachunkiterator import NwbEphysWriterDataChunkIterator
-            
+
             ephys_data = NwbEphysWriterDataChunkIterator(
                 ephys_writer=self, segment_index=segment_index, **iterator_opts
             )

@@ -76,18 +76,20 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
             for i in self.recording.get_channel_property_names(chan_id):
                 property_names.add(i)
         return list(property_names)
-    
+
     def _get_gains(self):
         if "gain" in self.recording.get_shared_channel_property_names():
-            return np.array([self.recording.get_channel_property(ch, "gain") 
-                             for ch in self.recording.get_channel_ids()])
+            return np.array(
+                [self.recording.get_channel_property(ch, "gain") for ch in self.recording.get_channel_ids()]
+            )
         else:
             return None
-        
+
     def _get_offsets(self):
         if "offset" in self.recording.get_shared_channel_property_names():
-            return np.array([self.recording.get_channel_property(ch, "offset") 
-                             for ch in self.recording.get_channel_ids()])
+            return np.array(
+                [self.recording.get_channel_property(ch, "offset") for ch in self.recording.get_channel_ids()]
+            )
         else:
             return None
 

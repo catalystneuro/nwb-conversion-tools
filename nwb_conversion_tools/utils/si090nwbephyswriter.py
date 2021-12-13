@@ -106,7 +106,7 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
             default_properties.append("name")
         skip_properties = ["contact_vector"]
         return list(set(self.recording.get_property_keys()).union(default_properties).difference(skip_properties))
-    
+
     def _get_gains(self):
         if "gain_to_uV" in self.recording.get_property_keys():
             return self.recording.get_property("gain_to_uV")
@@ -118,7 +118,6 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
             return self.recording.get_property("offset_to_uV")
         else:
             return None
-
 
     def _get_channel_property_values(self, prop):
         if prop == "location":
