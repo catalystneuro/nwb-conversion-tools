@@ -2,6 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 import numpy.testing as npt
+import os
 
 import pytest
 from spikeextractors import NwbRecordingExtractor, NwbSortingExtractor
@@ -17,6 +18,8 @@ from nwb_conversion_tools import (
     SpikeGLXRecordingInterface,
     BlackrockRecordingExtractorInterface,
     BlackrockSortingExtractorInterface,
+    AxonaRecordingExtractorInterface,
+    AxonaLFPDataInterface,
 )
 
 try:
@@ -30,7 +33,13 @@ except ImportError:
 #   ecephys: https://gin.g-node.org/NeuralEnsemble/ephy_testing_data
 #   ophys: TODO
 #   icephys: TODO
-LOCAL_PATH = Path(".")  # Must be set to "." for CI - temporarily override for local testing
+if os.getenv("CI"):
+    LOCAL_PATH = Path(".")  # Must be set to "." for CI
+    print("Running GIN tests on Github CI!")
+else:
+    LOCAL_PATH = Path(".")  # Override this on personal device for local testing
+    print("Running GIN tests locally!")
+
 DATA_PATH = LOCAL_PATH / "ephy_testing_data"
 HAVE_DATA = DATA_PATH.exists()
 
@@ -67,6 +76,14 @@ class TestNwbConversions(unittest.TestCase):
         param(
             recording_interface=BlackrockRecordingExtractorInterface,
             interface_kwargs=dict(file_path=str(DATA_PATH / "blackrock" / "FileSpec2.3001.ns5")),
+        ),
+        param(
+            recording_interface=AxonaRecordingExtractorInterface,
+            interface_kwargs=dict(file_path=str(DATA_PATH / "axona" / "axona_raw.bin")),
+        ),
+        param(
+            recording_interface=AxonaLFPDataInterface,
+            interface_kwargs=dict(file_path=str(DATA_PATH / "axona" / "dataset_unit_spikes" / "20140815-180secs.eeg")),
         ),
     ]
     for suffix in ["rhd", "rhs"]:
