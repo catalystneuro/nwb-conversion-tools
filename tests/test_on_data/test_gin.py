@@ -5,9 +5,10 @@ import pytest
 import numpy.testing as npt
 from pathlib import Path
 
-import sys #fot debugging
-sys.path.append('/Users/cesar/Repositories/nwb-conversion-tools')
-sys.path.append('/Users/cesar/Repositories/roiextractors')
+import sys  # fot debugging
+
+sys.path.append("/Users/cesar/Repositories/nwb-conversion-tools")
+sys.path.append("/Users/cesar/Repositories/roiextractors")
 
 from spikeextractors import NwbRecordingExtractor, NwbSortingExtractor
 from spikeextractors.testing import check_recordings_equal, check_sortings_equal
@@ -211,13 +212,13 @@ class TestOphysNwbConversions(unittest.TestCase):
             def get_metadata(self):
                 metadata = super().get_metadata()
                 # attach device to ImagingPlane lacking property
-                device_name = metadata['Ophys']['Device'][0]['name']
-                if 'device' not in metadata['Ophys']['ImagingPlane'][0].keys():
-                    metadata['Ophys']['ImagingPlane'][0]['device'] = device_name
+                device_name = metadata["Ophys"]["Device"][0]["name"]
+                if "device" not in metadata["Ophys"]["ImagingPlane"][0].keys():
+                    metadata["Ophys"]["ImagingPlane"][0]["device"] = device_name
                 # attach ImagingPlane to TwoPhotonSeries lacking property
-                plane_name = metadata['Ophys']['ImagingPlane'][0]['name']
-                if 'imaging_plane' not in metadata['Ophys']['TwoPhotonSeries'][0].keys():
-                    metadata['Ophys']['TwoPhotonSeries'][0]['imaging_plane'] = plane_name
+                plane_name = metadata["Ophys"]["ImagingPlane"][0]["name"]
+                if "imaging_plane" not in metadata["Ophys"]["TwoPhotonSeries"][0].keys():
+                    metadata["Ophys"]["TwoPhotonSeries"][0]["imaging_plane"] = plane_name
 
                 return metadata
 
