@@ -37,7 +37,7 @@ if os.getenv("CI"):
     LOCAL_PATH = Path(".")  # Must be set to "." for CI
     print("Running GIN tests on Github CI!")
 else:
-    LOCAL_PATH = Path(".")  # Override this on personal device for local testing
+    LOCAL_PATH = Path("E:/GIN/")  # Override this on personal device for local testing
     print("Running GIN tests locally!")
 
 DATA_PATH = LOCAL_PATH / "ephy_testing_data"
