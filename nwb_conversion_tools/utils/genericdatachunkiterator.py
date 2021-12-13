@@ -102,7 +102,7 @@ class GenericDataChunkIterator(AbstractDataChunkIterator):
             self.progress_bar_options = progress_bar_options
         else:
             self.progress_bar_options = dict()
-        progress_bar_defaults = dict(disable=True, position=0, leave=False)
+        progress_bar_defaults = dict(disable=True, leave=False)
         for default_key, default_value in progress_bar_defaults.items():
             if default_key not in self.progress_bar_options:
                 self.progress_bar_options.update({default_key: default_value})
@@ -147,7 +147,6 @@ class GenericDataChunkIterator(AbstractDataChunkIterator):
             try:
                 from tqdm import tqdm
 
-                print(self.progress_bar_options)
                 self.progress_bar = tqdm(total=self.num_buffers, **self.progress_bar_options)
             except ImportError:
                 warn(
