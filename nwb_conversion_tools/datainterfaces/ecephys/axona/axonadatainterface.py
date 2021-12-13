@@ -137,9 +137,10 @@ class AxonaUnitRecordingExtractorInterface(AxonaRecordingExtractorInterface):
         )
 
     def __init__(self, file_path: FilePathType, noise_std: float = 3.5):
-        super().__init__(filename=file_path)
-        self.source_data = dict(file_path=file_path)
-        self.recording_extractor = se.AxonaUnitRecordingExtractor(filename=file_path, noise_std=noise_std)
+        self.source_data = dict(file_path=file_path, noise_std=noise_std)
+        self.recording_extractor = self.RX(filename=file_path, noise_std=noise_std)
+        self.writer_class = map_si_object_to_writer(self.recording_extractor)(self.recording_extractor)
+        self.subset_channels = None
 
 
 # Helper functions for AxonaPositionDataInterface
