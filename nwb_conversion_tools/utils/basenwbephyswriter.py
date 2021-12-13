@@ -22,7 +22,6 @@ from .common_writer_tools import (
     DynamicTableSupportedDtypes,
     get_num_spikes,
 )
-from .nwbephyswriterdatachunkiterator import NwbEphysWriterDataChunkIterator
 
 
 class BaseNwbEphysWriter(ABC):
@@ -57,6 +56,14 @@ class BaseNwbEphysWriter(ABC):
 
     @abstractmethod
     def _get_dtype(self):
+        pass
+    
+    @abstractmethod
+    def _get_gains(self):
+        pass
+    
+    @abstractmethod
+    def _get_offsets(self):
         pass
 
     @abstractmethod
@@ -412,23 +419,27 @@ class BaseNwbEphysWriter(ABC):
         # channels gains - for RecordingExtractor, these are values to cast traces to uV.
         # For nwb, the conversions (gains) cast the data to Volts.
         # To get traces in Volts we take data*channel_conversion*conversion.
+        unsigned_coercion = None
+        # this works for both SI013 and SI090
         channel_conversion = np.ones(len(self._get_channel_ids()), dtype="int")
         channel_offset = np.zeros(len(self._get_channel_ids()), dtype="int")
-        if "gain" in self._get_channel_property_names() and "offset" in self._get_channel_property_names():
-            channel_conversion = self._get_channel_property_values("gain")
-            channel_offset = self._get_channel_property_values("offset")
-        unsigned_coercion = channel_offset / channel_conversion
-        if not np.all([x.is_integer() for x in unsigned_coercion]):
-            raise NotImplementedError(
-                "Unable to coerce underlying unsigned data type to signed type, which is currently required for NWB "
-                "Schema v2.2.5! Please specify 'write_scaled=True'."
-            )
-        elif np.any(unsigned_coercion != 0):
-            warnings.warn(
-                "NWB Schema v2.2.5 does not officially support channel offsets. The data will be converted to a signed "
-                "type that does not use offsets."
-            )
-            unsigned_coercion = unsigned_coercion.astype(int)
+        if self._get_gains() is not None and self._get_offsets() is not None:
+            channel_conversion = self._get_gains()
+            channel_offset = self._get_offsets()
+            unsigned_coercion = channel_offset / channel_conversion
+            if not np.all([x.is_integer() for x in unsigned_coercion]):
+                raise NotImplementedError(
+                    "Unable to coerce underlying unsigned data type to signed type, which is currently required for NWB "
+                    "Schema v2.2.5! Please specify 'write_scaled=True'."
+                )
+            elif np.any(unsigned_coercion != 0):
+                warnings.warn(
+                    "NWB Schema v2.2.5 does not officially support channel offsets. The data will be converted to a signed "
+                    "type that does not use offsets."
+                )
+                unsigned_coercion = unsigned_coercion.astype(int)
+            unsigned_coercion = list(unsigned_coercion)
+            
         if self._conversion_ops["write_scaled"]:
             eseries_kwargs.update(conversion=1e-6)
         else:
@@ -441,7 +452,11 @@ class BaseNwbEphysWriter(ABC):
         iterator_opts = {
             i: self._conversion_ops[i] for i in ["write_scaled", "buffer_gb", "buffer_shape", "chunk_mb", "chunk_shape"]
         }
+        iterator_opts["unsigned_coercion"] = unsigned_coercion
+        
         if self._conversion_ops["iterator_type"] == "v2":
+            from .nwbephyswriterdatachunkiterator import NwbEphysWriterDataChunkIterator
+            
             ephys_data = NwbEphysWriterDataChunkIterator(
                 ephys_writer=self, segment_index=segment_index, **iterator_opts
             )

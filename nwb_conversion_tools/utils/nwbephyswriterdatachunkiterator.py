@@ -5,15 +5,7 @@ from distutils.version import StrictVersion
 
 from .genericdatachunkiterator import GenericDataChunkIterator
 
-try:
-    import spikeinterface as si
-
-    if StrictVersion(si.__version__[:4]) >= StrictVersion("0.90"):
-        HAVE_SI_090 = True
-    else:
-        HAVE_SI_090 = False
-except ImportError:
-    HAVE_SI_090 = False
+from .basenwbephyswriter import BaseNwbEphysWriter
 
 
 class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
@@ -21,10 +13,10 @@ class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
 
     def __init__(
         self,
-        ephys_writer: si.BaseRecording,
+        ephys_writer: BaseNwbEphysWriter,
         segment_index: int = 0,
         unsigned_coercion: list = None,
-        write_scaled: bool = True,
+        write_scaled: bool = False,
         buffer_gb: float = None,
         buffer_shape: tuple = None,
         chunk_mb: float = None,
@@ -35,10 +27,10 @@ class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
 
         Parameters
         ----------
-        ephys_writer : si.BaseRecording
-          The BaseRecording object (from spikeinterface/spikeinterface) which handles the API for data transfer.
+        ephys_writer : BaseNwbEphysWriter
+          The BaseNwbEphysWriter object which handles the API for data transfer.
         segment_index : int, optional
-          DESCRIPTION. The default is 0.
+          The segment to iterate on (if multi-segment object). The default is 0.
         unsigned_coercion : list, optional
           For unsigned data types (e.g., uint16), this value shifts the dtype to a signed type.
           The default is None.
@@ -65,7 +57,6 @@ class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
           of each selection.
           The default is None.
         """
-        assert HAVE_SI_090, "spikeinterface v0.9 is not installed (pip install spikeinterface)!"
         self.segment_index = segment_index
         self.write_scaled = write_scaled
         self.ephys_writer = ephys_writer
