@@ -3,13 +3,16 @@ import unittest
 from pathlib import Path
 import numpy.testing as npt
 
+#for debugging
+import sys
+sys.path.append('/Users/cesar/Repositories/nwb-conversion-tools')
+sys.path.append('/Users/cesar/Repositories/roiextractors')
+
 from spikeextractors import NwbRecordingExtractor, NwbSortingExtractor
 from spikeextractors.testing import check_recordings_equal, check_sortings_equal
 from roiextractors import NwbImagingExtractor, NwbSegmentationExtractor
 from roiextractors.testing import check_imaging_equal, check_segmentations_equal
-#for debugging
-import sys
-sys.path.append('/Users/cesar/Repositories/nwb-conversion-tools')
+
 from nwb_conversion_tools import (
     NWBConverter,
     IntanRecordingInterface,
