@@ -5,7 +5,7 @@ import numpy as np
 import psutil
 from abc import abstractmethod
 from itertools import product, chain
-from tqdm import tqdm
+from warnings import warn
 
 from hdmf.data_utils import AbstractDataChunkIterator, DataChunk
 
@@ -57,6 +57,7 @@ class GenericDataChunkIterator(AbstractDataChunkIterator):
         buffer_shape: Optional[tuple] = None,
         chunk_mb: Optional[float] = None,
         chunk_shape: Optional[tuple] = None,
+        progress_bar_options: Optional[dict] = None,
     ):
         """
         Break a dataset into buffers containing multiple chunks to be written into an HDF5 dataset.
@@ -81,6 +82,11 @@ class GenericDataChunkIterator(AbstractDataChunkIterator):
             Defaults to 1 MB.
         chunk_shape : tuple, optional
             Manually defined shape of the chunks. Defaults to None.
+        progress_bar_options : dict, optional
+            Requires the tqdm module to be installed (pip install tqdm).
+            Dictionary of keyword arguments to be passed directly to the tqdm call.
+            To enable the basic progress bar, set `progress_bar_options=dict(disable=False)`.
+            Progress bar is disabled by default.
         """
         if buffer_gb is None and buffer_shape is None:
             buffer_gb = 1.0
@@ -92,6 +98,17 @@ class GenericDataChunkIterator(AbstractDataChunkIterator):
         assert (chunk_mb is not None) != (
             chunk_shape is not None
         ), "Only one of 'chunk_mb' or 'chunk_shape' can be specified!"
+        if progress_bar_options is not None:
+            self.progress_bar_options = progress_bar_options
+        else:
+            self.progress_bar_options = dict()
+        progress_bar_defaults = dict(disable=True, position=0, leave=False)
+        for default_key, default_value in progress_bar_defaults.items():
+            if default_key not in self.progress_bar_options:
+                self.progress_bar_options.update({default_key: default_value})
+        if "total" in self.progress_bar_options:
+            warn("Option 'total' in 'progress_bar_options' is not allowed to be over-written! Ignoring.")
+            self.progress_bar_options.pop("total")
 
         self._maxshape = self._get_maxshape()
         self._dtype = self._get_dtype()
@@ -126,6 +143,18 @@ class GenericDataChunkIterator(AbstractDataChunkIterator):
         )
 
         self.num_buffers = np.prod(np.ceil(array_maxshape / array_buffer_shape))
+        if not self.progress_bar_options["disable"]:
+            try:
+                from tqdm import tqdm
+
+                print(self.progress_bar_options)
+                self.progress_bar = tqdm(total=self.num_buffers, **self.progress_bar_options)
+            except ImportError:
+                warn(
+                    "You must install tqdm to use the progress bar feature (pip install tqdm)! "
+                    "Progress bar is disabled."
+                )
+                self.progress_bar_options.update(disable=True)
         self.buffer_selection_generator = (
             tuple([slice(lower_bound, upper_bound) for lower_bound, upper_bound in zip(lower_bounds, upper_bounds)])
             for lower_bounds, upper_bounds in zip(
@@ -155,8 +184,15 @@ class GenericDataChunkIterator(AbstractDataChunkIterator):
 
     def __next__(self) -> DataChunk:
         """Retrieve the next DataChunk object from the buffer, refilling the buffer if necessary."""
-        buffer_selection = next(self.buffer_selection_generator)
-        return DataChunk(data=self._get_data(selection=buffer_selection), selection=buffer_selection)
+        if not self.progress_bar_options["disable"]:
+            self.progress_bar.update(n=1)
+        try:
+            buffer_selection = next(self.buffer_selection_generator)
+            return DataChunk(data=self._get_data(selection=buffer_selection), selection=buffer_selection)
+        except StopIteration:
+            if not self.progress_bar_options["disable"]:
+                self.progress_bar.write("\n")  # Allows text to be written to new lines after completion
+            raise StopIteration
 
     @abstractmethod
     def _get_data(self, selection: Tuple[slice]) -> np.ndarray:
