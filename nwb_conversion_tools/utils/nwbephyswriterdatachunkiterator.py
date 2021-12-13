@@ -1,6 +1,8 @@
 """Authors: Saksham Sharda."""
-from typing import Tuple, Iterable
 import numpy as np
+from typing import Tuple, Iterable
+from tqdm import tqdm
+
 from .genericdatachunkiterator import GenericDataChunkIterator
 
 
@@ -17,15 +19,19 @@ class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
         buffer_shape: tuple = None,
         chunk_mb: float = None,
         chunk_shape: tuple = None,
+        display_progress: bool = True,
     ):
         self.segment_index = segment_index
         self.write_scaled = write_scaled
         self.ephys_writer = ephys_writer
+        self.display_progress = display_progress
         self.channel_ids = list(ephys_writer.recording.get_channel_ids())
         self.unsigned_coercion = (
             np.zeros([len(self.channel_ids)]) if unsigned_coercion is None else np.array(unsigned_coercion)
         )
         super().__init__(buffer_gb=buffer_gb, buffer_shape=buffer_shape, chunk_mb=chunk_mb, chunk_shape=chunk_shape)
+        if self.display_progress:
+            self.progress_bar = tqdm(total=self.num_buffers, position=0, leave=False)
 
     def _get_data(self, selection: Tuple[slice]) -> Iterable:
         channel_ids = self.channel_ids[selection[1]]
@@ -46,3 +52,13 @@ class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
 
     def _get_maxshape(self):
         return (self.ephys_writer._get_num_frames(self.segment_index), len(self.ephys_writer._get_channel_ids()))
+
+    def __next__(self):
+        if self.display_progress:
+            self.progress_bar.update(n=1)
+        try:
+            return super().__next__()
+        except StopIteration:
+            if self.display_progress:
+                self.progress_bar.write("\n")  # Allows text to be written to new lines after completion
+            raise StopIteration

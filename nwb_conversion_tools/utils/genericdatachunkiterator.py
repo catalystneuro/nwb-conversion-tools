@@ -1,9 +1,11 @@
 """Authors: Cody Baker, Saksham Sharda, and Oliver Ruebel."""
+import sys
 from typing import Iterable, Tuple, Optional
 import numpy as np
 import psutil
 from abc import abstractmethod
 from itertools import product, chain
+from tqdm import tqdm
 
 from hdmf.data_utils import AbstractDataChunkIterator, DataChunk
 
@@ -123,6 +125,7 @@ class GenericDataChunkIterator(AbstractDataChunkIterator):
             f"evenly divide the buffer shape ({self.buffer_shape})!"
         )
 
+        self.num_buffers = np.prod(np.ceil(array_maxshape / array_buffer_shape))
         self.buffer_selection_generator = (
             tuple([slice(lower_bound, upper_bound) for lower_bound, upper_bound in zip(lower_bounds, upper_bounds)])
             for lower_bounds, upper_bounds in zip(
