@@ -54,10 +54,12 @@ class BaseImagingExtractorInterface(BaseDataInterface):
         metadata.update(re.NwbImagingExtractor.get_nwb_metadata(self.imaging_extractor))
         _ = metadata.pop("NWBFile")
         # fix troublesome data types
-        if 'TwoPhotonSeries' in metadata['Ophys'].keys():
-            for i in range(len(metadata['Ophys']['TwoPhotonSeries'])):
-                if 'dimension' in metadata['Ophys']['TwoPhotonSeries'][i].keys():
-                    metadata['Ophys']['TwoPhotonSeries'][i]['dimension'] = list(metadata['Ophys']['TwoPhotonSeries'][i]['dimension'])
+        if "TwoPhotonSeries" in metadata["Ophys"].keys():
+            for i in range(len(metadata["Ophys"]["TwoPhotonSeries"])):
+                if "dimension" in metadata["Ophys"]["TwoPhotonSeries"][i].keys():
+                    metadata["Ophys"]["TwoPhotonSeries"][i]["dimension"] = list(
+                        metadata["Ophys"]["TwoPhotonSeries"][i]["dimension"]
+                    )
         return metadata
 
     def run_conversion(self, nwbfile: NWBFile, metadata: dict, overwrite: bool = False):
