@@ -5,6 +5,7 @@ from pynwb.ecephys import ElectricalSeries
 
 from ....utils.json_schema import get_schema_from_hdmf_class
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
+from ....utils import map_si_object_to_writer
 
 
 class TutorialRecordingExtractor(se.NumpyRecordingExtractor):
@@ -60,6 +61,7 @@ class RecordingTutorialInterface(BaseRecordingExtractorInterface):
             self.recording_extractor.set_channel_property(
                 channel_id=channel_id, property_name="custom_electrodes_column", value="A custom value"
             )
+        self.writer_class = map_si_object_to_writer(self.recording_extractor)(self.recording_extractor)
 
     def get_metadata_schema(self):
         metadata_schema = super().get_metadata_schema()

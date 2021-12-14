@@ -9,6 +9,7 @@ from pynwb.ecephys import ElectricalSeries
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ..baselfpextractorinterface import BaseLFPExtractorInterface
 from ....utils.json_schema import get_schema_from_method_signature, get_schema_from_hdmf_class, FilePathType
+from ....utils import map_si_object_to_writer
 
 
 def fetch_spikeglx_metadata(file_path: FilePathType, recording: RecordingExtractor, metadata: dict):
@@ -57,6 +58,7 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
             self.recording_extractor.set_channel_property(
                 channel_id=ch, property_name="shank_group_name", value="Shank1"
             )
+        self.writer_class = map_si_object_to_writer(self.recording_extractor)(self.recording_extractor)
 
     def get_metadata_schema(self):
         metadata_schema = super().get_metadata_schema()
@@ -105,6 +107,7 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
             self.recording_extractor.set_channel_property(
                 channel_id=ch, property_name="shank_group_name", value="Shank1"
             )
+        self.writer_class = map_si_object_to_writer(self.recording_extractor)(self.recording_extractor)
 
     def get_metadata_schema(self):
         metadata_schema = super().get_metadata_schema()
