@@ -1,7 +1,8 @@
 """Authors: Saksham Sharda."""
-from typing import Tuple, Iterable
 import numpy as np
-from .genericdatachunkiterator import GenericDataChunkIterator
+from typing import Tuple, Iterable
+
+from hdmf.data_utils import GenericDataChunkIterator
 
 
 class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
@@ -17,6 +18,8 @@ class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
         buffer_shape: tuple = None,
         chunk_mb: float = None,
         chunk_shape: tuple = None,
+        display_progress=display_progress,
+        progress_bar_options=progress_bar_options,
     ):
         self.segment_index = segment_index
         self.write_scaled = write_scaled
