@@ -96,11 +96,11 @@ class TestEcephysNwbConversions(unittest.TestCase):
             interface_kwargs=dict(filename=str(ECEPHYS_DATA_PATH / "blackrock" / "FileSpec2.3001.ns5")),
         ),
         param(
-            recording_interface=AxonaRecordingExtractorInterface,
+            data_interface=AxonaRecordingExtractorInterface,
             interface_kwargs=dict(file_path=str(ECEPHYS_DATA_PATH / "axona" / "axona_raw.bin")),
         ),
         param(
-            recording_interface=AxonaLFPDataInterface,
+            data_interface=AxonaLFPDataInterface,
             interface_kwargs=dict(
                 file_path=str(ECEPHYS_DATA_PATH / "axona" / "dataset_unit_spikes" / "20140815-180secs.eeg")
             ),
