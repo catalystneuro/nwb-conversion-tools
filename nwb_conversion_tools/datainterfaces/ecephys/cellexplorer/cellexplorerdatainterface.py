@@ -7,7 +7,6 @@ import numpy as np
 
 from ..basesortingextractorinterface import BaseSortingExtractorInterface
 from ....utils.json_schema import FilePathType
-from ....utils import map_si_object_to_writer
 
 
 class CellExplorerSortingInterface(BaseSortingExtractorInterface):
@@ -45,7 +44,7 @@ class CellExplorerSortingInterface(BaseSortingExtractorInterface):
                     unit_ids, [str(celltype_mapping[str(x[0])]) for x in celltype_info["label"][0][0][0]]
                 ):
                     self.sorting_extractor.set_unit_property(unit_id=unit_id, property_name="cell_type", value=value)
-        self.writer_class = map_si_object_to_writer(self.sorting_extractor)(self.sorting_extractor)
+        self.writer_class.sorting = self.sorting_extractor
 
     def get_metadata(self):
         session_path = Path(self.source_data["file_path"]).parent

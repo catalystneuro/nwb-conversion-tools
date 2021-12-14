@@ -3,7 +3,6 @@ from spikeextractors import SpikeGadgetsRecordingExtractor, load_probe_file
 
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ....utils.json_schema import FilePathType, OptionalFilePathType, OptionalArrayType
-from ....utils import map_si_object_to_writer
 
 
 class SpikeGadgetsRecordingInterface(BaseRecordingExtractorInterface):
@@ -46,4 +45,4 @@ class SpikeGadgetsRecordingInterface(BaseRecordingExtractorInterface):
             self.recording_extractor.set_channel_gains(gains=gains)
         if probe_file_path is not None:
             self.recording_extractor = load_probe_file(recording=self.recording_extractor, probe_file=probe_file_path)
-        self.writer_class = map_si_object_to_writer(self.recording_extractor)(self.recording_extractor)
+        self.writer_class.recording = self.recording_extractor

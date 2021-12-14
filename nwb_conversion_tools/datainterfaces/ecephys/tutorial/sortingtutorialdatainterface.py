@@ -2,7 +2,6 @@
 import spikeextractors as se
 from pynwb import NWBFile, NWBHDF5IO
 from ..basesortingextractorinterface import BaseSortingExtractorInterface, OptionalPathType
-from ....utils import map_si_object_to_writer
 
 
 class TutorialSortingExtractor(se.NumpySortingExtractor):
@@ -55,7 +54,7 @@ class SortingTutorialInterface(BaseSortingExtractorInterface):
             self.sorting_extractor.set_unit_property(
                 unit_id=unit_id, property_name="custom_unit_column", value="A custom value"
             )
-        self.writer_class = map_si_object_to_writer(self.sorting_extractor)(self.sorting_extractor)
+        self.writer_class.sorting = self.sorting_extractor
 
 
     def run_conversion(

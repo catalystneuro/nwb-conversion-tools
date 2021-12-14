@@ -9,7 +9,6 @@ from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ..baselfpextractorinterface import BaseLFPExtractorInterface
 from ..basesortingextractorinterface import BaseSortingExtractorInterface
 from ....utils.json_schema import FilePathType, FolderPathType, OptionalFilePathType, get_schema_from_hdmf_class
-from ....utils import map_si_object_to_writer
 
 try:
     import lxml
@@ -110,7 +109,7 @@ class NeuroscopeRecordingInterface(BaseRecordingExtractorInterface):
             recording_extractor=self.recording_extractor, xml_file_path=xml_file_path
         )
         add_recording_extractor_properties(recording_extractor=self.recording_extractor, xml_file_path=xml_file_path)
-        self.writer_class = map_si_object_to_writer(self.recording_extractor)(self.recording_extractor)
+        self.writer_class.recording = self.recording_extractor
 
     def get_metadata_schema(self):
         metadata_schema = super().get_metadata_schema()
@@ -172,7 +171,7 @@ class NeuroscopeMultiRecordingTimeInterface(NeuroscopeRecordingInterface):
             recording_extractor=self.recording_extractor, xml_file_path=xml_file_path
         )
         add_recording_extractor_properties(recording_extractor=self.recording_extractor, xml_file_path=xml_file_path)
-        self.writer_class = map_si_object_to_writer(self.recording_extractor)(self.recording_extractor)
+        self.writer_class.recording = self.recording_extractor
 
 
 class NeuroscopeLFPInterface(BaseLFPExtractorInterface):
@@ -211,7 +210,7 @@ class NeuroscopeLFPInterface(BaseLFPExtractorInterface):
             recording_extractor=self.recording_extractor, xml_file_path=xml_file_path
         )
         add_recording_extractor_properties(recording_extractor=self.recording_extractor, xml_file_path=xml_file_path)
-        self.writer_class = map_si_object_to_writer(self.recording_extractor)(self.recording_extractor)
+        self.writer_class.recording = self.recording_extractor
 
     def get_metadata(self):
         session_path = Path(self.source_data["file_path"]).parent
