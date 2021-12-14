@@ -22,6 +22,12 @@ class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
         else:
             return np.array(ids, dtype="int")
 
+    def _get_gains(self):
+        return self.recording.get_channel_gains()
+
+    def _get_offsets(self):
+        return self.recording.get_channel_offsets()
+
     def _get_unit_sampling_frequency(self):
         return self.sorting.get_sampling_frequency()
 
