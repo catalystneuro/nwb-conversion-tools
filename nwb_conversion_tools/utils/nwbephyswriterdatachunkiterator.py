@@ -1,6 +1,6 @@
 """Authors: Saksham Sharda."""
 import numpy as np
-from typing import Tuple, Iterable
+from typing import Tuple, Iterable, Optional
 
 from hdmf.data_utils import GenericDataChunkIterator
 
@@ -18,8 +18,8 @@ class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
         buffer_shape: tuple = None,
         chunk_mb: float = None,
         chunk_shape: tuple = None,
-        display_progress=display_progress,
-        progress_bar_options=progress_bar_options,
+        display_progress: bool = False,
+        progress_bar_options: Optional[dict] = None,
     ):
         self.segment_index = segment_index
         self.write_scaled = write_scaled
@@ -28,7 +28,14 @@ class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
         self.unsigned_coercion = (
             np.zeros([len(self.channel_ids)]) if unsigned_coercion is None else np.array(unsigned_coercion)
         )
-        super().__init__(buffer_gb=buffer_gb, buffer_shape=buffer_shape, chunk_mb=chunk_mb, chunk_shape=chunk_shape)
+        super().__init__(
+            buffer_gb=buffer_gb,
+            buffer_shape=buffer_shape,
+            chunk_mb=chunk_mb,
+            chunk_shape=chunk_shape,
+            display_progress=display_progress,
+            progress_bar_options=progress_bar_options,
+        )
 
     def _get_data(self, selection: Tuple[slice]) -> Iterable:
         channel_ids = self.channel_ids[selection[1]]
