@@ -199,12 +199,12 @@ class TestOphysNwbConversions(unittest.TestCase):
     savedir = Path(tempfile.mkdtemp())
 
     imaging_interface_list = [
-       param(
+        param(
             data_interface=TiffImagingInterface,
             interface_kwargs=dict(
-                    file_path=str(OPHYS_DATA_PATH / "imaging_datasets" / "Tif" / "demoMovie.tif"),
-                    sampling_frequency = 15.0 #typically provied by user
-                ),
+                file_path=str(OPHYS_DATA_PATH / "imaging_datasets" / "Tif" / "demoMovie.tif"),
+                sampling_frequency=15.0,  # typically provied by user
+            ),
         ),
         param(
             data_interface=Hdf5ImagingInterface,

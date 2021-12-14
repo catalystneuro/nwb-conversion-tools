@@ -62,7 +62,7 @@ class BaseImagingExtractorInterface(BaseDataInterface):
                     metadata["Ophys"]["TwoPhotonSeries"][i]["dimension"] = list(
                         metadata["Ophys"]["TwoPhotonSeries"][i]["dimension"]
                     )
-                if 'rate' in metadata["Ophys"]["TwoPhotonSeries"][i].keys():
+                if "rate" in metadata["Ophys"]["TwoPhotonSeries"][i].keys():
                     metadata["Ophys"]["TwoPhotonSeries"][i]["rate"] = float(
                         metadata["Ophys"]["TwoPhotonSeries"][i]["rate"]
                     )
