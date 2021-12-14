@@ -30,7 +30,6 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         super().__init__(**source_data)
         self.recording_extractor = self.RX(**source_data)
         self.writer_class = map_si_object_to_writer(self.recording_extractor)(self.recording_extractor)
-        self.subset_channels = None
         self.source_data = source_data
 
     def get_metadata_schema(self):
@@ -90,7 +89,6 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         self.writer_class = map_si_object_to_writer(self.recording_extractor)(
             self.recording_extractor,
             stub=True,
-            stub_channels=self.subset_channels,
         )
 
     def run_conversion(

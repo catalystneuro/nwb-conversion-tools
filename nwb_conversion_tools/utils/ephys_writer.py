@@ -39,7 +39,6 @@ def export_ecephys_to_nwb(
     nwbfile=None,
     metadata=None,
     stub=False,
-    stub_channels=None,
     **kwargs,
 ):
     """
@@ -65,8 +64,6 @@ def export_ecephys_to_nwb(
     metadata: dict
     stub: bool
         whether to write a subset of recording
-    stub_channels: list
-        channel ids to write to nwbfile
     kwargs:
         use_times (False): True then use timestamps array, else use starting time and rate for TimeSeries object
             in nwbfile
@@ -119,7 +116,7 @@ def export_ecephys_to_nwb(
         nwbfile = converter.run_conversion(metadata=metadata, save_to_file=False)
 
     writer_class = map_si_object_to_writer(object_to_write)
-    writer = writer_class(object_to_write, stub=stub, stub_channels=stub_channels)
+    writer = writer_class(object_to_write, stub=stub)
     writer.add_to_nwb(nwbfile=nwbfile, metadata=metadata, **conversion_ops)
 
     # handle modes and overwrite

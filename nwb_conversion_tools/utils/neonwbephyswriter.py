@@ -25,14 +25,12 @@ class NEONwbEphysWriter(BaseNwbEphysWriter):
     object_to_write: neo.RawIO or neo.IO
     stub: bool
         whether to write a subset of recording extractor traces array as electrical series in nwbfile
-    stub_channels: list
-        channels to include when writing as stub
     """
 
-    def __init__(self, object_to_write, stub=False, stub_channels=None):
+    def __init__(self, object_to_write, stub=False):
         assert HAVE_NEO
         self.recording, self.sorting, self.event = None, None, None
-        BaseNwbEphysWriter.__init__(self, object_to_write, stub=stub, stub_channels=stub_channels)
+        BaseNwbEphysWriter.__init__(self, object_to_write, stub=stub)
 
     @staticmethod
     def supported_types():
