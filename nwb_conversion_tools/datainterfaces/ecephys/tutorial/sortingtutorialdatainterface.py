@@ -57,7 +57,6 @@ class SortingTutorialInterface(BaseSortingExtractorInterface):
             )
         self.writer_class = map_si_object_to_writer(self.sorting_extractor)(self.sorting_extractor)
 
-
     def run_conversion(
         self,
         nwbfile: NWBFile,
