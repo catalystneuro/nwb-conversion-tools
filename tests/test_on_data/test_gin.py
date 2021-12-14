@@ -5,11 +5,6 @@ import pytest
 import numpy.testing as npt
 from pathlib import Path
 
-import sys  # fot debugging
-
-sys.path.append("/Users/cesar/Repositories/nwb-conversion-tools")
-sys.path.append("/Users/cesar/Repositories/roiextractors")
-
 from spikeextractors import NwbRecordingExtractor, NwbSortingExtractor
 from spikeextractors.testing import check_recordings_equal, check_sortings_equal
 from roiextractors import NwbImagingExtractor, NwbSegmentationExtractor
@@ -25,6 +20,8 @@ from nwb_conversion_tools import (
     SpikeGLXRecordingInterface,
     BlackrockRecordingExtractorInterface,
     BlackrockSortingExtractorInterface,
+    AxonaRecordingExtractorInterface,
+    AxonaLFPDataInterface,
     TiffImagingInterface,
     Hdf5ImagingInterface,
     SbxImagingInterface,
