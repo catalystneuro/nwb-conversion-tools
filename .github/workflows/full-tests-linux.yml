@@ -19,6 +19,7 @@ jobs:
             NWB_CONVERSION_INSTALL_MODE: development
         run: |
           pip install -r requirements-full.txt
+          pip install --no-deps git+https://github.com/catalystneuro/hdmf.git@generic_data_chunk
           pip install -e .
           pip install pytest
           pip install pytest-cov
