@@ -37,7 +37,7 @@ from nwb_conversion_tools.datainterfaces.ecephys.basesortingextractorinterface i
 from nwb_conversion_tools.utils.conversion_tools import get_default_nwbfile_metadata
 
 
-class test(TestCase):
+class TestAssertions(TestCase):
     def test_import_assertions(self):
         if platform == "darwin" and version.parse(python_version()) < version.parse("3.8"):
             with self.assertRaisesWith(
@@ -124,8 +124,8 @@ def test_pkl_interface():
         )
 
     source_data = dict(
-        Recording=dict(pkl_file=str(test_dir / "test_pkl" / "test_recording.pkl")),
-        Sorting=dict(pkl_file=str(test_dir / "test_pkl" / "test_sorting.pkl")),
+        Recording=dict(file_path=str(test_dir / "test_pkl" / "test_recording.pkl")),
+        Sorting=dict(file_path=str(test_dir / "test_pkl" / "test_sorting.pkl")),
     )
     converter = SpikeInterfaceTestNWBConverter(source_data=source_data)
     converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True)

@@ -45,7 +45,6 @@ except ImportError:
 #   ecephys: https://gin.g-node.org/NeuralEnsemble/ephy_testing_data
 #   ophys: TODO
 #   icephys: TODO
-
 if os.getenv("CI"):
     LOCAL_PATH = Path(".")  # Must be set to "." for CI
     print("Running GIN tests on Github CI!")
@@ -99,6 +98,14 @@ class TestEcephysNwbConversions(unittest.TestCase):
             data_interface=BlackrockRecordingExtractorInterface,
             interface_kwargs=dict(filename=str(ECEPHYS_DATA_PATH / "blackrock" / "FileSpec2.3001.ns5")),
         ),
+        param(
+            recording_interface=AxonaRecordingExtractorInterface,
+            interface_kwargs=dict(file_path=str(DATA_PATH / "axona" / "axona_raw.bin")),
+        ),
+        param(
+            recording_interface=AxonaLFPDataInterface,
+            interface_kwargs=dict(file_path=str(DATA_PATH / "axona" / "dataset_unit_spikes" / "20140815-180secs.eeg")),
+        ),
     ]
     for suffix in ["rhd", "rhs"]:
         parameterized_recording_list.append(
@@ -137,6 +144,11 @@ class TestEcephysNwbConversions(unittest.TestCase):
             data_interface_classes = dict(TestRecording=data_interface)
 
         converter = TestConverter(source_data=dict(TestRecording=dict(interface_kwargs)))
+        for interface_kwarg in interface_kwargs:
+            if interface_kwarg in ["file_path", "folder_path"]:
+                self.assertIn(
+                    member=interface_kwarg, container=converter.data_interface_objects["TestRecording"].source_data
+                )
         converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True)
         recording = converter.data_interface_objects["TestRecording"].recording_extractor
         nwb_recording = NwbRecordingExtractor(file_path=nwbfile_path)
@@ -168,6 +180,11 @@ class TestEcephysNwbConversions(unittest.TestCase):
             data_interface_classes = dict(TestSorting=data_interface)
 
         converter = TestConverter(source_data=dict(TestSorting=dict(interface_kwargs)))
+        for interface_kwarg in interface_kwargs:
+            if interface_kwarg in ["file_path", "folder_path"]:
+                self.assertIn(
+                    member=interface_kwarg, container=converter.data_interface_objects["TestSorting"].source_data
+                )
         converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True)
         sorting = converter.data_interface_objects["TestSorting"].sorting_extractor
         sf = sorting.get_sampling_frequency()
