@@ -128,7 +128,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         es_key: str (optional)
             Key in metadata dictionary containing metadata info for the specific electrical series
         """
-        if stub_test or self.subset_channels is not None:
+        if stub_test:
             self.subset_recording()
 
         conversion_opts = default_export_ops()
