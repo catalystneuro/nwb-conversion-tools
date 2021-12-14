@@ -21,4 +21,4 @@ parameterized==0.8.1
 pyintan==0.3.0
 pyopenephys==1.1.2
 sonpy==1.7.5
-git+https://github.com/catalystneuro/hdmf@generic_data_chunk.git
+git+https://github.com/catalystneuro/hdmf.git@generic_data_chunk
