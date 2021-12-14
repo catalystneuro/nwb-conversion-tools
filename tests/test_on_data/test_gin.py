@@ -101,7 +101,9 @@ class TestEcephysNwbConversions(unittest.TestCase):
         ),
         param(
             recording_interface=AxonaLFPDataInterface,
-            interface_kwargs=dict(file_path=str(ECEPHYS_DATA_PATH / "axona" / "dataset_unit_spikes" / "20140815-180secs.eeg")),
+            interface_kwargs=dict(
+                file_path=str(ECEPHYS_DATA_PATH / "axona" / "dataset_unit_spikes" / "20140815-180secs.eeg")
+            ),
         ),
     ]
     for suffix in ["rhd", "rhs"]:
