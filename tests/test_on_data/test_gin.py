@@ -49,7 +49,7 @@ if os.getenv("CI"):
     LOCAL_PATH = Path(".")  # Must be set to "." for CI
     print("Running GIN tests on Github CI!")
 else:
-    LOCAL_PATH = Path(".")  # Override this on personal device for local testing
+    LOCAL_PATH = Path("./")  # Override this on personal device for local testing
     print("Running GIN tests locally!")
 
 ECEPHYS_DATA_PATH = LOCAL_PATH / "ephy_testing_data"
@@ -179,18 +179,20 @@ class TestEcephysNwbConversions(unittest.TestCase):
 
 class TestOphysNwbConversions(unittest.TestCase):
     savedir = Path(tempfile.mkdtemp())
-    imaging_interface_list = []  # debug
 
-    # imaging_interface_list = [
-    #     param(
-    #         data_interface=TiffImagingInterface,
-    #         interface_kwargs=dict(file_path=str(OPHYS_DATA_PATH / "imaging_datasets" / "Tif" / "demoMovie.tif")),
-    #     ),
-    #     param(
-    #         data_interface=Hdf5ImagingInterface,
-    #         interface_kwargs=dict(file_path=str(OPHYS_DATA_PATH / "imaging_datasets" / "hdf5" / "demoMovie.hdf5")),
-    #     ),
-    # ]
+    imaging_interface_list = [
+       param(
+            data_interface=TiffImagingInterface,
+            interface_kwargs=dict(
+                    file_path=str(OPHYS_DATA_PATH / "imaging_datasets" / "Tif" / "demoMovie.tif"),
+                    sampling_frequency = 15.0 #typically provied by user
+                ),
+        ),
+        param(
+            data_interface=Hdf5ImagingInterface,
+            interface_kwargs=dict(file_path=str(OPHYS_DATA_PATH / "imaging_datasets" / "hdf5" / "demoMovie.hdf5")),
+        ),
+    ]
     for suffix in [".mat", ".sbx"]:
         imaging_interface_list.append(
             param(

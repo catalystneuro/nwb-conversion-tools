@@ -51,6 +51,8 @@ class BaseImagingExtractorInterface(BaseDataInterface):
     def get_metadata(self):
         """Auto-fill metadata with values found from the corresponding imageextractor."""
         metadata = super().get_metadata()
+        # ensure imaging rate is float
+        self.imaging_extractor._sampling_frequency = float(self.imaging_extractor._sampling_frequency)
         metadata.update(re.NwbImagingExtractor.get_nwb_metadata(self.imaging_extractor))
         _ = metadata.pop("NWBFile")
         # fix troublesome data types
@@ -59,6 +61,10 @@ class BaseImagingExtractorInterface(BaseDataInterface):
                 if "dimension" in metadata["Ophys"]["TwoPhotonSeries"][i].keys():
                     metadata["Ophys"]["TwoPhotonSeries"][i]["dimension"] = list(
                         metadata["Ophys"]["TwoPhotonSeries"][i]["dimension"]
+                    )
+                if 'rate' in metadata["Ophys"]["TwoPhotonSeries"][i].keys():
+                    metadata["Ophys"]["TwoPhotonSeries"][i]["rate"] = float(
+                        metadata["Ophys"]["TwoPhotonSeries"][i]["rate"]
                     )
         return metadata
 
