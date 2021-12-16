@@ -81,10 +81,11 @@ class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
             return_scaled=self.write_scaled,
             segment_index=self.segment_index,
         )
-        + self.unsigned_coercion[channel_idxs]
         
         if self.dtype is not None:
             data = data.astype(self.dtype)
+
+        data = data + self.unsigned_coercion[channel_idxs]
         return data
 
     def _get_dtype(self):

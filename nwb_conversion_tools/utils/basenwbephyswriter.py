@@ -272,7 +272,7 @@ class BaseNwbEphysWriter(ABC):
         elec_columns = defaultdict(dict)
         property_names = self._get_channel_property_names()
         exclude_names = self._conversion_ops["skip_electrode_properties"]
-        exclude_names += ["gain", "offset"]  # we'll write these later based on scaling
+        exclude_names += ["gain", "offset", "gain_to_uV", "offset_to_uV"]  # we'll write these later based on scaling
         for prop in property_names:
             if prop not in exclude_names:
                 data = self._get_channel_property_values(prop)
@@ -449,14 +449,24 @@ class BaseNwbEphysWriter(ABC):
                     unsigned_coercion = list(unsigned_coercion)
                     
                     # in this case we have to force the uint type to int
-                    data_chunk_dtype = np.dtype(recording_dtype.str.replace("u", "i"))
+                    dtype_str = recording_dtype.str
+                    # to avoid overflow, we need to double the number of bytes
+                    nbits = int(dtype_str[dtype_str.find("u") + 1:])
+                    new_dtype_str = f"{dtype_str[0]}i{2*nbits}"
+                    data_chunk_dtype = np.dtype(new_dtype_str)
 
                     # only add gains in this case, as offsets are removed by unsigned_coercion
-                    self.nwbfile.add_electrode_column("gain", "channel gain", data=channel_gains)
+                    if "gain" not in self.nwbfile.electrodes.colnames:
+                        self.nwbfile.add_electrode_column(
+                            name="gain", description="channel gain", data=channel_gains)
                 else:
-                    # in this case we don't need unsigned coercion and  we can write offsets and gains as electrode columns
-                    self.nwbfile.add_electrode_column("gain", "channel gain", data=channel_gains)
-                    self.nwbfile.add_electrode_column("offset", "channel offset", data=channel_offsets)
+                    # in this case we don't need unsigned coercion and we write offsets and gains as electrode columns
+                    if "gain" not in self.nwbfile.electrodes.colnames:
+                        self.nwbfile.add_electrode_column(
+                            name="gain", description="channel gain", data=channel_gains)
+                    if "offset" not in self.nwbfile.electrodes.colnames:
+                        self.nwbfile.add_electrode_column(
+                            name="offset", description="channel offset", data=channel_offsets)
             else:
                 # in this case we just write traces as they are. No info on gain/offset is available.
                 warnings.warn(
