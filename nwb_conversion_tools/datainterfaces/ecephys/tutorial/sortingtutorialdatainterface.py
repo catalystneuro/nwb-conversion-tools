@@ -54,7 +54,6 @@ class SortingTutorialInterface(BaseSortingExtractorInterface):
             self.sorting_extractor.set_unit_property(
                 unit_id=unit_id, property_name="custom_unit_column", value="A custom value"
             )
-        self.writer_class.sorting = self.sorting_extractor
 
     def run_conversion(
         self,

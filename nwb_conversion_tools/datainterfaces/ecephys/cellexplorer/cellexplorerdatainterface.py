@@ -44,7 +44,6 @@ class CellExplorerSortingInterface(BaseSortingExtractorInterface):
                     unit_ids, [str(celltype_mapping[str(x[0])]) for x in celltype_info["label"][0][0][0]]
                 ):
                     self.sorting_extractor.set_unit_property(unit_id=unit_id, property_name="cell_type", value=value)
-        self.writer_class.sorting = self.sorting_extractor
 
     def get_metadata(self):
         session_path = Path(self.source_data["file_path"]).parent

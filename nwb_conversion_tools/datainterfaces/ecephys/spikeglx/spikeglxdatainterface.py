@@ -57,7 +57,6 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
             self.recording_extractor.set_channel_property(
                 channel_id=ch, property_name="shank_group_name", value="Shank1"
             )
-        self.writer_class.recording = self.recording_extractor
 
     def get_metadata_schema(self):
         metadata_schema = super().get_metadata_schema()
@@ -106,7 +105,6 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
             self.recording_extractor.set_channel_property(
                 channel_id=ch, property_name="shank_group_name", value="Shank1"
             )
-        self.writer_class = map_si_object_to_writer(self.recording_extractor)(self.recording_extractor)
 
     def get_metadata_schema(self):
         metadata_schema = super().get_metadata_schema()
