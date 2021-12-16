@@ -480,12 +480,8 @@ class BaseNwbEphysWriter(ABC):
             i: self._conversion_ops[i] for i in ["write_scaled", "buffer_gb", "buffer_shape", "chunk_mb", "chunk_shape"]
         }
         iterator_opts["unsigned_coercion"] = unsigned_coercion
-<<<<<<< HEAD
         iterator_opts["dtype"] = data_chunk_dtype
         
-=======
-
->>>>>>> 9ecfe891e516fd6b0ca9fe6e1e48f3abe3e547ff
         if self._conversion_ops["iterator_type"] == "v2":
             from .nwbephyswriterdatachunkiterator import NwbEphysWriterDataChunkIterator
 
