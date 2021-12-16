@@ -451,22 +451,21 @@ class BaseNwbEphysWriter(ABC):
                     # in this case we have to force the uint type to int
                     dtype_str = recording_dtype.str
                     # to avoid overflow, we need to double the number of bytes
-                    nbits = int(dtype_str[dtype_str.find("u") + 1:])
+                    nbits = int(dtype_str[dtype_str.find("u") + 1 :])
                     new_dtype_str = f"{dtype_str[0]}i{2*nbits}"
                     data_chunk_dtype = np.dtype(new_dtype_str)
 
                     # only add gains in this case, as offsets are removed by unsigned_coercion
                     if "gain" not in self.nwbfile.electrodes.colnames:
-                        self.nwbfile.add_electrode_column(
-                            name="gain", description="channel gain", data=channel_gains)
+                        self.nwbfile.add_electrode_column(name="gain", description="channel gain", data=channel_gains)
                 else:
                     # in this case we don't need unsigned coercion and we write offsets and gains as electrode columns
                     if "gain" not in self.nwbfile.electrodes.colnames:
-                        self.nwbfile.add_electrode_column(
-                            name="gain", description="channel gain", data=channel_gains)
+                        self.nwbfile.add_electrode_column(name="gain", description="channel gain", data=channel_gains)
                     if "offset" not in self.nwbfile.electrodes.colnames:
                         self.nwbfile.add_electrode_column(
-                            name="offset", description="channel offset", data=channel_offsets)
+                            name="offset", description="channel offset", data=channel_offsets
+                        )
             else:
                 # in this case we just write traces as they are. No info on gain/offset is available.
                 warnings.warn(

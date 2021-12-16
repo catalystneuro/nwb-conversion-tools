@@ -81,7 +81,7 @@ class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
             return_scaled=self.write_scaled,
             segment_index=self.segment_index,
         )
-        
+
         if self.dtype is not None:
             data = data.astype(self.dtype)
 
