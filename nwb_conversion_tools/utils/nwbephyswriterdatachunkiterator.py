@@ -21,7 +21,7 @@ class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
         buffer_shape: tuple = None,
         chunk_mb: float = None,
         chunk_shape: tuple = None,
-        dtype: Union[str, np.dtype] = None
+        dtype: Union[str, np.dtype] = None,
     ):
         """
         Initialize an Iterable object which returns DataChunks with data and their selections on each iteration.
@@ -73,7 +73,7 @@ class NwbEphysWriterDataChunkIterator(GenericDataChunkIterator):
     def _get_data(self, selection: Tuple[slice]) -> Iterable:
         channel_ids = self.channel_ids[selection[1]]
         channel_idxs = np.array([self.channel_ids.index(ch) for ch in channel_ids], dtype="int")
-        
+
         data = self.ephys_writer._get_traces(
             channel_ids=channel_ids,
             start_frame=selection[0].start,

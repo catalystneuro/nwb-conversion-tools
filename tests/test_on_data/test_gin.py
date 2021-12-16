@@ -91,7 +91,7 @@ class TestNwbConversions(unittest.TestCase):
             param(
                 recording_interface=IntanRecordingInterface,
                 interface_kwargs=dict(file_path=str(DATA_PATH / "intan" / f"intan_{suffix}_test_1.{suffix}")),
-                test_unscaled=False
+                test_unscaled=False,
             )
         )
     for file_name, num_channels in zip(["20210225_em8_minirec2_ac", "W122_06_09_2019_1_fromSD"], [512, 128]):

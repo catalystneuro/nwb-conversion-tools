@@ -425,7 +425,7 @@ class BaseNwbEphysWriter(ABC):
         channel_gains = np.ones(len(self._get_channel_ids()), dtype="int")
         channel_offsets = np.zeros(len(self._get_channel_ids()), dtype="int")
         data_chunk_dtype = None
-        
+
         # if writing scaled traces, we don't need to store gain and offset as columns
         if not self._conversion_ops["write_scaled"]:
             if self._get_gains() is not None and self._get_offsets() is not None:
@@ -437,7 +437,7 @@ class BaseNwbEphysWriter(ABC):
                     unsigned_coercion = channel_offsets / channel_gains
                     if not np.all([x.is_integer() for x in unsigned_coercion]):
                         raise NotImplementedError(
-                            "Unable to coerce underlying unsigned data type to signed type, which is currently " 
+                            "Unable to coerce underlying unsigned data type to signed type, which is currently "
                             "required for NWB Schema v2.2.5! Please specify 'write_scaled=True'."
                         )
                     elif np.any(unsigned_coercion != 0):
@@ -447,7 +447,7 @@ class BaseNwbEphysWriter(ABC):
                         )
                         unsigned_coercion = unsigned_coercion.astype(int)
                     unsigned_coercion = list(unsigned_coercion)
-                    
+
                     # in this case we have to force the uint type to int
                     dtype_str = recording_dtype.str
                     # to avoid overflow, we need to double the number of bytes
@@ -474,8 +474,9 @@ class BaseNwbEphysWriter(ABC):
                     "and gains are assumed to be 1"
                 )
         else:
-            assert self._get_gains() is not None and self._get_offsets() is not None, \
-                ("No scaling information available. Please specify 'write_scaled=False'")
+            assert (
+                self._get_gains() is not None and self._get_offsets() is not None
+            ), "No scaling information available. Please specify 'write_scaled=False'"
 
         if self._conversion_ops["write_scaled"]:
             eseries_kwargs.update(conversion=1e-6)
@@ -491,7 +492,7 @@ class BaseNwbEphysWriter(ABC):
         }
         iterator_opts["unsigned_coercion"] = unsigned_coercion
         iterator_opts["dtype"] = data_chunk_dtype
-        
+
         if self._conversion_ops["iterator_type"] == "v2":
             from .nwbephyswriterdatachunkiterator import NwbEphysWriterDataChunkIterator
 
