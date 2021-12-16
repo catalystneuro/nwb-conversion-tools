@@ -56,7 +56,6 @@ class IntanRecordingInterface(BaseRecordingExtractorInterface):
                 self.recording_extractor.set_channel_property(
                     channel_id=channel_id, property_name="custom_channel_name", value=custom_name
                 )
-        self.writer_class.recording = self.recording_extractor
 
     def get_metadata_schema(self):
         metadata_schema = super().get_metadata_schema()
