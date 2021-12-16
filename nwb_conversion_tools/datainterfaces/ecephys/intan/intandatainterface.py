@@ -7,7 +7,6 @@ from pynwb.ecephys import ElectricalSeries
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ....utils.json_schema import get_schema_from_hdmf_class, FilePathType
 
-
 try:
     from pyintan.intan import read_rhd, read_rhs
 
