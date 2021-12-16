@@ -272,6 +272,7 @@ class BaseNwbEphysWriter(ABC):
         elec_columns = defaultdict(dict)
         property_names = self._get_channel_property_names()
         exclude_names = self._conversion_ops["skip_electrode_properties"]
+        exclude_names += ["gain", "offset"]  # we'll write these later based on scaling
         for prop in property_names:
             if prop not in exclude_names:
                 data = self._get_channel_property_values(prop)
@@ -421,38 +422,65 @@ class BaseNwbEphysWriter(ABC):
         # To get traces in Volts we take data*channel_conversion*conversion.
         unsigned_coercion = None
         # this works for both SI013 and SI090
-        channel_conversion = np.ones(len(self._get_channel_ids()), dtype="int")
-        channel_offset = np.zeros(len(self._get_channel_ids()), dtype="int")
-        if self._get_gains() is not None and self._get_offsets() is not None:
-            channel_conversion = self._get_gains()
-            channel_offset = self._get_offsets()
-            unsigned_coercion = channel_offset / channel_conversion
-            if not np.all([x.is_integer() for x in unsigned_coercion]):
-                raise NotImplementedError(
-                    "Unable to coerce underlying unsigned data type to signed type, which is currently required for NWB "
-                    "Schema v2.2.5! Please specify 'write_scaled=True'."
-                )
-            elif np.any(unsigned_coercion != 0):
+        channel_gains = np.ones(len(self._get_channel_ids()), dtype="int")
+        channel_offsets = np.zeros(len(self._get_channel_ids()), dtype="int")
+        data_chunk_dtype = None
+        
+        # if writing scaled traces, we don't need to store gain and offset as columns
+        if not self._conversion_ops["write_scaled"]:
+            if self._get_gains() is not None and self._get_offsets() is not None:
+                channel_gains = self._get_gains()
+                channel_offsets = self._get_offsets()
+                recording_dtype = np.dtype(self._get_dtype(self._conversion_ops["write_scaled"]))
+                if np.issubdtype(recording_dtype, np.unsignedinteger):
+                    # only when dtype is unsigned we use the unsigned_coercion mechanism
+                    unsigned_coercion = channel_offsets / channel_gains
+                    if not np.all([x.is_integer() for x in unsigned_coercion]):
+                        raise NotImplementedError(
+                            "Unable to coerce underlying unsigned data type to signed type, which is currently " 
+                            "required for NWB Schema v2.2.5! Please specify 'write_scaled=True'."
+                        )
+                    elif np.any(unsigned_coercion != 0):
+                        warnings.warn(
+                            "NWB Schema v2.2.5 does not officially support channel offsets. The data will be "
+                            "converted to a signed type that does not use offsets."
+                        )
+                        unsigned_coercion = unsigned_coercion.astype(int)
+                    unsigned_coercion = list(unsigned_coercion)
+                    
+                    # in this case we have to force the uint type to int
+                    data_chunk_dtype = np.dtype(recording_dtype.str.replace("u", "i"))
+
+                    # only add gains in this case, as offsets are removed by unsigned_coercion
+                    self.nwbfile.add_electrode_column("gain", "channel gain", data=channel_gains)
+                else:
+                    # in this case we don't need unsigned coercion and  we can write offsets and gains as electrode columns
+                    self.nwbfile.add_electrode_column("gain", "channel gain", data=channel_gains)
+                    self.nwbfile.add_electrode_column("offset", "channel offset", data=channel_offsets)
+            else:
+                # in this case we just write traces as they are. No info on gain/offset is available.
                 warnings.warn(
-                    "NWB Schema v2.2.5 does not officially support channel offsets. The data will be converted to a signed "
-                    "type that does not use offsets."
+                    "No scaling information available. Traces will be written as they are "
+                    "and gains are assumed to be 1"
                 )
-                unsigned_coercion = unsigned_coercion.astype(int)
-            unsigned_coercion = list(unsigned_coercion)
-            
+        else:
+            assert self._get_gains() is not None and self._get_offsets() is not None, \
+                ("No scaling information available. Please specify 'write_scaled=False'")
+
         if self._conversion_ops["write_scaled"]:
             eseries_kwargs.update(conversion=1e-6)
         else:
-            if len(np.unique(channel_conversion)) == 1:  # if all gains are equal
-                eseries_kwargs.update(conversion=channel_conversion[0] * 1e-6)
+            if len(np.unique(channel_gains)) == 1:  # if all gains are equal
+                eseries_kwargs.update(conversion=channel_gains[0] * 1e-6)
             else:
                 eseries_kwargs.update(conversion=1e-6)
-                eseries_kwargs.update(channel_conversion=channel_conversion)
+                eseries_kwargs.update(channel_conversion=channel_gains)
 
         iterator_opts = {
             i: self._conversion_ops[i] for i in ["write_scaled", "buffer_gb", "buffer_shape", "chunk_mb", "chunk_shape"]
         }
         iterator_opts["unsigned_coercion"] = unsigned_coercion
+        iterator_opts["dtype"] = data_chunk_dtype
         
         if self._conversion_ops["iterator_type"] == "v2":
             from .nwbephyswriterdatachunkiterator import NwbEphysWriterDataChunkIterator
@@ -463,7 +491,7 @@ class BaseNwbEphysWriter(ABC):
         elif self._conversion_ops["iterator_type"] == "v1":
             if isinstance(
                 self._get_traces(end_frame=5, return_scaled=iterator_opts.get("write_scaled")), np.memmap
-            ) and np.all(channel_offset == 0):
+            ) and np.all(channel_offsets == 0):
                 trace_dtype = self._get_traces(
                     channel_ids=channel_ids[:1], end_frame=1, segment_index=segment_index
                 ).dtype

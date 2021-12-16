@@ -92,6 +92,7 @@ class TestNwbConversions(unittest.TestCase):
             param(
                 recording_interface=IntanRecordingInterface,
                 interface_kwargs=dict(file_path=str(DATA_PATH / "intan" / f"intan_{suffix}_test_1.{suffix}")),
+                test_unscaled=False
             )
         )
     for file_name, num_channels in zip(["20210225_em8_minirec2_ac", "W122_06_09_2019_1_fromSD"], [512, 128]):
@@ -115,7 +116,7 @@ class TestNwbConversions(unittest.TestCase):
         )
 
     @parameterized.expand(parameterized_recording_list)
-    def test_convert_recording_extractor_to_nwb(self, recording_interface, interface_kwargs):
+    def test_convert_recording_extractor_to_nwb(self, recording_interface, interface_kwargs, test_unscaled=True):
         nwbfile_path = str(self.savedir / f"{recording_interface.__name__}.nwb")
 
         class TestConverter(NWBConverter):
@@ -125,12 +126,17 @@ class TestNwbConversions(unittest.TestCase):
         converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True)
         recording = converter.data_interface_objects["TestRecording"].recording_extractor
         nwb_recording = NwbRecordingExtractor(file_path=nwbfile_path)
-        check_recordings_equal(RX1=recording, RX2=nwb_recording, check_times=False, return_scaled=False)
+        if test_unscaled:
+            check_recordings_equal(RX1=recording, RX2=nwb_recording, check_times=False, return_scaled=False)
         check_recordings_equal(RX1=recording, RX2=nwb_recording, check_times=False, return_scaled=True)
         # Technically, check_recordings_equal only tests a snippet of data. Above tests are for metadata mostly.
         # For GIN test data, sizes should be OK to load all into RAM even on CI
+        if test_unscaled:
+            npt.assert_array_equal(
+                x=recording.get_traces(return_scaled=False), y=nwb_recording.get_traces(return_scaled=False)
+            )
         npt.assert_array_equal(
-            x=recording.get_traces(return_scaled=False), y=nwb_recording.get_traces(return_scaled=False)
+            x=recording.get_traces(return_scaled=True), y=nwb_recording.get_traces(return_scaled=True)
         )
 
     @parameterized.expand(
