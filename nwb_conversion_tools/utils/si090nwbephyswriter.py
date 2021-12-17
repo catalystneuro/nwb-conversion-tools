@@ -56,7 +56,7 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
         max_min_spike_time = max(
             [min(x) for y in self.sorting.get_unit_ids() for x in [self.sorting.get_unit_spike_train(y)] if any(x)]
         )
-        self.sorting = si.FrameSliceSorting(start_frame=0, end_frame=1.1 * max_min_spike_time)
+        self.sorting = si.FrameSliceSorting(self.sorting, start_frame=0, end_frame=1.1 * max_min_spike_time)
 
     @staticmethod
     def supported_types():

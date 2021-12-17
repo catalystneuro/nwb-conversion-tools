@@ -11,6 +11,7 @@ from pynwb import NWBHDF5IO, NWBFile
 from nwb_conversion_tools.utils import export_ecephys_to_nwb, SI090NwbEphysWriter, create_si090_example
 from spikeinterface.core.testing import check_sortings_equal, check_recordings_equal
 from spikeinterface.extractors import NwbRecordingExtractor, NwbSortingExtractor
+from spikeinterface.core import FrameSliceSorting, FrameSliceRecording
 from spikeinterface import extract_waveforms
 
 
@@ -24,6 +25,26 @@ class TestExtractors(unittest.TestCase):
     def tearDown(self):
         del self.RX, self.RX2, self.RX3, self.SX, self.SX2, self.SX3
         shutil.rmtree(self.test_dir)
+
+    def test_write_recording_stub(self):
+        path = self.test_dir + "/test.nwb"
+        export_ecephys_to_nwb(self.RX, path, stub=True)
+        RX_nwb = NwbRecordingExtractor(path)
+        # the stub is the trimmed recording in time dimension.
+        frame_stub = min(100, self.RX.get_num_frames())
+        rx_stub = FrameSliceRecording(self.RX, end_frame=frame_stub)
+        check_recordings_equal(rx_stub, RX_nwb, return_scaled=False)
+
+    def test_write_sorting_stub(self):
+        path = self.test_dir + "/test.nwb"
+        export_ecephys_to_nwb(self.SX, path, stub=True)
+        sf = self.RX.get_sampling_frequency()
+        SX_nwb = NwbSortingExtractor(path, sampling_frequency=sf)
+        max_min_spike_time = max(
+            [min(x) for y in self.SX.get_unit_ids() for x in [self.SX.get_unit_spike_train(y)] if any(x)]
+        )
+        sx_stub = FrameSliceSorting(self.SX, start_frame=0, end_frame=1.1*max_min_spike_time)
+        check_sortings_equal(sx_stub, SX_nwb)
 
     def test_write_recording(self):
         path = self.test_dir + "/test.nwb"
