@@ -45,4 +45,3 @@ class SpikeGadgetsRecordingInterface(BaseRecordingExtractorInterface):
             self.recording_extractor.set_channel_gains(gains=gains)
         if probe_file_path is not None:
             self.recording_extractor = load_probe_file(recording=self.recording_extractor, probe_file=probe_file_path)
-        self.writer_class.recording = self.recording_extractor
