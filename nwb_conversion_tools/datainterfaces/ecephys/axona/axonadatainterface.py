@@ -13,7 +13,7 @@ from ....utils.json_schema import get_schema_from_method_signature, FilePathType
 from ....basedatainterface import BaseDataInterface
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ..baselfpextractorinterface import BaseLFPExtractorInterface
-from ....utils import map_si_object_to_writer
+from ....utils import make_ephys_writer
 from ....utils.conversion_tools import get_module
 
 
@@ -138,8 +138,7 @@ class AxonaUnitRecordingExtractorInterface(AxonaRecordingExtractorInterface):
 
     def __init__(self, file_path: FilePathType, noise_std: float = 3.5):
         self.source_data = dict(file_path=file_path, noise_std=noise_std)
-        self.recording_extractor = self.RX(filename=file_path, noise_std=noise_std)
-        self.writer_class = map_si_object_to_writer(self.recording_extractor)(self.recording_extractor)
+        self.nwb_ephys_writer = make_ephys_writer(self.RX(filename=file_path, noise_std=noise_std))
         self.subset_channels = None
 
 
@@ -536,10 +535,9 @@ class AxonaLFPDataInterface(BaseLFPExtractorInterface):
         )
 
     def __init__(self, file_path: FilePathType):
-        self.recording_extractor = self.RX(
+        self.nwb_ephys_writer = make_ephys_writer(self.RX(
             timeseries=read_all_eeg_file_lfp_data(file_path),
             sampling_frequency=get_eeg_sampling_frequency(file_path),
-        )
-        self.writer_class = map_si_object_to_writer(self.recording_extractor)(self.recording_extractor)
+        ))
         self.subset_channels = None
         self.source_data = dict(file_path=file_path)

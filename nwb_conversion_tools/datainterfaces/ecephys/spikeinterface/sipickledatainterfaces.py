@@ -4,7 +4,7 @@ from spikeextractors import load_extractor_from_pickle
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ..basesortingextractorinterface import BaseSortingExtractorInterface
 from ....utils.json_schema import FilePathType
-from ....utils import map_si_object_to_writer
+from ....utils import make_ephys_writer
 
 
 class SIPickleRecordingExtractorInterface(BaseRecordingExtractorInterface):
@@ -13,8 +13,7 @@ class SIPickleRecordingExtractorInterface(BaseRecordingExtractorInterface):
     RX = None
 
     def __init__(self, file_path: FilePathType):
-        self.recording_extractor = load_extractor_from_pickle(pkl_file=file_path)
-        self.writer_class = map_si_object_to_writer(self.recording_extractor)(self.recording_extractor)
+        self.nwb_ephys_writer = make_ephys_writer(load_extractor_from_pickle(pkl_file=file_path))
         self.subset_channels = None
         self.source_data = dict(file_path=file_path)
 
@@ -25,6 +24,5 @@ class SIPickleSortingExtractorInterface(BaseSortingExtractorInterface):
     SX = None
 
     def __init__(self, file_path: FilePathType):
-        self.sorting_extractor = load_extractor_from_pickle(pkl_file=file_path)
-        self.writer_class = map_si_object_to_writer(self.sorting_extractor)(self.sorting_extractor)
+        self.nwb_ephys_writer = make_ephys_writer(load_extractor_from_pickle(pkl_file=file_path))
         self.source_data = dict(file_path=file_path)

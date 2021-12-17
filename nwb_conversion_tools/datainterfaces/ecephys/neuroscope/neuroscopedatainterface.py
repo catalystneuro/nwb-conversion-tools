@@ -170,7 +170,6 @@ class NeuroscopeMultiRecordingTimeInterface(NeuroscopeRecordingInterface):
             recording_extractor=self.recording_extractor, xml_file_path=xml_file_path
         )
         add_recording_extractor_properties(recording_extractor=self.recording_extractor, xml_file_path=xml_file_path)
-        self.writer_class.recording = self.recording_extractor
 
 
 class NeuroscopeLFPInterface(BaseLFPExtractorInterface):
@@ -209,7 +208,6 @@ class NeuroscopeLFPInterface(BaseLFPExtractorInterface):
             recording_extractor=self.recording_extractor, xml_file_path=xml_file_path
         )
         add_recording_extractor_properties(recording_extractor=self.recording_extractor, xml_file_path=xml_file_path)
-        self.writer_class.recording = self.recording_extractor
 
     def get_metadata(self):
         session_path = Path(self.source_data["file_path"]).parent
