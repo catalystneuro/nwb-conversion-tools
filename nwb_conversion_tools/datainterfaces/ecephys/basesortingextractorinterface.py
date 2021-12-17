@@ -15,7 +15,7 @@ from ...utils.json_schema import (
 )
 from ...utils.common_writer_tools import default_export_ops, default_export_ops_schema
 from ...utils import export_ecephys_to_nwb
-from .baserecordingextractorinterface import BaseRecordingExtractorInterface, map_si_object_to_writer, OptionalPathType
+from .baserecordingextractorinterface import BaseRecordingExtractorInterface, make_ephys_writer, OptionalPathType
 
 
 class BaseSortingExtractorInterface(BaseDataInterface, ABC):
@@ -25,8 +25,16 @@ class BaseSortingExtractorInterface(BaseDataInterface, ABC):
 
     def __init__(self, **source_data):
         super().__init__(**source_data)
-        self.sorting_extractor = self.SX(**source_data)
-        self.writer_class = map_si_object_to_writer(self.sorting_extractor)(self.sorting_extractor)
+        self.nwb_ephys_writer = make_ephys_writer(self.SX(**source_data))
+
+    @property
+    def sorting_extractor(self):
+        return self.nwb_ephys_writer.sorting
+
+    @sorting_extractor.setter
+    def sorting_extractor(self,val):
+        assert isinstance(val, self.SX.__mro__[:-1])
+        self.nwb_ephys_writer.sorting = val
 
     def get_metadata_schema(self):
         """Compile metadata schema for the RecordingExtractor."""
@@ -65,7 +73,7 @@ class BaseSortingExtractorInterface(BaseDataInterface, ABC):
         ----------
         stub_test : bool, optional (default False)
         """
-        self.writer_class = map_si_object_to_writer(self.sorting_extractor)(
+        self.nwb_ephys_writer = make_ephys_writer(
             self.sorting_extractor,
             stub=True,
         )
@@ -135,11 +143,11 @@ class BaseSortingExtractorInterface(BaseDataInterface, ABC):
         conversion_opt_schema = default_export_ops_schema()
         validate(instance=conversion_opts, schema=conversion_opt_schema)
 
-        self.writer_class.add_to_nwb(nwbfile, metadata, **conversion_opts)
+        self.nwb_ephys_writer.add_to_nwb(nwbfile, metadata, **conversion_opts)
 
         if save_path is not None:
             if overwrite:
                 if Path(save_path).exists():
                     Path(save_path).unlink()
                 with NWBHDF5IO(str(save_path), mode="w") as io:
-                    io.write(self.writer_class.nwbfile)
+                    io.write(self.nwb_ephys_writer.nwbfile)
