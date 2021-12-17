@@ -3,7 +3,9 @@ import unittest
 from pathlib import Path
 import numpy.testing as npt
 import os
-from nwb_conversion_tools.datainterfaces.ecephys.cellexplorer.cellexplorerdatainterface import CellExplorerSortingInterface
+from nwb_conversion_tools.datainterfaces.ecephys.cellexplorer.cellexplorerdatainterface import (
+    CellExplorerSortingInterface,
+)
 
 import pytest
 from spikeextractors import NwbRecordingExtractor, NwbSortingExtractor
@@ -150,11 +152,15 @@ class TestNwbConversions(unittest.TestCase):
             ),
             param(
                 sorting_interface=CellExplorerSortingInterface,
-                interface_kwargs=dict(folder_path=str(DATA_PATH / "phy" / "phy_example_0")),  # We will find out about the location later
+                interface_kwargs=dict(
+                    folder_path=str(DATA_PATH / "phy" / "phy_example_0")
+                ),  # We will find out about the location later
             ),
-             param(
+            param(
                 sorting_interface=CellExplorerSortingInterface,
-                interface_kwargs=dict(folder_path=str(DATA_PATH / "phy" / "phy_example_0")),  # point to the matlab file in the other format
+                interface_kwargs=dict(
+                    folder_path=str(DATA_PATH / "phy" / "phy_example_0")
+                ),  # point to the matlab file in the other format
             ),
         ]
     )
