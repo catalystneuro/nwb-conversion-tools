@@ -45,7 +45,7 @@ class TestExtractors(unittest.TestCase):
         max_min_spike_time = max(
             [min(x) for y in self.SX.get_unit_ids() for x in [self.SX.get_unit_spike_train(y)] if any(x)]
         )
-        sx_stub = se.SubSortingExtractor(self.SX, start_frame=0, end_frame=1.1*max_min_spike_time)
+        sx_stub = se.SubSortingExtractor(self.SX, start_frame=0, end_frame=1.1 * max_min_spike_time)
         check_sortings_equal(sx_stub, SX_nwb)
 
     def test_write_recording(self):
