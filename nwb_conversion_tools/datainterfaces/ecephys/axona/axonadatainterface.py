@@ -535,9 +535,11 @@ class AxonaLFPDataInterface(BaseLFPExtractorInterface):
         )
 
     def __init__(self, file_path: FilePathType):
-        self.nwb_ephys_writer = make_ephys_writer(self.RX(
-            timeseries=read_all_eeg_file_lfp_data(file_path),
-            sampling_frequency=get_eeg_sampling_frequency(file_path),
-        ))
+        self.nwb_ephys_writer = make_ephys_writer(
+            self.RX(
+                timeseries=read_all_eeg_file_lfp_data(file_path),
+                sampling_frequency=get_eeg_sampling_frequency(file_path),
+            )
+        )
         self.subset_channels = None
         self.source_data = dict(file_path=file_path)

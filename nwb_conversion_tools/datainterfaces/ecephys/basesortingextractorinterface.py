@@ -32,7 +32,7 @@ class BaseSortingExtractorInterface(BaseDataInterface, ABC):
         return self.nwb_ephys_writer.sorting
 
     @sorting_extractor.setter
-    def sorting_extractor(self,val):
+    def sorting_extractor(self, val):
         assert isinstance(val, self.SX.__mro__[:-1])
         self.nwb_ephys_writer.sorting = val
 
