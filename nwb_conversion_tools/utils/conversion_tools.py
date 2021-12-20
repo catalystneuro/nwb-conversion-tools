@@ -108,8 +108,12 @@ def run_conversion_from_yaml(file_path: FilePathType, overwrite: bool = False):
             ):
                 data_interface_classes.update(data_interface_name=getattr(nwb_conversion_tools, data_interface_name))
 
-            class CustomNWBConverter(NWBConverter):
-                data_interface_classes = data_interface_classes
+            # class CustomNWBConverter(NWBConverter):
+            #     data_interface_classes = data_interface_classes
+
+            CustomNWBConverter = type(
+                "CustomNWBConverter", (NWBConverter,), dict(data_interface_classes=data_interface_classes)
+            )
 
             converter = CustomNWBConverter(source_data=session["source_data"])
             metadata = converter.get_metadata()

@@ -42,7 +42,7 @@ if os.getenv("CI"):
     LOCAL_PATH = Path(".")  # Must be set to "." for CI
     print("Running GIN tests on Github CI!")
 else:
-    LOCAL_PATH = Path("E:/GIN/")  # Override this on personal device for local testing
+    LOCAL_PATH = Path("/home/jovyan/")  # Override this on personal device for local testing
     print("Running GIN tests locally!")
 
 DATA_PATH = LOCAL_PATH / "ephy_testing_data"
@@ -176,7 +176,7 @@ class TestNwbConversions(unittest.TestCase):
         check_sortings_equal(SX1=sorting, SX2=nwb_sorting)
 
     def test_run_conversion_from_yaml(self):
-        yaml_file_path = "GIN_converter_spec.yml"
+        yaml_file_path = Path(".") / "tests" / "test_on_data" / "GIN_converter_spec.yml"
         run_conversion_from_yaml(file_path=yaml_file_path)
         with NWBHDF5IO(path="example_converter_spec_1.nwb", mode="r") as io:
             nwbfile = io.read()
