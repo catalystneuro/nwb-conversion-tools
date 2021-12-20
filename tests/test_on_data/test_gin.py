@@ -176,7 +176,7 @@ class TestNwbConversions(unittest.TestCase):
         check_sortings_equal(SX1=sorting, SX2=nwb_sorting)
 
     def test_run_conversion_from_yaml(self):
-        yaml_file_path = "example_converter_spec.yml"
+        yaml_file_path = "GIN_converter_spec.yml"
         run_conversion_from_yaml(file_path=yaml_file_path)
         with NWBHDF5IO(path="example_converter_spec_1.nwb", mode="r") as io:
             nwbfile = io.read()
