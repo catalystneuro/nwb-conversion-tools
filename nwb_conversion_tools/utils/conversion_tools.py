@@ -1,12 +1,9 @@
 """Authors: Cody Baker, Alessio Buccino."""
 import yaml
-import re
 import numpy as np
 from pathlib import Path
 from importlib import import_module
 from itertools import chain
-from collections import OrderedDict
-from copy import deepcopy
 
 from .json_schema import dict_deep_update, FilePathType
 from ..nwbconverter import NWBConverter
@@ -123,88 +120,3 @@ def run_conversion_from_yaml(file_path: FilePathType, overwrite: bool = False):
                 overwrite=overwrite,
                 conversion_options=session.get("conversion_options", dict()),
             )
-
-
-def reverse_fstring_path(string: str):
-    keys = set(re.findall(pattern="\\{(.*?)\\}", string=string))
-
-    adjusted_idx = 0
-    if string[0] != "/":
-        adjusted_string = "/" + string
-        adjusted_idx += 1
-    else:
-        adjusted_string = string
-    if adjusted_string[-1] != "/":
-        adjusted_string = adjusted_string + "/"
-
-    sub_paths = adjusted_string.split("/")
-    output = dict()
-    for key in keys:
-        sub_levels = []
-        for j, sub_path in enumerate(sub_paths, start=-1):
-            if key in sub_path:
-                sub_levels.append(j)
-        output[key] = sub_levels
-    return output
-
-
-def collect_reverse_fstring_files(string: str):
-    adjusted_idx = 0
-    if string[0] != "/":
-        adjusted_string = "/" + string
-        adjusted_idx += 1
-    else:
-        adjusted_string = string
-    if adjusted_string[-1] != "/":
-        adjusted_string = adjusted_string + "/"
-
-    sub_paths = adjusted_string.split("/")
-
-    output = reverse_fstring_path(string=string)
-    min_level = min(min((values) for values in output.values()))
-
-    # Assumes level to iterate is first occurence of each f-key
-    iteration_levels = {key: values[0] for key, values in output.items()}
-    inverted_iteration_levels = {value: key for key, value in iteration_levels.items()}
-    sorted_iteration_levels = OrderedDict()
-    for sorted_value in sorted(iteration_levels.values()):
-        sorted_iteration_levels.update({sorted_value - min_level: inverted_iteration_levels[sorted_value]})
-
-    def recur_sub_levels_2(
-        folder_paths,
-        n_levels,
-        sorted_iteration_levels,
-        path,
-        level=0,
-    ):
-        if level < n_levels:
-            next_paths = [x for x in path.iterdir()]
-            if level == n_levels - 1:
-                for next_path in next_paths:
-                    path_split = str(next_path).split("/")
-                    output = dict(path=next_path)
-                    output.update(
-                        {
-                            fkey: path_split[-(n_levels - fkey_level)]
-                            for fkey_level, fkey in sorted_iteration_levels.items()
-                        }
-                    )
-                    folder_paths.append(output)
-            else:
-                for next_path in next_paths:
-                    recur_sub_levels_2(
-                        folder_paths=folder_paths,
-                        level=level + 1,
-                        n_levels=n_levels,
-                        sorted_iteration_levels=sorted_iteration_levels,
-                        path=next_path,
-                    )
-
-    folder_paths = []
-    recur_sub_levels_2(
-        folder_paths=folder_paths,
-        n_levels=len(sorted_iteration_levels),
-        sorted_iteration_levels=sorted_iteration_levels,
-        path=Path("/".join(sub_paths[: min_level + 1])),
-    )
-    return folder_paths
