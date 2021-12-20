@@ -106,10 +106,7 @@ def run_conversion_from_yaml(file_path: FilePathType, overwrite: bool = False):
             for data_interface_name in chain(
                 global_data_interfaces, experiment_data_interfaces, session_data_interfaces
             ):
-                data_interface_classes.update(data_interface_name=getattr(nwb_conversion_tools, data_interface_name))
-
-            # class CustomNWBConverter(NWBConverter):
-            #     data_interface_classes = data_interface_classes
+                data_interface_classes.update({data_interface_name: getattr(nwb_conversion_tools, data_interface_name)})
 
             CustomNWBConverter = type(
                 "CustomNWBConverter", (NWBConverter,), dict(data_interface_classes=data_interface_classes)
