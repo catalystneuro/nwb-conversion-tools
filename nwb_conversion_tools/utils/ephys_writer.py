@@ -33,6 +33,11 @@ def map_si_object_to_writer(object_to_write):
     return writer_class
 
 
+def make_ephys_writer(object_to_write, **kwargs):
+    WriterClass = map_si_object_to_writer(object_to_write=object_to_write)
+    return WriterClass(object_to_write, **kwargs)
+
+
 def export_ecephys_to_nwb(
     object_to_write,
     nwb_file_path=None,

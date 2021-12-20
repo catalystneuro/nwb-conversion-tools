@@ -15,7 +15,7 @@ from ...utils.json_schema import (
     get_base_schema,
 )
 from jsonschema import validate
-from ...utils import map_si_object_to_writer
+from ...utils import make_ephys_writer
 from ...utils.common_writer_tools import default_export_ops, default_export_ops_schema
 
 OptionalPathType = Optional[Union[str, Path]]
@@ -28,9 +28,16 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
 
     def __init__(self, **source_data):
         super().__init__(**source_data)
-        self.recording_extractor = self.RX(**source_data)
-        self.writer_class = map_si_object_to_writer(self.recording_extractor)(self.recording_extractor)
-        self.source_data = source_data
+        self.nwb_ephys_writer = make_ephys_writer(self.RX(**source_data))
+
+    @property
+    def recording_extractor(self):
+        return self.nwb_ephys_writer.recording
+
+    @recording_extractor.setter
+    def recording_extractor(self, val):
+        assert isinstance(val, self.RX.__mro__[:-1])
+        self.nwb_ephys_writer.recording = val
 
     def get_metadata_schema(self):
         """Compile metadata schema for the RecordingExtractor."""
@@ -73,7 +80,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
             Device=[dict(name="Device_ecephys", description="no description")],
             ElectrodeGroup=[
                 dict(name=str(group_id), description="no description", location="unknown", device="Device_ecephys")
-                for group_id in np.unique(self.writer_class._get_channel_property_values("group"))
+                for group_id in np.unique(self.nwb_ephys_writer._get_channel_property_values("group"))
             ],
         )
         return metadata
@@ -86,7 +93,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         ----------
         stub_test : bool, optional (default False)
         """
-        self.writer_class = map_si_object_to_writer(self.recording_extractor)(
+        self.nwb_ephys_writer = make_ephys_writer(
             self.recording_extractor,
             stub=True,
         )
@@ -136,10 +143,10 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         conversion_opt_schema = default_export_ops_schema()
         validate(instance=conversion_opts, schema=conversion_opt_schema)
 
-        self.writer_class.add_to_nwb(nwbfile, metadata, **conversion_opts)
+        self.nwb_ephys_writer.add_to_nwb(nwbfile, metadata, **conversion_opts)
         if save_path is not None:
             if overwrite:
                 if Path(save_path).exists():
                     Path(save_path).unlink()
                 with NWBHDF5IO(str(save_path), mode="w") as io:
-                    io.write(self.writer_class.nwbfile)
+                    io.write(self.nwb_ephys_writer.nwbfile)
