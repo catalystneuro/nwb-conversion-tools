@@ -26,10 +26,9 @@ from .nwbephyswriterdatachunkiterator import NwbEphysWriterDataChunkIterator
 
 
 class BaseNwbEphysWriter(ABC):
-    def __init__(self, object_to_write, stub, stub_channels):
+    def __init__(self, object_to_write, stub):
         self.object_to_write = object_to_write
         self.stub = stub
-        self.stub_channels = stub_channels
         self.dt_column_defaults = DynamicTableSupportedDtypes
         self.nwbfile = None
         self._conversion_ops = dict()
