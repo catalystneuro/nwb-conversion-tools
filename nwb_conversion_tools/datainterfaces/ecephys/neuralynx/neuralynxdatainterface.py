@@ -6,7 +6,7 @@ from spikeextractors import MultiRecordingChannelExtractor, NeuralynxRecordingEx
 
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ....utils.json_schema import FolderPathType
-from ....utils import map_si_object_to_writer
+from ....utils import make_ephys_writer
 
 
 class NeuralynxRecordingInterface(BaseRecordingExtractorInterface):
@@ -22,6 +22,5 @@ class NeuralynxRecordingInterface(BaseRecordingExtractorInterface):
         gains = [extractor.get_channel_gains()[0] for extractor in extractors]
         for extractor in extractors:
             extractor.clear_channel_gains()
-        self.recording_extractor = self.RX(extractors)
+        self.nwb_ephys_writer = make_ephys_writer(self.RX(extractors))
         self.recording_extractor.set_channel_gains(gains=gains)
-        self.writer_class = map_si_object_to_writer(self.recording_extractor)(self.recording_extractor)
