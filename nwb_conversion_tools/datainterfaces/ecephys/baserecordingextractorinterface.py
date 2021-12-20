@@ -29,8 +29,6 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
     def __init__(self, **source_data):
         super().__init__(**source_data)
         self.nwb_ephys_writer = make_ephys_writer(self.RX(**source_data))
-        self.subset_channels = None
-        self.source_data = source_data
 
     @property
     def recording_extractor(self):
@@ -98,7 +96,6 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         self.nwb_ephys_writer = make_ephys_writer(
             self.recording_extractor,
             stub=True,
-            stub_channels=self.subset_channels,
         )
 
     def run_conversion(
@@ -138,7 +135,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         es_key: str (optional)
             Key in metadata dictionary containing metadata info for the specific electrical series
         """
-        if stub_test or self.subset_channels is not None:
+        if stub_test:
             self.subset_recording()
 
         conversion_opts = default_export_ops()
