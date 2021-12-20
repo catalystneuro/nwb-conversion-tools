@@ -4,11 +4,15 @@ from tempfile import mkdtemp
 from shutil import rmtree
 from pathlib import Path
 from itertools import product
+from platform import python_version
+from sys import platform
+from packaging import version
 
 import pytest
 import spikeextractors as se
 from spikeextractors.testing import check_recordings_equal, check_sortings_equal
 from pynwb import NWBHDF5IO
+from hdmf.testing import TestCase
 
 try:
     import cv2
@@ -24,12 +28,25 @@ from nwb_conversion_tools import (
     SortingTutorialInterface,
     SIPickleRecordingExtractorInterface,
     SIPickleSortingExtractorInterface,
+    CEDRecordingInterface,
     interface_list,
 )
 
 from nwb_conversion_tools.utils import create_si013_example, export_ecephys_to_nwb
 from nwb_conversion_tools.datainterfaces.ecephys.basesortingextractorinterface import BaseSortingExtractorInterface
 from nwb_conversion_tools.utils.nwbfile_tools import get_default_nwbfile_metadata
+
+
+class TestAssertions(TestCase):
+    def test_import_assertions(self):
+        if platform == "darwin" and version.parse(python_version()) < version.parse("3.8"):
+            with self.assertRaisesWith(
+                exc_type=AssertionError,
+                exc_msg="The sonpy package (CED dependency) is not available on Mac for Python versions below 3.8!",
+            ):
+                CEDRecordingInterface.get_all_channels_info(file_path="does_not_matter.smrx")
+        else:
+            pytest.skip("Not testing on MacOSX with Python<3.8!")
 
 
 @pytest.mark.parametrize("data_interface", interface_list)
@@ -107,8 +124,8 @@ def test_pkl_interface():
         )
 
     source_data = dict(
-        Recording=dict(pkl_file=str(test_dir / "test_pkl" / "test_recording.pkl")),
-        Sorting=dict(pkl_file=str(test_dir / "test_pkl" / "test_sorting.pkl")),
+        Recording=dict(file_path=str(test_dir / "test_pkl" / "test_recording.pkl")),
+        Sorting=dict(file_path=str(test_dir / "test_pkl" / "test_sorting.pkl")),
     )
     converter = SpikeInterfaceTestNWBConverter(source_data=source_data)
     converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True)
