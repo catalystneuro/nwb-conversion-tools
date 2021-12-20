@@ -187,7 +187,12 @@ class TestYAML(unittest.TestCase):
     def test_run_conversion_from_yaml(self):
         path_to_test_gin_file = Path(__file__)
         yaml_file_path = path_to_test_gin_file.parent / "GIN_converter_specification.yml"
-        run_conversion_from_yaml(file_path=yaml_file_path, output_folder=self.test_folder, overwrite=True)
+        run_conversion_from_yaml(
+            specification_file_path=yaml_file_path,
+            data_folder=DATA_PATH,
+            output_folder=self.test_folder,
+            overwrite=True,
+        )
 
         with NWBHDF5IO(path=self.test_folder / "example_converter_spec_1.nwb", mode="r") as io:
             nwbfile = io.read()
