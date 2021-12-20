@@ -5,7 +5,7 @@ from pathlib import Path
 from importlib import import_module
 from itertools import chain
 
-from .json_schema import dict_deep_update, FilePathType
+from .json_schema import dict_deep_update, FilePathType, OptionalFolderPathType
 from ..nwbconverter import NWBConverter
 
 
@@ -76,7 +76,9 @@ def yaml_to_dict(file_path: FilePathType):
     return d
 
 
-def run_conversion_from_yaml(file_path: FilePathType, overwrite: bool = False):
+def run_conversion_from_yaml(
+    file_path: FilePathType, output_folder: OptionalFolderPathType = None, overwrite: bool = False
+):
     """
     Run conversion to NWB given a yaml specification file.
 
@@ -89,7 +91,8 @@ def run_conversion_from_yaml(file_path: FilePathType, overwrite: bool = False):
         If False, appends the existing NWBFile at the nwbfile_path location, if save_to_file is True.
         The default is False.
     """
-    source_dir = Path(file_path).parent.absolute()
+    if output_folder is None:
+        output_folder = Path(file_path).parent
     full_spec = yaml_to_dict(file_path=file_path)
     global_metadata = full_spec.get("metadata", dict())
     global_data_interfaces = full_spec.get("data_interfaces")
@@ -122,7 +125,7 @@ def run_conversion_from_yaml(file_path: FilePathType, overwrite: bool = False):
             for metadata_source in [global_metadata, experiment_metadata, session.get("metadata", dict())]:
                 metadata = dict_deep_update(metadata, metadata_source)
             converter.run_conversion(
-                nwbfile_path=source_dir / f"{session['nwbfile_name']}.nwb",
+                nwbfile_path=output_folder / f"{session['nwbfile_name']}.nwb",
                 metadata=metadata,
                 overwrite=overwrite,
                 conversion_options=session.get("conversion_options", dict()),

@@ -4,6 +4,8 @@ import os
 import numpy.testing as npt
 from pathlib import Path
 from datetime import datetime
+from tempfile import mkdtemp
+from shutil import rmtree
 
 import pytest
 from spikeextractors import NwbRecordingExtractor, NwbSortingExtractor
@@ -174,11 +176,20 @@ class TestNwbConversions(unittest.TestCase):
         nwb_sorting = NwbSortingExtractor(file_path=nwbfile_path, sampling_frequency=sf)
         check_sortings_equal(SX1=sorting, SX2=nwb_sorting)
 
+
+class TestYAML(unittest.TestCase):
+    def setUp(self):
+        self.test_folder = Path(mkdtemp())
+
+    def tearDown(self):
+        rmtree(path=self.test_folder)
+
     def test_run_conversion_from_yaml(self):
         path_to_test_gin_file = Path(__file__)
         yaml_file_path = path_to_test_gin_file.parent / "GIN_converter_specification.yml"
-        run_conversion_from_yaml(file_path=yaml_file_path, overwrite=True)
-        with NWBHDF5IO(path=yaml_file_path.parent / "example_converter_spec_1.nwb", mode="r") as io:
+        run_conversion_from_yaml(file_path=yaml_file_path, output_folder=self.test_folder, overwrite=True)
+
+        with NWBHDF5IO(path=self.test_folder / "example_converter_spec_1.nwb", mode="r") as io:
             nwbfile = io.read()
             assert nwbfile.session_description == "Subject navigating a Y-shaped maze."
             assert nwbfile.lab == "My Lab"
@@ -186,7 +197,7 @@ class TestNwbConversions(unittest.TestCase):
             assert nwbfile.session_start_time == datetime.fromisoformat("2020-10-09T21:19:09+00:00")
             assert nwbfile.subject.subject_id == "1"
             assert "ElectricalSeries" in nwbfile.acquisition
-        with NWBHDF5IO(path=yaml_file_path.parent / "example_converter_spec_2.nwb", mode="r") as io:
+        with NWBHDF5IO(path=self.test_folder / "example_converter_spec_2.nwb", mode="r") as io:
             nwbfile = io.read()
             assert nwbfile.session_description == "Subject navigating a Y-shaped maze."
             assert nwbfile.lab == "My Lab"
@@ -194,7 +205,7 @@ class TestNwbConversions(unittest.TestCase):
             assert nwbfile.session_start_time == datetime.fromisoformat("2020-10-10T21:19:09+00:00")
             assert nwbfile.subject.subject_id == "002"
             assert "ElectricalSeries" in nwbfile.acquisition
-        with NWBHDF5IO(path=yaml_file_path.parent / "example_converter_spec_3.nwb", mode="r") as io:
+        with NWBHDF5IO(path=self.test_folder / "example_converter_spec_3.nwb", mode="r") as io:
             nwbfile = io.read()
             assert nwbfile.session_description == "no description"
             assert nwbfile.lab == "My Lab"
