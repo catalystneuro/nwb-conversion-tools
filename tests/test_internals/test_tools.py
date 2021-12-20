@@ -1,9 +1,12 @@
+import numpy as np
 from unittest import TestCase
 
 from pynwb.base import ProcessingModule
+from pytest import skip
+from spikeextractors import NumpyRecordingExtractor
 
 from nwb_conversion_tools.utils.nwbfile_tools import get_module, make_nwbfile_from_metadata
-from nwb_conversion_tools.utils.conversion_tools import check_regular_timestamps
+from nwb_conversion_tools.utils.conversion_tools import check_regular_timestamps, estimate_recording_conversion_time
 
 
 class TestConversionTools(TestCase):
@@ -27,15 +30,15 @@ class TestConversionTools(TestCase):
         assert mod_2.description == description_2
         self.assertWarns(UserWarning, get_module, **dict(nwbfile=nwbfile, name=name_1, description=description_2))
 
-    # @skip("to be implemented")
-    # def test_estimate_recording_conversion_time(self):
-    #     num_channels = 4
-    #     sampling_frequency = 30000
-    #     num_frames = sampling_frequency * 1
-    #     timeseries = np.random.randint(low=-32768, high=32767, size=[num_channels, num_frames], dtype=np.dtype("int16"))
-    #     recording = NumpyRecordingExtractor(timeseries=timeseries, sampling_frequency=sampling_frequency)
+    @skip("to be implemented")
+    def test_estimate_recording_conversion_time(self):
+        num_channels = 4
+        sampling_frequency = 30000
+        num_frames = sampling_frequency * 1
+        timeseries = np.random.randint(low=-32768, high=32767, size=[num_channels, num_frames], dtype=np.dtype("int16"))
+        recording = NumpyRecordingExtractor(timeseries=timeseries, sampling_frequency=sampling_frequency)
 
-    #     estimated_write_time, estimated_write_speed = estimate_recording_conversion_time(recording=recording)
-    #     estimated_write_time, estimated_write_speed = estimate_recording_conversion_time(
-    #         recording=recording, write_kwargs=dict(compression=None)
-    #     )
+        estimated_write_time, estimated_write_speed = estimate_recording_conversion_time(recording=recording)
+        estimated_write_time, estimated_write_speed = estimate_recording_conversion_time(
+            recording=recording, write_kwargs=dict(compression=None)
+        )
