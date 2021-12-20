@@ -1,12 +1,16 @@
 import tempfile
 import unittest
-from pathlib import Path
-import numpy.testing as npt
 import os
+import numpy.testing as npt
+from pathlib import Path
+from datetime import datetime
 
 import pytest
 from spikeextractors import NwbRecordingExtractor, NwbSortingExtractor
 from spikeextractors.testing import check_recordings_equal, check_sortings_equal
+from pynwb import NWBHDF5IO
+
+
 from nwb_conversion_tools import (
     NWBConverter,
     IntanRecordingInterface,
@@ -21,6 +25,7 @@ from nwb_conversion_tools import (
     AxonaRecordingExtractorInterface,
     AxonaLFPDataInterface,
 )
+from nwb_conversion_tools.utils.conversion_tools import run_conversion_from_yaml
 
 try:
     from parameterized import parameterized, param
@@ -169,6 +174,18 @@ class TestNwbConversions(unittest.TestCase):
             sorting.set_sampling_frequency(sf)
         nwb_sorting = NwbSortingExtractor(file_path=nwbfile_path, sampling_frequency=sf)
         check_sortings_equal(SX1=sorting, SX2=nwb_sorting)
+
+    def test_run_conversion_from_yaml(self):
+        yaml_file_path = "example_converter_spec.yml"
+        run_conversion_from_yaml(file_path=yaml_file_path)
+        with NWBHDF5IO(path="example_converter_spec_1.nwb", mode="r") as io:
+            nwbfile = io.read()
+            assert nwbfile.session_description == "Subject navigating a Y-shaped maze."
+            assert nwbfile.lab == "My Lab"
+            assert nwbfile.institution == "My Institution"
+            assert nwbfile.session_start_time == datetime.fromisoformat("2020-11-09T21:19:09+00:00")
+            assert nwbfile.Subject.subject_id == "001"
+            assert "ElectricalSeries_raw" in nwbfile.acquisition
 
 
 if __name__ == "__main__":
