@@ -101,11 +101,16 @@ def run_conversion_from_yaml(file_path: FilePathType, overwrite: bool = False):
         experiment_metadata = experiment.get("metadata", dict())
         experiment_data_interfaces = experiment.get("data_interfaces")
         for session in experiment["sessions"]:
-            session_data_interfaces = experiment.get("data_interfaces")
+            session_data_interfaces = session.get("data_interfaces")
             data_interface_classes = dict()
-            for data_interface_name in chain(
-                global_data_interfaces, experiment_data_interfaces, session_data_interfaces
-            ):
+            data_interfaces_names_chain = chain(
+                *[
+                    data_interfaces
+                    for data_interfaces in [global_data_interfaces, experiment_data_interfaces, session_data_interfaces]
+                    if data_interfaces is not None
+                ]
+            )
+            for data_interface_name in data_interfaces_names_chain:
                 data_interface_classes.update({data_interface_name: getattr(nwb_conversion_tools, data_interface_name)})
 
             CustomNWBConverter = type(
@@ -115,9 +120,10 @@ def run_conversion_from_yaml(file_path: FilePathType, overwrite: bool = False):
             converter = CustomNWBConverter(source_data=session["source_data"])
             metadata = converter.get_metadata()
             for metadata_source in [global_metadata, experiment_metadata, session.get("metadata", dict())]:
-                dict_deep_update(metadata, metadata_source)
+                metadata = dict_deep_update(metadata, metadata_source)
             converter.run_conversion(
                 nwbfile_path=source_dir / f"{session['nwbfile_name']}.nwb",
+                metadata=metadata,
                 overwrite=overwrite,
                 conversion_options=session.get("conversion_options", dict()),
             )
