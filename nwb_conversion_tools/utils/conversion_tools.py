@@ -1,11 +1,14 @@
 """Authors: Cody Baker, Alessio Buccino."""
-import yaml
+import re
 import numpy as np
 from pathlib import Path
 from importlib import import_module
 from itertools import chain
+from collections import OrderedDict
+from copy import deepcopy
+from jsonschema import validate
 
-from .json_schema import dict_deep_update, FilePathType, OptionalFolderPathType
+from .json_schema import dict_deep_update, load_dict_from_file, FilePathType, OptionalFolderPathType
 from ..nwbconverter import NWBConverter
 
 
@@ -62,20 +65,6 @@ def check_regular_timestamps(ts):
 #     return total_time, speed
 
 
-def yaml_to_dict(file_path: FilePathType):
-    """
-    Conversion of yaml to dictionary.
-
-    Parameters
-    ----------
-    file_path : FilePathType
-      Path to .yml file.
-    """
-    with open(file=file_path, mode="r") as io:
-        d = yaml.load(stream=io, Loader=yaml.SafeLoader)
-    return d
-
-
 def run_conversion_from_yaml(
     specification_file_path: FilePathType,
     data_folder: OptionalFolderPathType = None,
@@ -104,14 +93,19 @@ def run_conversion_from_yaml(
         data_folder = Path(specification_file_path).parent
     if output_folder is None:
         output_folder = Path(specification_file_path).parent
-    full_spec = yaml_to_dict(file_path=specification_file_path)
-    global_metadata = full_spec.get("metadata", dict())
-    global_data_interfaces = full_spec.get("data_interfaces")
+    specification = load_dict_from_file(file_path=specification_file_path)
+    specification_schema = load_dict_from_file(
+        file_path=Path(__file__).parent / "schemas" / "yaml_specification_schema.json"
+    )
+    validate(instance=specification, schema=specification_schema)
+
+    global_metadata = specification.get("metadata", dict())
+    global_data_interfaces = specification.get("data_interfaces")
     nwb_conversion_tools = import_module(
         name=".",
-        package="nwb_conversion_tools",  # relative import  # but named and referenced as it were absolute
+        package="nwb_conversion_tools",  # relative import, but named and referenced as if it were absolute
     )
-    for experiment in full_spec["experiments"].values():
+    for experiment in specification["experiments"].values():
         experiment_metadata = experiment.get("metadata", dict())
         experiment_data_interfaces = experiment.get("data_interfaces")
         for session in experiment["sessions"]:
