@@ -6,7 +6,7 @@ from importlib import import_module
 from itertools import chain
 from collections import OrderedDict
 from copy import deepcopy
-from jsonschema import validate
+from jsonschema import validate, RefResolver
 
 from .json_schema import dict_deep_update, load_dict_from_file, FilePathType, OptionalFolderPathType
 from ..nwbconverter import NWBConverter
@@ -93,11 +93,15 @@ def run_conversion_from_yaml(
         data_folder = Path(specification_file_path).parent
     if output_folder is None:
         output_folder = Path(specification_file_path).parent
+
     specification = load_dict_from_file(file_path=specification_file_path)
-    specification_schema = load_dict_from_file(
-        file_path=Path(__file__).parent / "schemas" / "yaml_specification_schema.json"
+    schema_folder = Path(__file__).parent.parent / "schemas"
+    specification_schema = load_dict_from_file(file_path=schema_folder / "yaml_specification_schema.json")
+    validate(
+        instance=specification,
+        schema=specification_schema,
+        resolver=RefResolver(base_uri="file://" + str(schema_folder) + "/", referrer=specification_schema),
     )
-    validate(instance=specification, schema=specification_schema)
 
     global_metadata = specification.get("metadata", dict())
     global_data_interfaces = specification.get("data_interfaces")

@@ -10,7 +10,7 @@
   "properties": {
 
     "metadata": {
-      "$ref": "metadata_schema.json"
+      "$ref": "./metadata_schema.json#"
     },
 
     "conversion_options": {
@@ -33,7 +33,7 @@
         "required": ["sessions"],
         "properties": {
           "metadata": {
-            "$ref": "metadata_schema.json"
+            "$ref": "./metadata_schema.json#"
           },
 
           "conversion_options": {
@@ -65,7 +65,7 @@
                 },
 
                 "metadata": {
-                  "$ref": "metadata_schema.json"
+                  "$ref": "./metadata_schema.json#"
                 },
 
                 "conversion_options": {
