@@ -44,14 +44,15 @@
           "data_interfaces": {
             "type": "array",
             "items": {
-              "title": "DataInterface",
+              "title": "Data Interfaces",
               "type": "string"
             }
           },
 
           "sessions": {
-            "type": "object",
-            "additionalProperties": {
+            "type": "array",
+            "items": {
+              "title": "Single-session specification",
               "type": "object",
               "required": ["nwbfile_name", "source_data"],
               "properties": {
