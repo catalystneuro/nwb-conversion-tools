@@ -1,5 +1,4 @@
 import numpy as np
-from jsonschema import Draft7Validator
 from tempfile import mkdtemp
 from shutil import rmtree
 from pathlib import Path
@@ -29,12 +28,10 @@ from nwb_conversion_tools import (
     SIPickleRecordingExtractorInterface,
     SIPickleSortingExtractorInterface,
     CEDRecordingInterface,
-    interface_list,
 )
 
-from nwb_conversion_tools.utils import create_si013_example, export_ecephys_to_nwb
+from nwb_conversion_tools.utils import create_si013_example
 from nwb_conversion_tools.datainterfaces.ecephys.basesortingextractorinterface import BaseSortingExtractorInterface
-from nwb_conversion_tools.utils.conversion_tools import get_default_nwbfile_metadata
 
 
 class TestAssertions(TestCase):
@@ -47,18 +44,6 @@ class TestAssertions(TestCase):
                 CEDRecordingInterface.get_all_channels_info(file_path="does_not_matter.smrx")
         else:
             pytest.skip("Not testing on MacOSX with Python<3.8!")
-
-
-@pytest.mark.parametrize("data_interface", interface_list)
-def test_interface_source_schema(data_interface):
-    schema = data_interface.get_source_schema()
-    Draft7Validator.check_schema(schema)
-
-
-@pytest.mark.parametrize("data_interface", interface_list)
-def test_interface_conversion_options_schema(data_interface):
-    schema = data_interface.get_conversion_options_schema()
-    Draft7Validator.check_schema(schema)
 
 
 def test_tutorials():

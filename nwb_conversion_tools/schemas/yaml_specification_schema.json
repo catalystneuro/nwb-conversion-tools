@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "yaml.specification.schema.json",
+  "title": "YAML specification schema",
+  "description": "Schema for a YAML specified conversion.",
+  "version": "0.1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["experiments"],
+  "properties": {
+
+    "metadata": {
+      "$ref": "./metadata_schema.json#"
+    },
+
+    "conversion_options": {
+      "type": "object",
+      "additionalProperties": true
+    },
+
+    "data_interfaces": {
+      "type": "array",
+      "items": {
+        "title": "DataInterface",
+        "type": "string"
+      }
+    },
+
+    "experiments": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["sessions"],
+        "properties": {
+          "metadata": {
+            "$ref": "./metadata_schema.json#"
+          },
+
+          "conversion_options": {
+            "type": "object",
+            "additionalProperties": true
+          },
+
+          "data_interfaces": {
+            "type": "array",
+            "items": {
+              "title": "Data Interfaces",
+              "type": "string"
+            }
+          },
+
+          "sessions": {
+            "type": "array",
+            "items": {
+              "title": "Single-session specification",
+              "type": "object",
+              "required": ["nwbfile_name", "source_data"],
+              "properties": {
+                "nwbfile_name": {
+                  "type": "string"
+                },
+
+                "source_data": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+
+                "metadata": {
+                  "$ref": "./metadata_schema.json#"
+                },
+
+                "conversion_options": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+
+                "data_interfaces": {
+                  "type": "array",
+                  "items": {
+                    "title": "DataInterface",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
