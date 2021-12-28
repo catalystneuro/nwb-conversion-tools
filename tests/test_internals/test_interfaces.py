@@ -30,8 +30,8 @@ from nwb_conversion_tools import (
     CEDRecordingInterface,
 )
 
-from nwb_conversion_tools.datainterfaces.ecephys.basesortingextractorinterface import BaseSortingExtractorInterface
 from nwb_conversion_tools.utils import create_si013_example
+from nwb_conversion_tools.datainterfaces.ecephys.basesortingextractorinterface import BaseSortingExtractorInterface
 
 
 class TestAssertions(TestCase):
