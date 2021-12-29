@@ -1,12 +1,13 @@
 import tempfile
 import unittest
-from pathlib import Path
-import numpy.testing as npt
 import os
+import numpy.testing as npt
+from pathlib import Path
 
 import pytest
 from spikeextractors import NwbRecordingExtractor, NwbSortingExtractor
 from spikeextractors.testing import check_recordings_equal, check_sortings_equal
+
 from nwb_conversion_tools import (
     NWBConverter,
     IntanRecordingInterface,
@@ -37,7 +38,7 @@ if os.getenv("CI"):
     LOCAL_PATH = Path(".")  # Must be set to "." for CI
     print("Running GIN tests on Github CI!")
 else:
-    LOCAL_PATH = Path("E:/GIN/")  # Override this on personal device for local testing
+    LOCAL_PATH = Path("/home/jovyan/")  # Override this on personal device for local testing
     print("Running GIN tests locally!")
 
 DATA_PATH = LOCAL_PATH / "ephy_testing_data"
