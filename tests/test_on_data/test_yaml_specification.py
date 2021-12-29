@@ -37,12 +37,13 @@ class TestYAML(unittest.TestCase):
     def test_validate_example_specification(self):
         path_to_test_gin_file = Path(__file__)
         yaml_file_path = path_to_test_gin_file.parent / "GIN_converter_specification.yml"
-        specification = load_dict_from_file(file_path=yaml_file_path)
-        schema_folder = Path(__file__).parent.parent.parent / "nwb_conversion_tools" / "schemas"
-        specification_schema = load_dict_from_file(file_path=schema_folder / "yaml_specification_schema.json")
+        schema_folder = path_to_test_gin_file.parent.parent.parent / "nwb_conversion_tools" / "schemas"
+        specification_schema = load_dict_from_file(
+            file_path=schema_folder / "yaml_conversion_specification_schema.json"
+        )
         validate(
-            instance=specification,
-            schema=specification_schema,
+            instance=load_dict_from_file(file_path=yaml_file_path),
+            schema=load_dict_from_file(file_path=schema_folder / "yaml_conversion_specification_schema.json"),
             resolver=RefResolver(base_uri="file://" + str(schema_folder) + "/", referrer=specification_schema),
         )
 
