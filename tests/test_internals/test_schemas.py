@@ -24,6 +24,6 @@ def test_yaml_specification_schema():
         file_path=Path(__file__).parent.parent.parent
         / "nwb_conversion_tools"
         / "schemas"
-        / "yaml_specification_schema.json"
+        / "yaml_conversion_specification_schema.json"
     )
     Draft7Validator.check_schema(schema=schema)
