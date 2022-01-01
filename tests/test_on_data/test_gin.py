@@ -147,10 +147,6 @@ class TestNwbConversions(unittest.TestCase):
                 sorting_interface=BlackrockSortingExtractorInterface,
                 interface_kwargs=dict(file_path=str(DATA_PATH / "blackrock" / "FileSpec2.3001.nev")),
             ),
-            param(
-                sorting_interface=BlackrockSortingExtractorInterface,
-                interface_kwargs=dict(file_path=str(DATA_PATH / "blackrock" / "FileSpec2.3001.nev")),
-            ),
         ],
     )
     def test_convert_sorting_extractor_to_nwb(self, sorting_interface, interface_kwargs):
