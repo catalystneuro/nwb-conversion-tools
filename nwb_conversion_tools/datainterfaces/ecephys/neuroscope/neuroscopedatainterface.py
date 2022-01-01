@@ -17,7 +17,7 @@ try:
     HAVE_LXML = True
 except ImportError:
     HAVE_LXML = False
-INSTALL_MESSAGE = "Please install lxml to use this extractor!"
+INSTALL_MESSAGE = "Please install lxml to use this interface!"
 
 
 def subset_shank_channels(recording_extractor: se.RecordingExtractor, xml_file_path: str) -> se.SubRecordingExtractor:
