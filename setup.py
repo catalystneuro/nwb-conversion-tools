@@ -4,7 +4,6 @@ import os
 
 path = os.path.abspath(os.path.dirname(__file__))
 
-# Get the long description from the README file
 with open(os.path.join(path, "README.md")) as f:
     long_description = f.read()
 with open(os.path.join(path, "requirements-minimal.txt")) as f:

@@ -129,7 +129,7 @@ class AxonaUnitRecordingExtractorInterface(AxonaRecordingExtractorInterface):
                 file_path=dict(
                     type="string",
                     format="file",
-                    description="Path to Axona file",
+                    description="Path to Axona file.",
                 ),
                 noise_std=dict(type="number"),
             ),
@@ -542,4 +542,3 @@ class AxonaLFPDataInterface(BaseLFPExtractorInterface):
             )
         )
         self.subset_channels = None
-        self.source_data = dict(file_path=file_path)

@@ -45,8 +45,8 @@ class BlackrockRecordingExtractorInterface(BaseRecordingExtractorInterface):
             assert "ns" in file_path.suffix, "file_path should be an nsx file"
             nsx_to_load = int(file_path.suffix[-1])
             self.file_path = file_path
-        super().__init__(filename=file_path, nsx_to_load=nsx_to_load, nsx_override=nsx_override)
-        self.source_data = dict(file_path=file_path, nsx_to_load=nsx_to_load, nsx_override=nsx_override)
+        super().__init__(filename=file_path, nsx_override=nsx_override, nsx_to_load=nsx_to_load)
+        self.source_data = dict(file_path=file_path, nsx_override=nsx_override, nsx_to_load=nsx_to_load)
 
     def get_metadata_schema(self):
         metadata_schema = super().get_metadata_schema()

@@ -37,7 +37,7 @@ if os.getenv("CI"):
     LOCAL_PATH = Path(".")  # Must be set to "." for CI
     print("Running GIN tests on Github CI!")
 else:
-    LOCAL_PATH = Path("E:/GIN/")  # Override this on personal device for local testing
+    LOCAL_PATH = Path("/home/jovyan/")  # Override this on personal device for local testing
     print("Running GIN tests locally!")
 
 DATA_PATH = LOCAL_PATH / "ephy_testing_data"
@@ -113,7 +113,7 @@ class TestNwbConversions(unittest.TestCase):
             )
         )
 
-    @parameterized.expand(parameterized_recording_list)
+    @parameterized.expand(input=parameterized_recording_list, name_func=custom_name_func)
     def test_convert_recording_extractor_to_nwb(self, recording_interface, interface_kwargs):
         nwbfile_path = str(self.savedir / f"{recording_interface.__name__}.nwb")
 
@@ -143,11 +143,15 @@ class TestNwbConversions(unittest.TestCase):
                 sorting_interface=PhySortingInterface,
                 interface_kwargs=dict(folder_path=str(DATA_PATH / "phy" / "phy_example_0")),
             ),
-            (
-                BlackrockSortingExtractorInterface,
-                dict(file_path=str(DATA_PATH / "blackrock" / "FileSpec2.3001.nev")),
+            param(
+                sorting_interface=BlackrockSortingExtractorInterface,
+                interface_kwargs=dict(file_path=str(DATA_PATH / "blackrock" / "FileSpec2.3001.nev")),
             ),
-        ]
+            param(
+                sorting_interface=BlackrockSortingExtractorInterface,
+                interface_kwargs=dict(file_path=str(DATA_PATH / "blackrock" / "FileSpec2.3001.nev")),
+            ),
+        ],
     )
     def test_convert_sorting_extractor_to_nwb(self, sorting_interface, interface_kwargs):
         nwbfile_path = str(self.savedir / f"{sorting_interface.__name__}.nwb")
