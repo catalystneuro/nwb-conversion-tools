@@ -1,3 +1,6 @@
+from platform import python_version
+from sys import platform
+from packaging import version
 import numpy as np
 from jsonschema import Draft7Validator
 from tempfile import mkdtemp
@@ -30,11 +33,24 @@ from nwb_conversion_tools import (
     SIPickleSortingExtractorInterface,
     CEDRecordingInterface,
     interface_list,
+    CEDRecordingInterface,
 )
 
 from nwb_conversion_tools.utils import create_si013_example, export_ecephys_to_nwb
 from nwb_conversion_tools.datainterfaces.ecephys.basesortingextractorinterface import BaseSortingExtractorInterface
 from nwb_conversion_tools.utils.conversion_tools import get_default_nwbfile_metadata
+
+
+class TestAssertions(TestCase):
+    def test_import_assertions(self):
+        if platform == "darwin" and version.parse(python_version()) < version.parse("3.8"):
+            with self.assertRaisesWith(
+                exc_type=AssertionError,
+                exc_msg="The sonpy package (CED dependency) is not available on Mac for Python versions below 3.8!",
+            ):
+                CEDRecordingInterface.get_all_channels_info(file_path="does_not_matter.smrx")
+        else:
+            pytest.skip("Not testing on MacOSX with Python<3.8!")
 
 
 class TestAssertions(TestCase):
