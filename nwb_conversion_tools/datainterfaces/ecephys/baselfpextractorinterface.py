@@ -1,7 +1,6 @@
 """Authors: Cody Baker, Saksham Sharda, Ben Dichter."""
 from typing import Optional, Union
 from pathlib import Path
-
 from pynwb.ecephys import ElectricalSeries
 
 from .baserecordingextractorinterface import BaseRecordingExtractorInterface
@@ -22,5 +21,7 @@ class BaseLFPExtractorInterface(BaseRecordingExtractorInterface):
 
     def get_metadata(self):
         metadata = super().get_metadata()
-        metadata["Ecephys"].update(ElectricalSeries_lfp=dict(name="LFP", description="Local field potential signal."))
+        metadata["Ecephys"].update(
+            ElectricalSeries_lfp=dict(name="ElectricalSeries_lfp", description="Local field potential signal.")
+        )
         return metadata
