@@ -31,9 +31,9 @@ def append_replace_dict_in_list(ls, d, compare_key, list_dict_deep_update: bool 
 
     Cases:
     1.  If d is a dict and ls a list of dicts and ints/str, then for a given compare key, if for any element of ls
-        (which is a dict) say: ls[3][compare_key] == d[compare_key], then it will dict_deep_update these instead of appending d
-        to list ls. Only if compare_key is not present in any of dicts in the list ls, then d is simply appended
-        to ls.
+        (which is a dict) say: ls[3][compare_key] == d[compare_key], then it will dict_deep_update these instead of
+        appending d to list ls.
+        Only if compare_key is not present in any of dicts in the list ls, then d is simply appended to ls.
     2.  If d is of immutable types like str, int etc, the ls is either appended with d or not.
         This depends on the value of remove_repeats. If remove_repeats is False, then ls is always appended with d.
         If remove_repeats is True, then if value d is present then its not appended else it is.
@@ -155,7 +155,6 @@ def get_base_schema(tag=None, root=False, id_=None, **kwargs) -> dict:
 def get_schema_from_method_signature(class_method: classmethod, exclude: list = None) -> dict:
     """
     Take a class method and return a json-schema of the input args.
-
     Parameters
     ----------
     class_method: function
@@ -226,7 +225,6 @@ def get_schema_from_method_signature(class_method: classmethod, exclude: list = 
 def fill_defaults(schema: dict, defaults: dict, overwrite: bool = True):
     """
     Insert the values of the defaults dict as default values in the schema in place.
-
     Parameters
     ----------
     schema: dict
@@ -245,7 +243,6 @@ def fill_defaults(schema: dict, defaults: dict, overwrite: bool = True):
 def unroot_schema(schema: dict):
     """
     Modify a json-schema dictionary to make it not root.
-
     Parameters
     ----------
     schema: dict
