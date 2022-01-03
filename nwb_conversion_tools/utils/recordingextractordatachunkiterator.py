@@ -1,9 +1,9 @@
 """Authors: Cody Baker and Saksham Sharda."""
-from typing import Tuple, Iterable
+from typing import Tuple, Iterable, Optional
 
 from spikeextractors import RecordingExtractor
 
-from .genericdatachunkiterator import GenericDataChunkIterator
+from hdmf.data_utils import GenericDataChunkIterator
 
 
 class RecordingExtractorDataChunkIterator(GenericDataChunkIterator):
@@ -16,10 +16,19 @@ class RecordingExtractorDataChunkIterator(GenericDataChunkIterator):
         buffer_shape: tuple = None,
         chunk_mb: float = None,
         chunk_shape: tuple = None,
+        display_progress: bool = False,
+        progress_bar_options: Optional[dict] = None,
     ):
         self.recording = recording
         self.channel_ids = recording.get_channel_ids()
-        super().__init__(buffer_gb=buffer_gb, buffer_shape=buffer_shape, chunk_mb=chunk_mb, chunk_shape=chunk_shape)
+        super().__init__(
+            buffer_gb=buffer_gb,
+            buffer_shape=buffer_shape,
+            chunk_mb=chunk_mb,
+            chunk_shape=chunk_shape,
+            display_progress=display_progress,
+            progress_bar_options=progress_bar_options,
+        )
 
     def _get_data(self, selection: Tuple[slice]) -> Iterable:
         return self.recording.get_traces(
