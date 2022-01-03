@@ -8,9 +8,9 @@ from .basenwbephyswriter import BaseNwbEphysWriter
 
 
 class BaseSINwbEphysWriter(BaseNwbEphysWriter, ABC):
-    def __init__(self, object_to_write, stub, stub_channels):
+    def __init__(self, object_to_write, stub):
         self.recording, self.sorting, self.waveforms, self.event = None, None, None, None
-        BaseNwbEphysWriter.__init__(self, object_to_write, stub=stub, stub_channels=stub_channels)
+        BaseNwbEphysWriter.__init__(self, object_to_write, stub=stub)
 
     def _get_sampling_frequency(self):
         return self.recording.get_sampling_frequency()

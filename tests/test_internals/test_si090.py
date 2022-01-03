@@ -6,44 +6,58 @@ import numpy as np
 from datetime import datetime
 from warnings import warn
 
-import spikeextractors as se
-from spikeextractors.testing import (
-    check_sortings_equal,
-    check_recordings_equal,
-    check_dumping,
-    check_recording_return_types,
-    get_default_nwbfile_metadata,
-)
 from pynwb import NWBHDF5IO, NWBFile
 
-from nwb_conversion_tools.utils import export_ecephys_to_nwb, SI013NwbEphysWriter, create_si013_example
+from nwb_conversion_tools.utils import export_ecephys_to_nwb, SI090NwbEphysWriter, create_si090_example
+from spikeinterface.core.testing import check_sortings_equal, check_recordings_equal
+from spikeinterface.extractors import NwbRecordingExtractor, NwbSortingExtractor
+from spikeinterface.core import FrameSliceSorting, FrameSliceRecording
+from spikeinterface import extract_waveforms
 
 
 class TestExtractors(unittest.TestCase):
     def setUp(self):
-        self.RX, self.RX2, self.RX3, self.SX, self.SX2, self.SX3, self.example_info = create_si013_example(seed=0)
+        self.RX, self.SX = create_si090_example()
+        self.RX2, self.SX2 = create_si090_example()
+        self.RX3, self.SX3 = create_si090_example()
         self.test_dir = tempfile.mkdtemp()
 
     def tearDown(self):
         del self.RX, self.RX2, self.RX3, self.SX, self.SX2, self.SX3
         shutil.rmtree(self.test_dir)
 
+    def test_write_recording_stub(self):
+        path = self.test_dir + "/test.nwb"
+        export_ecephys_to_nwb(self.RX, path, stub=True)
+        RX_nwb = NwbRecordingExtractor(path)
+        # the stub is the trimmed recording in time dimension.
+        frame_stub = min(100, self.RX.get_num_frames())
+        rx_stub = FrameSliceRecording(self.RX, end_frame=frame_stub)
+        check_recordings_equal(rx_stub, RX_nwb, return_scaled=False)
+
+    def test_write_sorting_stub(self):
+        path = self.test_dir + "/test.nwb"
+        export_ecephys_to_nwb(self.SX, path, stub=True)
+        sf = self.RX.get_sampling_frequency()
+        SX_nwb = NwbSortingExtractor(path, sampling_frequency=sf)
+        max_min_spike_time = max(
+            [min(x) for y in self.SX.get_unit_ids() for x in [self.SX.get_unit_spike_train(y)] if any(x)]
+        )
+        sx_stub = FrameSliceSorting(self.SX, start_frame=0, end_frame=1.1 * max_min_spike_time)
+        check_sortings_equal(sx_stub, SX_nwb)
+
     def test_write_recording(self):
         path = self.test_dir + "/test.nwb"
 
         export_ecephys_to_nwb(self.RX, path)
-        RX_nwb = se.NwbRecordingExtractor(path)
-        check_recording_return_types(RX_nwb)
-        check_recordings_equal(self.RX, RX_nwb, check_times=False)
-        check_dumping(RX_nwb)
+        RX_nwb = NwbRecordingExtractor(path)
+        check_recordings_equal(self.RX, RX_nwb, return_scaled=False)
         del RX_nwb
 
         export_ecephys_to_nwb(object_to_write=self.RX2, nwb_file_path=path, overwrite=True)
-        RX_nwb = se.NwbRecordingExtractor(path)
-        check_recording_return_types(RX_nwb)
-        check_recordings_equal(self.RX2, RX_nwb, check_times=False)
-        check_dumping(RX_nwb)
-
+        RX_nwb = NwbRecordingExtractor(path)
+        check_recordings_equal(self.RX2, RX_nwb, return_scaled=False)
+        del RX_nwb
         # Writing multiple recordings using metadata
         path_multi = self.test_dir + "/test_multiple.nwb"
         nwbfile = export_ecephys_to_nwb(
@@ -61,10 +75,8 @@ class TestExtractors(unittest.TestCase):
             object_to_write=self.RX3, nwbfile=nwbfile, write_as="lfp", es_key="ElectricalSeries_lfp", overwrite=False
         )
         es_raw_name = "ElectricalSeries"
-        RX_nwb = se.NwbRecordingExtractor(file_path=path_multi, electrical_series_name=es_raw_name)
-        check_recording_return_types(RX_nwb)
-        check_recordings_equal(self.RX, RX_nwb, check_times=False)
-        check_dumping(RX_nwb)
+        RX_nwb = NwbRecordingExtractor(file_path=path_multi, electrical_series_name=es_raw_name)
+        check_recordings_equal(self.RX, RX_nwb, return_scaled=False)
         del RX_nwb
 
         nwbfile = export_ecephys_to_nwb(
@@ -78,10 +90,8 @@ class TestExtractors(unittest.TestCase):
             "gzip",
             f"Intended compression type does not match what was written! (Out: {compression_out}, should be: gzip)",
         )
-        RX_nwb = se.NwbRecordingExtractor(path)
-        check_recording_return_types(RX_nwb)
-        check_recordings_equal(self.RX, RX_nwb, check_times=False)
-        check_dumping(RX_nwb)
+        RX_nwb = NwbRecordingExtractor(path)
+        check_recordings_equal(self.RX, RX_nwb, return_scaled=False)
         del RX_nwb
 
         compression = "lzf"
@@ -94,10 +104,8 @@ class TestExtractors(unittest.TestCase):
             compression,
             f"Intended compression type does not match what was written! (Out: {compression_out}, should be: {compression})",
         )
-        RX_nwb = se.NwbRecordingExtractor(path)
-        check_recording_return_types(RX_nwb)
-        check_recordings_equal(self.RX, RX_nwb, check_times=False)
-        check_dumping(RX_nwb)
+        RX_nwb = NwbRecordingExtractor(path)
+        check_recordings_equal(self.RX, RX_nwb, return_scaled=False)
         del RX_nwb
 
     def test_write_sorting(self):
@@ -109,9 +117,9 @@ class TestExtractors(unittest.TestCase):
         _ = export_ecephys_to_nwb(object_to_write=self.SX, nwbfile=nwbfile)
         with NWBHDF5IO(str(path), mode="w") as io:
             io.write(nwbfile)
-        SX_nwb = se.NwbSortingExtractor(path)
+        SX_nwb = NwbSortingExtractor(path)
         check_sortings_equal(self.SX, SX_nwb)
-        check_dumping(SX_nwb)
+        del SX_nwb
 
         # Test for handling unit property descriptions argument
         property_descriptions = dict(stability="This is a description of stability.")
@@ -121,123 +129,74 @@ class TestExtractors(unittest.TestCase):
             unit_property_descriptions=property_descriptions,
             overwrite=True,
         )
-        SX_nwb = se.NwbSortingExtractor(path, sampling_frequency=sf)
+        SX_nwb = NwbSortingExtractor(path, sampling_frequency=sf)
         check_sortings_equal(self.SX, SX_nwb)
-        check_dumping(SX_nwb)
+        del SX_nwb
 
         # Test for handling skip_properties argument
         nwbfile = export_ecephys_to_nwb(
             object_to_write=self.SX, nwb_file_path=path, skip_unit_properties=["stability"], overwrite=True
         )
-        SX_nwb = se.NwbSortingExtractor(path, sampling_frequency=sf)
-        assert "stability" not in SX_nwb.get_shared_unit_property_names()
+        SX_nwb = NwbSortingExtractor(path, sampling_frequency=sf)
+        assert "stability" not in SX_nwb.get_property_keys()
         check_sortings_equal(self.SX, SX_nwb)
-        check_dumping(SX_nwb)
+        del SX_nwb
 
-        # Test for handling skip_features argument
-        # SX2 has timestamps, so loading it back from Nwb will not recover the same spike frames. Set use_times=False
-        nwbfile = export_ecephys_to_nwb(
-            object_to_write=self.SX2, nwb_file_path=path, skip_unit_features=["widths"], use_times=False, overwrite=True
-        )
-        SX_nwb = se.NwbSortingExtractor(path, sampling_frequency=sf)
-        assert "widths" not in SX_nwb.get_shared_unit_spike_feature_names()
-        check_sortings_equal(self.SX2, SX_nwb)
-        check_dumping(SX_nwb)
+    def test_write_waveforms(self):
+        path = self.test_dir + "/test_wf.nwb"
+        # set is_filtered=True for waveforms
+        self.RX.annotate(is_filtered=True)
+        we = extract_waveforms(self.RX, self.SX, folder=Path(self.test_dir) / "waveforms")
 
-    def check_metadata_write(self, metadata: dict, nwbfile_path: Path, recording: se.RecordingExtractor):
-        writer = SI013NwbEphysWriter(recording, nwb_file_path=nwbfile_path)
-        standard_metadata = writer.get_nwb_metadata()
-        device_defaults = dict(name="Device", description="no description")  # from the individual add_devices function
-        electrode_group_defaults = dict(  # from the individual add_electrode_groups function
-            name="Electrode Group", description="no description", location="unknown", device="Device"
-        )
+        nwbfile = export_ecephys_to_nwb(object_to_write=we, nwb_file_path=path, overwrite=True)
 
-        with NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True) as io:
-            nwbfile = io.read()
+        assert "waveform_mean" in nwbfile.units.colnames
+        assert "waveform_sd" in nwbfile.units.colnames
 
-            device_source = metadata["Ecephys"].get("Device", standard_metadata["Ecephys"]["Device"])
-            self.assertEqual(len(device_source), len(nwbfile.devices))
-            for device in device_source:
-                device_name = device.get("name", device_defaults["name"])
-                self.assertIn(device_name, nwbfile.devices)
-                self.assertEqual(
-                    device.get("description", device_defaults["description"]), nwbfile.devices[device_name].description
-                )
-                self.assertEqual(device.get("manufacturer"), nwbfile.devices[device["name"]].manufacturer)
-
-            electrode_group_source = metadata["Ecephys"].get(
-                "ElectrodeGroup", standard_metadata["Ecephys"]["ElectrodeGroup"]
-            )
-            self.assertEqual(len(electrode_group_source), len(nwbfile.electrode_groups))
-            for group in electrode_group_source:
-                group_name = group.get("name", electrode_group_defaults["name"])
-                self.assertIn(group_name, nwbfile.electrode_groups)
-                self.assertEqual(
-                    group.get("description", electrode_group_defaults["description"]),
-                    nwbfile.electrode_groups[group_name].description,
-                )
-                self.assertEqual(
-                    group.get("location", electrode_group_defaults["location"]),
-                    nwbfile.electrode_groups[group_name].location,
-                )
-                device_name = group.get("device", electrode_group_defaults["device"])
-                self.assertIn(device_name, nwbfile.devices)
-                self.assertEqual(nwbfile.electrode_groups[group_name].device, nwbfile.devices[device_name])
-
-            n_channels = len(recording.get_channel_ids())
-            electrode_source = metadata["Ecephys"].get("Electrodes", [])
-            self.assertEqual(n_channels, len(nwbfile.electrodes))
-            for column in electrode_source:
-                column_name = column["name"]
-                self.assertIn(column_name, nwbfile.electrodes)
-                self.assertEqual(column["description"], getattr(nwbfile.electrodes, column_name).description)
-                if column_name in ["x", "y", "z", "rel_x", "rel_y", "rel_z"]:
-                    for j in n_channels:
-                        self.assertEqual(column["data"][j], getattr(nwbfile.electrodes[j], column_name).values[0])
-                else:
-                    for j in n_channels:
-                        self.assertTrue(
-                            column["data"][j] == getattr(nwbfile.electrodes[j], column_name).values[0]
-                            or (
-                                np.isnan(column["data"][j])
-                                and np.isnan(getattr(nwbfile.electrodes[j], column_name).values[0])
-                            )
-                        )
+        # check waveform_mean and sd shapes
+        assert nwbfile.units["waveform_mean"][0].shape[1] == self.RX.get_num_channels()
+        assert nwbfile.units["waveform_sd"][0].shape[1] == self.RX.get_num_channels()
+        assert nwbfile.units["waveform_mean"][0].shape[0] == nwbfile.units["waveform_sd"][0].shape[0]
 
 
 class TestWriteElectrodes(unittest.TestCase):
     def setUp(self):
-        self.RX, self.RX2, _, self.SX, _, _, _ = create_si013_example(seed=0)
+        self.RX, self.SX = create_si090_example()
+        self.RX2, self.SX2 = create_si090_example()
+        self.RX3, self.SX3 = create_si090_example()
         self.test_dir = tempfile.mkdtemp()
         self.path1 = self.test_dir + "/test_electrodes1.nwb"
         self.path2 = self.test_dir + "/test_electrodes2.nwb"
         self.path3 = self.test_dir + "/test_electrodes3.nwb"
         self.nwbfile1 = NWBFile("sess desc1", "file id1", datetime.now())
-        self.nwbfile2 = NWBFile("sess desc2", "file id2", datetime.now())
-        self.nwbfile3 = NWBFile("sess desc3", "file id3", datetime.now())
         self.metadata_list = [dict(Ecephys={i: dict(name=i, description="desc")}) for i in ["es1", "es2"]]
         # change channel_ids
         id_offset = np.max(self.RX.get_channel_ids())
-        self.RX2 = se.subrecordingextractor.SubRecordingExtractor(
-            self.RX2, renamed_channel_ids=np.array(self.RX2.get_channel_ids()) + id_offset + 1
+        self.RX2 = self.RX2.channel_slice(
+            self.RX2.get_channel_ids(), renamed_channel_ids=np.array(self.RX2.get_channel_ids()) + id_offset + 1
         )
+
         self.RX2.set_channel_groups(np.ones(shape=self.RX2.get_num_channels(), dtype="int"))
         self.RX.set_channel_groups(np.zeros(shape=self.RX.get_num_channels(), dtype="int"))
-        for unit_id in self.SX.get_unit_ids():
-            self.SX.set_unit_property(unit_id, "electrode_group", "0")
+        self.SX.set_property("electrode_group", ["0"] * self.SX.get_num_units())
         # add common properties:
+        self.RX2.set_property("prop1", ["10Hz"] * self.RX2.get_num_channels())
+        self.RX.set_property("prop1", ["10Hz"] * self.RX.get_num_channels())
+        self.RX2.set_property("brain_area", ["M1"] * self.RX2.get_num_channels())
+        self.RX.set_property("brain_area", ["PMd"] * self.RX.get_num_channels())
+        self.RX2.set_property("group_electrodes", ["M1"] * self.RX2.get_num_channels())
+        self.RX.set_property("group_electrodes", ["PMd"] * self.RX.get_num_channels())
+        rx2_alt_ch_ids = []
+        rx1_alt_ch_ids = []
         for no, (chan_id1, chan_id2) in enumerate(zip(self.RX.get_channel_ids(), self.RX2.get_channel_ids())):
-            self.RX2.set_channel_property(chan_id2, "prop1", "10Hz")
-            self.RX.set_channel_property(chan_id1, "prop1", "10Hz")
-            self.RX2.set_channel_property(chan_id2, "brain_area", "M1")
-            self.RX.set_channel_property(chan_id1, "brain_area", "PMd")
-            self.RX2.set_channel_property(chan_id2, "group_electrodes", "M1")
-            self.RX.set_channel_property(chan_id1, "group_electrodes", "PMd")
             if no % 2 == 0:
-                self.RX2.set_channel_property(chan_id2, "prop2", chan_id2)
-                self.RX.set_channel_property(chan_id1, "prop2", chan_id1)
-                self.RX2.set_channel_property(chan_id2, "prop3", str(chan_id2))
-                self.RX.set_channel_property(chan_id1, "prop3", str(chan_id1))
+                rx1_alt_ch_ids.append(chan_id1)
+                rx2_alt_ch_ids.append(chan_id2)
+        self.RX.set_property("prop2", values=np.array(rx1_alt_ch_ids).astype(float), ids=rx1_alt_ch_ids)
+        self.RX2.set_property("prop2", values=np.array(rx2_alt_ch_ids).astype(float), ids=rx2_alt_ch_ids)
+
+        self.RX.set_property("prop3", [str(i) for i in rx1_alt_ch_ids], rx1_alt_ch_ids)
+        self.RX2.set_property("prop3", [str(i) for i in rx2_alt_ch_ids], rx2_alt_ch_ids)
 
     def test_append_same_properties(self):
         export_ecephys_to_nwb(
@@ -251,7 +210,9 @@ class TestWriteElectrodes(unittest.TestCase):
             io.write(self.nwbfile1)
         with NWBHDF5IO(str(self.path1), "r") as io:
             nwb = io.read()
-            assert all(nwb.electrodes.id.data[()] == np.array(self.RX.get_channel_ids() + self.RX2.get_channel_ids()))
+            assert all(
+                nwb.electrodes.id.data[()] == np.concatenate((self.RX.get_channel_ids(), self.RX2.get_channel_ids()))
+            )
             assert all([i in nwb.electrodes.colnames for i in ["prop1", "prop2", "prop3"]])
             for i, chan_id in enumerate(nwb.electrodes.id.data):
                 assert nwb.electrodes["prop1"][i] == "10Hz"
@@ -276,9 +237,8 @@ class TestWriteElectrodes(unittest.TestCase):
                 assert nwb.units["electrode_group"][no].name == "0"
 
     def test_different_channel_properties(self):
-        for chan_id in self.RX2.get_channel_ids():
-            self.RX2.clear_channel_property(chan_id, "prop2")
-            self.RX2.set_channel_property(chan_id, "prop_new", chan_id)
+        _ = self.RX2._properties.pop("prop2")
+        self.RX2.set_property("prop_new", self.RX2.get_channel_ids())
         export_ecephys_to_nwb(
             object_to_write=self.RX, nwbfile=self.nwbfile1, metadata=self.metadata_list[0], es_key="es1"
         )
@@ -322,7 +282,3 @@ class TestWriteElectrodes(unittest.TestCase):
                 else:
                     assert nwb.electrodes["group_name"][i] == "1"
                     assert nwb.electrodes["group"][i].description == "M1 description"
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -24,13 +24,11 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
     object_to_write: se.RecordingExtractor or se.SortingExtractor
     stub: bool
         whether to write a subset of recording extractor traces array as electrical series in nwbfile
-    stub_channels: list
-        channels to include when writing as stub
     """
 
-    def __init__(self, object_to_write, stub=False, stub_channels=None):
+    def __init__(self, object_to_write, stub=False):
         assert HAVE_SI013, "spikeextractors 0.13 version not installed"
-        BaseSINwbEphysWriter.__init__(self, object_to_write, stub=stub, stub_channels=stub_channels)
+        BaseSINwbEphysWriter.__init__(self, object_to_write, stub=stub)
         if isinstance(self.object_to_write, se.RecordingExtractor):
             self.recording = self.object_to_write
             if self.stub:
@@ -41,13 +39,8 @@ class SI013NwbEphysWriter(BaseSINwbEphysWriter):
                 self._make_sorting_stub()
 
     def _make_recording_stub(self):
-        if self.stub_channels is not None:
-            channel_stub = self.stub_channels
-        else:
-            num_channels = min(10, self.recording.get_num_channels())
-            channel_stub = self.recording.get_channel_ids()[:num_channels]
         frame_stub = min(100, self.recording.get_num_frames())
-        self.recording = se.SubRecordingExtractor(self.recording, channel_ids=channel_stub, end_frame=frame_stub)
+        self.recording = se.SubRecordingExtractor(self.recording, end_frame=frame_stub)
 
     def _make_sorting_stub(self):
         max_min_spike_time = max(

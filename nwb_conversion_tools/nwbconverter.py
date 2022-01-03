@@ -144,7 +144,6 @@ class NWBConverter:
         ) or nwbfile is None, (
             "Either pass a nwbfile_path location with save_to_file=True, or a nwbfile object, but not both!"
         )
-
         # Validate metadata
         if metadata is None:
             metadata = self.get_metadata()

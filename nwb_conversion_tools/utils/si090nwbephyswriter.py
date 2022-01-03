@@ -25,13 +25,11 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
     object_to_write: si.BaseRecording, si.BaseSorting, si.BaseEvent, si.WaveformExtractor
     stub: bool
         whether to write a subset of recording extractor traces array as electrical series in nwbfile
-    stub_channels: list
-        channels to include when writing as stub
     """
 
-    def __init__(self, object_to_write, stub=False, stub_channels=None):
+    def __init__(self, object_to_write, stub=False):
         assert HAVE_SI_090
-        BaseSINwbEphysWriter.__init__(self, object_to_write, stub=stub, stub_channels=stub_channels)
+        BaseSINwbEphysWriter.__init__(self, object_to_write, stub=stub)
         if isinstance(self.object_to_write, si.BaseRecording):
             self.recording = self.object_to_write
             if self.stub:
@@ -51,20 +49,14 @@ class SI090NwbEphysWriter(BaseSINwbEphysWriter):
                 self._make_recording_stub()
 
     def _make_recording_stub(self):
-        if self.stub_channels is not None:
-            channel_stub = self.stub_channels
-        else:
-            num_channels = min(10, self.recording.get_num_channels())
-            channel_stub = self.recording.get_channel_ids()[:num_channels]
         frame_stub = min(100, self.recording.get_num_frames())
-        self.recording = si.ChannelSliceRecording(self.recording, channel_ids=channel_stub)
         self.recording = si.FrameSliceRecording(self.recording, end_frame=frame_stub)
 
     def _make_sorting_stub(self):
         max_min_spike_time = max(
             [min(x) for y in self.sorting.get_unit_ids() for x in [self.sorting.get_unit_spike_train(y)] if any(x)]
         )
-        self.sorting = si.FrameSliceSorting(start_frame=0, end_frame=1.1 * max_min_spike_time)
+        self.sorting = si.FrameSliceSorting(self.sorting, start_frame=0, end_frame=1.1 * max_min_spike_time)
 
     @staticmethod
     def supported_types():
