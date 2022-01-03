@@ -19,6 +19,7 @@ jobs:
         run: |
           pip install -r requirements-full.txt
           pip install -e .
+          pip install --no-deps git+https://github.com/catalystneuro/hdmf.git@generic_data_chunk
           pip install pytest
       - name: Get ephy_testing_data current head hash
         id: ephys

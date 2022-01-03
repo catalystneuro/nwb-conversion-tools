@@ -23,6 +23,7 @@ jobs:
           NWB_CONVERSION_INSTALL_MODE: production
       run: |
         pip install -e .
+        pip install --no-deps git+https://github.com/catalystneuro/hdmf.git@generic_data_chunk
         pip install pytest
     - name: Run tests
       run: pytest tests/test_internals
