@@ -267,6 +267,12 @@ def add_icephys_recordings(
 
     # TODO - check and auto-create devices and electrodes, in case those items don't existe yet on nwbfile
 
+    # Check for offset of existing recordings
+    if getattr(nwbfile, "intracellular_recordings", None):
+        ri = max(nwbfile.intracellular_recordings["responses"].index)
+    else:
+        ri = -1
+
     # Check if nwb object already has sequential recordings
     if getattr(nwbfile, "icephys_sequential_recordings", None):
         offset_sequences = nwbfile.icephys_sequential_recordings.id.data[-1]
@@ -287,8 +293,12 @@ def add_icephys_recordings(
         for ei, electrode in enumerate(
             list(nwbfile.icephys_electrodes.values())[: len(neo_reader.header["signal_channels"]["units"])]
         ):
-            sampling_rate = neo_reader.get_signal_sampling_rate()
+            # Starting time is the signal starting time within .abf file + time relative to first session (first .abf file)
+            ri += 1
             starting_time = neo_reader.get_signal_t_start(block_index=0, seg_index=si)
+            starting_time = starting_time + metadata["Icephys"]["Recordings"][ri]["relative_session_start_time"]
+
+            sampling_rate = neo_reader.get_signal_sampling_rate()
             response_unit = neo_reader.header["signal_channels"]["units"][ei]
             response_gain = get_gain_from_unit(unit=response_unit)
             response_name = f"{icephys_experiment_type}_response_{si_o + simultaneous_recordings_offset}_ch_{ei}"
