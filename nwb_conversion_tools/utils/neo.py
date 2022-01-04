@@ -422,12 +422,8 @@ def add_all_to_nwbfile(
     if nwbfile is not None:
         assert isinstance(nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
 
-    add_devices(
-        nwbfile=nwbfile, 
-        data_type="Icephys", 
-        metadata=metadata
-    )
-    
+    add_devices(nwbfile=nwbfile, data_type="Icephys", metadata=metadata)
+
     add_icephys_electrode(
         neo_reader=neo_reader,
         nwbfile=nwbfile,
