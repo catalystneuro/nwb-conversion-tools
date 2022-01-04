@@ -5,10 +5,8 @@ import pytz
 from neo import AxonIO
 
 from ..base_interface_icephys_neo import BaseIcephysNeoInterface
-from ....utils.neo import (
-    get_number_of_electrodes,
-    get_number_of_segments
-)
+from ....utils.neo import get_number_of_electrodes, get_number_of_segments
+
 
 class AbfNeoDataInterface(BaseIcephysNeoInterface):
     """ABF DataInterface based on Neo AxonIO"""
@@ -59,20 +57,22 @@ class AbfNeoDataInterface(BaseIcephysNeoInterface):
 
             n_segments = get_number_of_segments(reader, block=0)
             n_electrodes = get_number_of_electrodes(reader)
-            
+
             # Loop through segments (sequential recordings table)
             for sg in range(n_segments):
                 # Loop through channels (simultaneous recordings table)
                 for el in range(n_electrodes):
-                    metadata["Icephys"]["Recordings"].append(dict(
-                        relative_session_start_time=relative_session_start_time,
-                        stimulus_type="",
-                        intracellular_recordings_table_id=i,
-                        simultaneous_recordings_table_id=ii,
-                        sequential_recordings_table_id=iii,
-                        # repetitions_table_id=0,
-                        # experimental_conditions_table_id=0
-                    ))
+                    metadata["Icephys"]["Recordings"].append(
+                        dict(
+                            relative_session_start_time=relative_session_start_time,
+                            stimulus_type="",
+                            intracellular_recordings_table_id=i,
+                            simultaneous_recordings_table_id=ii,
+                            sequential_recordings_table_id=iii,
+                            # repetitions_table_id=0,
+                            # experimental_conditions_table_id=0
+                        )
+                    )
                     i += 1
                 ii += 1
             iii += 1
