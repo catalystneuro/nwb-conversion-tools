@@ -32,14 +32,16 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
         source_schema = get_schema_from_method_signature(class_method=cls.__init__, exclude=[])
         return source_schema
 
-    def __init__(self, **source_data):
-        super().__init__(**source_data)
-        self.source_data = source_data
+    def __init__(self, files_paths: list):
+        super().__init__(files_paths=files_paths)
 
-        self.reader = self.neo_class(**source_data)
+        self.readers_list = list()
+        for f in files_paths:
+            self.readers_list.append(self.neo_class(filename=f))
+
         self.subset_channels = None
-        self.n_segments = get_number_of_segments(neo_reader=self.reader, block=0)
-        self.n_channels = get_number_of_electrodes(neo_reader=self.reader)
+        self.n_segments = get_number_of_segments(neo_reader=self.readers_list[0], block=0)
+        self.n_channels = get_number_of_electrodes(neo_reader=self.readers_list[0])
 
     def get_metadata_schema(self):
         """Compile metadata schema for the Neo interface"""
@@ -69,7 +71,7 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
             Device=[dict(name="Device_icephys", description="no description")],
             IntracellularElectrode=[
                 dict(name=f"electrode-{i}", description="no description", device="Device_icephys")
-                for i in range(get_number_of_electrodes(self.reader))
+                for i in range(get_number_of_electrodes(self.readers_list[0]))
             ],
         )
         return metadata
@@ -129,14 +131,15 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
 
             nwbfile.add_lab_meta_data(DandiIcephysMetadata(**metadata["ndx-dandi-icephys"]))
 
-        write_neo_to_nwb(
-            neo_reader=self.reader,
-            nwbfile=nwbfile,
-            metadata=metadata,
-            use_times=use_times,
-            write_as=write_as,
-            es_key=es_key,
-            save_path=save_path,
-            overwrite=overwrite,
-            icephys_experiment_type=icephys_experiment_type,
-        )
+        for i, reader in enumerate(self.readers_list):
+            write_neo_to_nwb(
+                neo_reader=reader,
+                nwbfile=nwbfile,
+                metadata=metadata,
+                use_times=use_times,
+                write_as=write_as,
+                es_key=es_key,
+                save_path=save_path,
+                overwrite=overwrite if i == 0 else False,
+                icephys_experiment_type=icephys_experiment_type,
+            )

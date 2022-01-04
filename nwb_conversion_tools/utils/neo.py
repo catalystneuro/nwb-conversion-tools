@@ -268,17 +268,17 @@ def add_icephys_recordings(
     # TODO - check and auto-create devices and electrodes, in case those items don't existe yet on nwbfile
 
     # Check if nwb object already has sequential recordings
-    if hasattr(nwbfile, "icephys_sequential_recordings"):
+    if getattr(nwbfile, "icephys_sequential_recordings", None):
         offset_sequences = nwbfile.icephys_sequential_recordings.id.data[-1]
     else:
         offset_sequences = 0
 
     # Loop through segments - sequential icephys recordings
     simultaneous_recordings = list()
-    if nwbfile.icephys_simultaneous_recordings is None:
-        simultaneous_recordings_offset = 0
-    else:
+    if getattr(nwbfile, "icephys_simultaneous_recordings", None):
         simultaneous_recordings_offset = len(nwbfile.icephys_simultaneous_recordings)
+    else:
+        simultaneous_recordings_offset = 0
 
     for si in range(n_segments):
         si_o = offset_sequences + si + 1
@@ -339,7 +339,7 @@ def add_icephys_recordings(
         ]
     )
 
-    # (E) Add a list of repetition table indices as a experimental condition
+    # Add a list of repetition table indices as a experimental condition
     nwbfile.add_icephys_experimental_condition(
         repetitions=[
             run_index,
@@ -412,12 +412,18 @@ def add_all_to_nwbfile(
     if nwbfile is not None:
         assert isinstance(nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
 
-    add_devices(nwbfile=nwbfile, data_type="Icephys", metadata=metadata)
+    add_devices(
+        nwbfile=nwbfile, 
+        data_type="Icephys", 
+        metadata=metadata
+    )
+    
     add_icephys_electrode(
         neo_reader=neo_reader,
         nwbfile=nwbfile,
         metadata=metadata,
     )
+
     add_icephys_recordings(
         neo_reader=neo_reader,
         nwbfile=nwbfile,
