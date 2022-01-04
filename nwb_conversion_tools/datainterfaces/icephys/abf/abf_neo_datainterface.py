@@ -16,10 +16,7 @@ class AbfNeoDataInterface(BaseIcephysNeoInterface):
         """Compile input schema for the Neo class"""
         source_schema = super().get_source_schema()
         source_schema["properties"]["files_paths"] = dict(
-            type="array",
-            minItems=1,
-            items={"type": "string"},
-            description="Array of paths to ABF files."
+            type="array", minItems=1, items={"type": "string"}, description="Array of paths to ABF files."
         )
         return source_schema
 
