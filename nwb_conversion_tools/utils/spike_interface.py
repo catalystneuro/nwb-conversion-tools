@@ -11,13 +11,14 @@ from warnings import warn
 from collections import defaultdict
 
 import pynwb
-from spikeinterface import (
+from spikeinterface.core import (
     BaseRecording,
     BaseSorting,
     WaveformExtractor,
     create_recording_from_old_extractor,
-    create_sorting_from_old_extractor,
+    create_sorting_from_old_extractor
 )
+
 from spikeextractors import RecordingExtractor, SortingExtractor
 from numbers import Real
 from hdmf.data_utils import DataChunkIterator

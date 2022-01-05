@@ -10,7 +10,7 @@ from spikeinterface.core.testing import (
     check_sortings_equal,
     check_recordings_equal
 )
-from spikeinterface import create_recording_from_old_extractor, create_sorting_from_old_extractor
+from spikeinterface.core import create_recording_from_old_extractor, create_sorting_from_old_extractor
 from spikeinterface.extractors import read_nwb_recording, read_nwb_sorting
 from pynwb import NWBHDF5IO, NWBFile
 
