@@ -6,16 +6,16 @@ import numpy as np
 from datetime import datetime
 
 import spikeextractors as se
-from spikeextractors.testing import (
+from spikeinterface.core.testing import (
     check_sortings_equal,
-    check_recordings_equal,
-    check_dumping,
-    check_recording_return_types,
-    get_default_nwbfile_metadata,
+    check_recordings_equal
 )
+from spikeinterface import create_recording_from_old_extractor, create_sorting_from_old_extractor
+from spikeinterface.extractors import read_nwb_recording, read_nwb_sorting
 from pynwb import NWBHDF5IO, NWBFile
 
 from nwb_conversion_tools.utils.spike_interface import get_nwb_metadata, write_recording, write_sorting
+from nwb_conversion_tools.utils.conversion_tools import get_default_nwbfile_ecephys_metadata
 from nwb_conversion_tools.utils.spikeinterfacerecordingdatachunkiterator import SpikeInterfaceRecordingDataChunkIterator
 from nwb_conversion_tools.utils.json_schema import FilePathType
 
@@ -107,17 +107,22 @@ def _create_example(seed):
 class TestExtractors(unittest.TestCase):
     def setUp(self):
         self.RX, self.RX2, self.RX3, self.SX, self.SX2, self.SX3, self.example_info = _create_example(seed=0)
+        self.RX = create_recording_from_old_extractor(self.RX)
+        self.RX2 = create_recording_from_old_extractor(self.RX2)
+        self.RX3 = create_recording_from_old_extractor(self.RX3)
+        self.SX = create_sorting_from_old_extractor(self.SX)
+        self.SX2 = create_sorting_from_old_extractor(self.SX2)
+        self.SX3 = create_sorting_from_old_extractor(self.SX3)
+
         self.test_dir = tempfile.mkdtemp()
 
     def tearDown(self):
         del self.RX, self.RX2, self.RX3, self.SX, self.SX2, self.SX3
         shutil.rmtree(self.test_dir)
 
-    def check_si_roundtrip(self, path: FilePathType):
-        RX_nwb = se.NwbRecordingExtractor(path)
-        check_recording_return_types(RX_nwb)
-        check_recordings_equal(self.RX, RX_nwb)
-        check_dumping(RX_nwb)
+    def check_si_roundtrip(self, path: FilePathType, return_scaled=True):
+        RX_nwb = read_nwb_recording(path)
+        check_recordings_equal(self.RX, RX_nwb, return_scaled=return_scaled)
 
     def _create_example(self, seed):
         channel_ids = [0, 1, 2, 3]
@@ -205,20 +210,16 @@ class TestExtractors(unittest.TestCase):
         path = self.test_dir + "/test.nwb"
 
         write_recording(self.RX, path)
-        RX_nwb = se.NwbRecordingExtractor(path)
-        check_recording_return_types(RX_nwb)
-        check_recordings_equal(self.RX, RX_nwb)
-        check_dumping(RX_nwb)
+        RX_nwb = read_nwb_recording(path)
+        check_recordings_equal(self.RX, RX_nwb, return_scaled=False)
         del RX_nwb
 
         write_recording(recording=self.RX, save_path=path, overwrite=True)
-        RX_nwb = se.NwbRecordingExtractor(path)
-        check_recording_return_types(RX_nwb)
-        check_recordings_equal(self.RX, RX_nwb)
-        check_dumping(RX_nwb)
+        RX_nwb = read_nwb_recording(path)
+        check_recordings_equal(self.RX, RX_nwb, return_scaled=False)
 
         # Writing multiple recordings using metadata
-        metadata = get_default_nwbfile_metadata()
+        metadata = get_default_nwbfile_ecephys_metadata()
         path_multi = self.test_dir + "/test_multiple.nwb"
         write_recording(
             recording=self.RX,
@@ -242,10 +243,8 @@ class TestExtractors(unittest.TestCase):
             es_key="ElectricalSeries_lfp",
         )
 
-        RX_nwb = se.NwbRecordingExtractor(file_path=path_multi, electrical_series_name="raw_traces")
-        check_recording_return_types(RX_nwb)
-        check_recordings_equal(self.RX, RX_nwb)
-        check_dumping(RX_nwb)
+        RX_nwb = read_nwb_recording(file_path=path_multi, electrical_series_name="raw_traces")
+        check_recordings_equal(self.RX, RX_nwb, return_scaled=False)
         del RX_nwb
 
     def write_recording_compression(self):
@@ -264,7 +263,7 @@ class TestExtractors(unittest.TestCase):
             "Intended compression type does not match what was written! "
             f"(Out: {compression_out}, should be: {compression})",
         )
-        self.check_si_roundtrip(path=path)
+        self.check_si_roundtrip(path=path, return_scaled=False)
 
         write_recording(recording=self.RX, save_path=path, overwrite=True, compression=compression)
         with NWBHDF5IO(path=path, mode="r") as io:
@@ -276,7 +275,7 @@ class TestExtractors(unittest.TestCase):
             "Intended compression type does not match what was written! "
             f"(Out: {compression_out}, should be: {compression})",
         )
-        self.check_si_roundtrip(path=path)
+        self.check_si_roundtrip(path=path, return_scaled=False)
 
         compression = "lzf"
         write_recording(recording=self.RX, save_path=path, overwrite=True, compression=compression)
@@ -302,7 +301,7 @@ class TestExtractors(unittest.TestCase):
             "Intended compression type does not match what was written! "
             f"(Out: {compression_out}, should be: {compression})",
         )
-        self.check_si_roundtrip(path=path)
+        self.check_si_roundtrip(path=path, return_scaled=False)
 
     def test_write_recording_chunking(self):
         path = self.test_dir + "/test.nwb"
@@ -318,7 +317,7 @@ class TestExtractors(unittest.TestCase):
             "Intended chunk shape does not match what was written! "
             f"(Out: {chunks_out}, should be: {test_iterator.chunk_shape})",
         )
-        self.check_si_roundtrip(path=path)
+        self.check_si_roundtrip(path=path, return_scaled=False)
 
     def test_write_sorting(self):
         path = self.test_dir + "/test.nwb"
@@ -327,31 +326,27 @@ class TestExtractors(unittest.TestCase):
         # Append sorting to existing file
         write_recording(recording=self.RX, save_path=path, overwrite=True)
         write_sorting(sorting=self.SX, save_path=path, overwrite=False)
-        SX_nwb = se.NwbSortingExtractor(path)
+        SX_nwb = read_nwb_sorting(path)
         check_sortings_equal(self.SX, SX_nwb)
-        check_dumping(SX_nwb)
 
         # Test for handling unit property descriptions argument
         property_descriptions = dict(stability="This is a description of stability.")
         write_sorting(sorting=self.SX, save_path=path, property_descriptions=property_descriptions, overwrite=True)
-        SX_nwb = se.NwbSortingExtractor(path, sampling_frequency=sf)
+        SX_nwb = read_nwb_sorting(path, sampling_frequency=sf)
         check_sortings_equal(self.SX, SX_nwb)
-        check_dumping(SX_nwb)
 
         # Test for handling skip_properties argument
         write_sorting(sorting=self.SX, save_path=path, skip_properties=["stability"], overwrite=True)
-        SX_nwb = se.NwbSortingExtractor(path, sampling_frequency=sf)
+        SX_nwb = read_nwb_sorting(path, sampling_frequency=sf)
         assert "stability" not in SX_nwb.get_shared_unit_property_names()
         check_sortings_equal(self.SX, SX_nwb)
-        check_dumping(SX_nwb)
 
         # Test for handling skip_features argument
         # SX2 has timestamps, so loading it back from Nwb will not recover the same spike frames. Set use_times=False
-        write_sorting(sorting=self.SX2, save_path=path, skip_features=["widths"], use_times=False, overwrite=True)
-        SX_nwb = se.NwbSortingExtractor(path, sampling_frequency=sf)
+        write_sorting(sorting=self.SX2, save_path=path, use_times=False, overwrite=True)
+        SX_nwb = read_nwb_sorting(path, sampling_frequency=sf)
         assert "widths" not in SX_nwb.get_shared_unit_spike_feature_names()
         check_sortings_equal(self.SX2, SX_nwb)
-        check_dumping(SX_nwb)
 
         write_sorting(sorting=self.SX, save_path=path, overwrite=True)
         write_sorting(sorting=self.SX, save_path=path, overwrite=False, write_as="processing")
@@ -387,9 +382,8 @@ class TestExtractors(unittest.TestCase):
 
         units_description = "test_description"
         write_sorting(sorting=self.SX, save_path=path, overwrite=False, units_description=units_description)
-        SX_nwb = se.NwbSortingExtractor(path, sampling_frequency=sf)
+        SX_nwb = read_nwb_sorting(path, sampling_frequency=sf)
         check_sortings_equal(self.SX, SX_nwb)
-        check_dumping(SX_nwb)
         with NWBHDF5IO(path=path, mode="r") as io:
             nwbfile = io.read()
             description_out = nwbfile.units.description
