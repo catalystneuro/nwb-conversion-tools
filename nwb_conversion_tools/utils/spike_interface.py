@@ -16,7 +16,7 @@ from spikeinterface.core import (
     BaseSorting,
     WaveformExtractor,
     create_recording_from_old_extractor,
-    create_sorting_from_old_extractor
+    create_sorting_from_old_extractor,
 )
 
 from spikeextractors import RecordingExtractor, SortingExtractor
