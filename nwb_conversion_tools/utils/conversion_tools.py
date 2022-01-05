@@ -54,29 +54,15 @@ def get_default_nwbfile_ecephys_metadata():
     """
     metadata = dict(
         NWBFile=dict(
-            session_description="no description",
-            session_start_time=datetime(1970, 1, 1),
-            identifier=str(uuid.uuid4())
+            session_description="no description", session_start_time=datetime(1970, 1, 1), identifier=str(uuid.uuid4())
         ),
         Ecephys=dict(
-            Device=[dict(
-                name='Device_ecephys',
-                description='no description'
-            )],
+            Device=[dict(name="Device_ecephys", description="no description")],
             ElectrodeGroup=[],
-            ElectricalSeries_raw=dict(
-                name='raw_traces',
-                description='those are the raw traces'
-            ),
-            ElectricalSeries_processed=dict(
-                name='processed_traces',
-                description='those are the processed traces'
-            ),
-            ElectricalSeries_lfp=dict(
-                name='lfp_traces',
-                description='those are the lfp traces'
-            )
-        )
+            ElectricalSeries_raw=dict(name="raw_traces", description="those are the raw traces"),
+            ElectricalSeries_processed=dict(name="processed_traces", description="those are the processed traces"),
+            ElectricalSeries_lfp=dict(name="lfp_traces", description="those are the lfp traces"),
+        ),
     )
     return metadata
 
