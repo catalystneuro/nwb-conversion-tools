@@ -141,5 +141,5 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
                 es_key=es_key,
                 save_path=save_path,
                 overwrite=overwrite if i == 0 else False,
-                icephys_experiment_type=icephys_experiment_type,
+                icephys_experiment_type=metadata["Icephys"]["Recordings"][i]["icephys_experiment_type"],
             )

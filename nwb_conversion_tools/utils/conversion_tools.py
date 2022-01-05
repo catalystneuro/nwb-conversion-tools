@@ -58,14 +58,18 @@ def make_nwbfile_from_metadata(metadata: dict):
     """Make NWBFile from available metadata."""
     metadata = dict_deep_update(get_default_nwbfile_metadata(), metadata)
     nwbfile_kwargs = metadata["NWBFile"]
+
+    # convert ISO 8601 string to datetime
+    if isinstance(nwbfile_kwargs.get("session_start_time", None), str):
+        nwbfile_kwargs["session_start_time"] = datetime.fromisoformat(metadata["NWBFile"]["session_start_time"])
+
+    # Create Subject
     if "Subject" in metadata:
         # convert ISO 8601 string to datetime
         if "date_of_birth" in metadata["Subject"] and isinstance(metadata["Subject"]["date_of_birth"], str):
             metadata["Subject"]["date_of_birth"] = datetime.fromisoformat(metadata["Subject"]["date_of_birth"])
         nwbfile_kwargs.update(subject=Subject(**metadata["Subject"]))
-    # convert ISO 8601 string to datetime
-    if isinstance(nwbfile_kwargs.get("session_start_time", None), str):
-        nwbfile_kwargs["session_start_time"] = datetime.fromisoformat(metadata["NWBFile"]["session_start_time"])
+
     return NWBFile(**nwbfile_kwargs)
 
 
