@@ -10,8 +10,7 @@ from pynwb.file import Subject
 
 from .json_schema import dict_deep_update
 
-DynamicTableSupportedDtypes = {
-    list: [], np.ndarray: np.array(np.nan), str: "", Real: np.nan}
+DynamicTableSupportedDtypes = {list: [], np.ndarray: np.array(np.nan), str: "", Real: np.nan}
 
 
 def get_module(nwbfile: NWBFile, name: str, description: str = None):
@@ -110,10 +109,8 @@ def reshape_dynamictable(dt, prop_dict, defaults):
     for colname in dt.colnames:
         if colname not in defaults:
             samp_data = dt[colname].data[0]
-            default_datatype = [proptype for proptype in property_default_data if isinstance(
-                samp_data, proptype)][0]
-            defaults_updated.update(
-                {colname: property_default_data[default_datatype]})
+            default_datatype = [proptype for proptype in property_default_data if isinstance(samp_data, proptype)][0]
+            defaults_updated.update({colname: property_default_data[default_datatype]})
     # for all columns that are new for the given RX, they will
     for name, des_dict in prop_dict.items():
         des_args = dict(des_dict)
@@ -122,6 +119,5 @@ def reshape_dynamictable(dt, prop_dict, defaults):
             default_datatype_list = [
                 proptype for proptype in property_default_data if isinstance(des_dict["data"][0], proptype)
             ][0]
-            des_args["data"] = [
-                property_default_data[default_datatype_list]] * len(dt.id)
+            des_args["data"] = [property_default_data[default_datatype_list]] * len(dt.id)
             dt.add_column(name, **des_args)

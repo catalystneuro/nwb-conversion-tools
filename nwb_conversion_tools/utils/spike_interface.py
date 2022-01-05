@@ -11,8 +11,13 @@ from warnings import warn
 from collections import defaultdict
 
 import pynwb
-from spikeinterface import BaseRecording, BaseSorting, WaveformExtractor, \
-    create_recording_from_old_extractor, create_sorting_from_old_extractor
+from spikeinterface import (
+    BaseRecording,
+    BaseSorting,
+    WaveformExtractor,
+    create_recording_from_old_extractor,
+    create_sorting_from_old_extractor,
+)
 from spikeextractors import RecordingExtractor, SortingExtractor
 from numbers import Real
 from hdmf.data_utils import DataChunkIterator
@@ -28,7 +33,7 @@ SpikeInterfaceSorting = Union[BaseSorting, SortingExtractor]
 
 default_unit_property_descriptions = dict(
     isi_violation="Quality metric that measures the ISI violation ratio as a proxy for the purity of the unit.",
-    firing_rate="Number of spikes per unit of time.", # keep this for bakcward compatibility
+    firing_rate="Number of spikes per unit of time.",  # keep this for bakcward compatibility
     template="The extracellular average waveform.",
     max_channel="The recording channel id with the largest amplitude.",
     halfwidth="The full-width half maximum of the negative peak computed on the maximum channel.",
@@ -90,8 +95,7 @@ def get_nwb_metadata(recording: SpikeInterfaceRecording, metadata: dict = None):
         metadata info for constructing the nwb file (optional).
     """
     if isinstance(recording, RecordingExtractor):
-        recording = create_recording_from_old_extractor(
-            oldapi_recording_extractor=recording)
+        recording = create_recording_from_old_extractor(oldapi_recording_extractor=recording)
 
     metadata = dict(
         NWBFile=dict(
@@ -136,8 +140,7 @@ def add_devices(recording: SpikeInterfaceRecording, nwbfile=None, metadata: dict
         Missing keys in an element of metadata['Ecephys']['Device'] will be auto-populated with defaults.
     """
     if isinstance(recording, RecordingExtractor):
-        recording = create_recording_from_old_extractor(
-            oldapi_recording_extractor=recording)
+        recording = create_recording_from_old_extractor(oldapi_recording_extractor=recording)
     if nwbfile is not None:
         assert isinstance(nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
 
@@ -188,8 +191,7 @@ def add_electrode_groups(recording: SpikeInterfaceRecording, nwbfile=None, metad
         but will only use default description and location.
     """
     if isinstance(recording, RecordingExtractor):
-        recording = create_recording_from_old_extractor(
-            oldapi_recording_extractor=recording)
+        recording = create_recording_from_old_extractor(oldapi_recording_extractor=recording)
     if nwbfile is not None:
         assert isinstance(nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
 
@@ -288,8 +290,7 @@ def add_electrodes(recording: SpikeInterfaceRecording, nwbfile=None, metadata: d
         object to ignore when writing to the NWBFile.
     """
     if isinstance(recording, RecordingExtractor):
-        recording = create_recording_from_old_extractor(
-            oldapi_recording_extractor=recording)
+        recording = create_recording_from_old_extractor(oldapi_recording_extractor=recording)
     if nwbfile.electrodes is not None:
         ids_absent = [id not in nwbfile.electrodes.id for id in recording.get_channel_ids()]
         if not all(ids_absent):
@@ -356,8 +357,7 @@ def add_electrodes(recording: SpikeInterfaceRecording, nwbfile=None, metadata: d
             if prop == "location":
                 location_map = ["rel_x", "rel_y", "rel_z"]
                 for prop_name_new, loc in zip(location_map, range(data.shape[1])):
-                    elec_columns[prop_name_new].update(
-                        description=prop_name_new, data=data[:, loc], index=False)
+                    elec_columns[prop_name_new].update(description=prop_name_new, data=data[:, loc], index=False)
             else:
                 if prop == "brain_area":
                     prop = "location"
@@ -367,8 +367,7 @@ def add_electrodes(recording: SpikeInterfaceRecording, nwbfile=None, metadata: d
                     else:
                         continue
                 index = isinstance(data[0], (list, np.ndarray))
-                elec_columns[prop].update(
-                    description=prop, data=data, index=index)
+                elec_columns[prop].update(description=prop, data=data, index=index)
 
     # 2. fill with provided custom descriptions
     for x in metadata["Ecephys"]["Electrodes"]:
@@ -389,8 +388,7 @@ def add_electrodes(recording: SpikeInterfaceRecording, nwbfile=None, metadata: d
                     # this should always be present as an electrode column, electrode_groups with that group name
                     # also should be present and created on the call to create_electrode_groups()
                     group_name = str(desc["data"][j])
-                    electrode_kwargs.update(
-                        dict(group=nwbfile.electrode_groups[group_name], group_name=group_name))
+                    electrode_kwargs.update(dict(group=nwbfile.electrode_groups[group_name], group_name=group_name))
                 else:
                     electrode_kwargs[name] = desc["data"][j]
             nwbfile.add_electrode(**electrode_kwargs)
@@ -460,8 +458,7 @@ def add_electrical_series(
     whenever possible.
     """
     if isinstance(recording, RecordingExtractor):
-        recording = create_recording_from_old_extractor(
-            oldapi_recording_extractor=recording)
+        recording = create_recording_from_old_extractor(oldapi_recording_extractor=recording)
     if nwbfile is not None:
         assert isinstance(nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile!"
     assert compression is None or compression in [
@@ -590,8 +587,8 @@ def add_electrical_series(
     eseries_kwargs.update(data=H5DataIO(data=ephys_data, compression=compression, compression_opts=compression_opts))
     if not use_times:
         eseries_kwargs.update(
-            starting_time=float(recording.get_times(segment_index=segment_index)[0]), 
-            rate=float(recording.get_sampling_frequency())
+            starting_time=float(recording.get_times(segment_index=segment_index)[0]),
+            rate=float(recording.get_sampling_frequency()),
         )
     else:
         eseries_kwargs.update(
@@ -673,8 +670,7 @@ def add_all_to_nwbfile(
         If manual specification of buffer_shape and chunk_shape are desired, these may be specified as well.
     """
     if isinstance(recording, RecordingExtractor):
-        recording = create_recording_from_old_extractor(
-            oldapi_recording_extractor=recording)
+        recording = create_recording_from_old_extractor(oldapi_recording_extractor=recording)
     if nwbfile is not None:
         assert isinstance(nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
 
@@ -803,8 +799,7 @@ def write_recording(
         If manual specification of buffer_shape and chunk_shape are desired, these may be specified as well.
     """
     if isinstance(recording, RecordingExtractor):
-        recording = create_recording_from_old_extractor(
-            oldapi_recording_extractor=recording)
+        recording = create_recording_from_old_extractor(oldapi_recording_extractor=recording)
     if nwbfile is not None:
         assert isinstance(nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
 
@@ -931,8 +926,7 @@ def add_units(
         Text description of the sorting table; recommended to included parameters of sorting method, curation, etc.
     """
     if isinstance(sorting, SortingExtractor):
-        sorting = create_sorting_from_old_extractor(
-            oldapi_sorting_extractor=sorting)
+        sorting = create_sorting_from_old_extractor(oldapi_sorting_extractor=sorting)
     unit_ids = sorting.get_unit_ids()
     fs = sorting.get_sampling_frequency()
     if fs is None:
@@ -947,8 +941,7 @@ def add_units(
     if property_descriptions is None:
         property_descriptions = dict(default_unit_property_descriptions)
     else:
-        property_descriptions = dict(
-            default_unit_property_descriptions, **property_descriptions)
+        property_descriptions = dict(default_unit_property_descriptions, **property_descriptions)
     if skip_properties is None:
         skip_properties = []
 
@@ -978,8 +971,7 @@ def add_units(
             )
             if prop in ["max_channel", "max_electrode"]:
                 if nwbfile.electrodes is None:
-                    warnings.warn(
-                        "first link a RX to the nwb file to create correct electrodes")
+                    warnings.warn("first link a RX to the nwb file to create correct electrodes")
                     continue
                 assert set(data).issubset(
                     set(nwbfile.electrodes.id.data)
@@ -989,13 +981,11 @@ def add_units(
     # 2. fill with provided custom descriptions
     for x in metadata["units"]:
         if x["name"] not in list(unit_columns):
-            raise ValueError(
-                f'"{x["name"]}" not a property of sorting object, set it first and rerun')
+            raise ValueError(f'"{x["name"]}" not a property of sorting object, set it first and rerun')
         unit_columns[x["name"]]["description"] = x["description"]
 
     # 3. For existing electrodes table, add the additional columns and fill with default data:
-    add_properties_to_dynamictable(
-        nwbfile, "units", unit_columns, defaults)
+    add_properties_to_dynamictable(nwbfile, "units", unit_columns, defaults)
 
     # 4. Add info to units table:
     for j, unit_id in enumerate(unit_ids):
@@ -1005,8 +995,10 @@ def add_units(
             if use_times:
                 raise NotImplementedError("'use_times' for sorting objects is not implemented yet")
             else:
-                spkt = sorting.get_unit_spike_train(
-                    unit_id, segment_index=segment_index) / sorting.get_sampling_frequency()
+                spkt = (
+                    sorting.get_unit_spike_train(unit_id, segment_index=segment_index)
+                    / sorting.get_sampling_frequency()
+                )
             unit_kwargs.update(spike_times=spkt, id=unit_id)
             for name, desc in unit_columns.items():
                 if "electrode_group" in name:
@@ -1083,8 +1075,7 @@ def write_sorting(
         Text description of the sorting table; recommended to included parameters of sorting method, curation, etc.
     """
     if isinstance(sorting, SortingExtractor):
-        sorting = create_sorting_from_old_extractor(
-            oldapi_sorting_extractor=sorting)
+        sorting = create_sorting_from_old_extractor(oldapi_sorting_extractor=sorting)
     assert save_path is None or nwbfile is None, "Either pass a save_path location, or nwbfile object, but not both!"
     if nwbfile is not None:
         assert isinstance(nwbfile, pynwb.NWBFile), "'nwbfile' should be a pynwb.NWBFile object!"
@@ -1137,20 +1128,14 @@ def write_sorting(
         )
 
 
-def add_unit_waveforms(
-    waveforms:  WaveformExtractor,
-    nwbfile: pynwb.NWBFile,
-    segment_index: int = 0,
-    metadata=dict()
-):
+def add_unit_waveforms(waveforms: WaveformExtractor, nwbfile: pynwb.NWBFile, segment_index: int = 0, metadata=dict()):
     units = nwbfile.units
     waveform_metrics = {"average": "mean", "std": "sd"}
     for mode in waveform_metrics:
         # construct wavforms for all units:
         templates_all = []
         for id in units.id.data:
-            templates_all.append(
-                waveforms.get_template_segment(unit_id=id, mode=mode, segment_index=segment_index))
+            templates_all.append(waveforms.get_template_segment(unit_id=id, mode=mode, segment_index=segment_index))
         set_dynamic_table_property(
             dynamic_table=units,
             row_ids=[int(unit_id) for unit_id in units.id.data],
