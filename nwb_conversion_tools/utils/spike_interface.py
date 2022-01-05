@@ -985,7 +985,7 @@ def add_units(
         unit_columns[x["name"]]["description"] = x["description"]
 
     # 3. For existing electrodes table, add the additional columns and fill with default data:
-    add_properties_to_dynamictable(nwbfile, "units", unit_columns, defaults)
+    add_properties_to_dynamictable(nwbfile, "units", unit_columns, defaults, table=units_table)
 
     # 4. Add info to units table:
     for j, unit_id in enumerate(unit_ids):

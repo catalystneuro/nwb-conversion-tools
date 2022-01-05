@@ -70,13 +70,19 @@ def check_regular_timestamps(ts):
     return len(uniq_diff_ts) == 1
 
 
-def add_properties_to_dynamictable(nwbfile, dt_name, prop_dict, defaults):
+def add_properties_to_dynamictable(nwbfile, dt_name, prop_dict, defaults, table=None):
     if dt_name == "electrodes":
         add_method = nwbfile.add_electrode_column
-        dt = nwbfile.electrodes
+        if table is None:
+            dt = nwbfile.electrodes
+        else:
+            dt = table
     else:
         add_method = nwbfile.add_unit_column
-        dt = nwbfile.units
+        if table is None:
+            dt = nwbfile.units
+        else:
+            dt = table
 
     if dt is None:
         for prop_name, prop_args in prop_dict.items():
