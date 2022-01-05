@@ -3,11 +3,15 @@ import numpy as np
 import uuid
 from datetime import datetime
 from warnings import warn
+from numbers import Real
 
 from pynwb import NWBFile
 from pynwb.file import Subject
 
 from .json_schema import dict_deep_update
+
+DynamicTableSupportedDtypes = {
+    list: [], np.ndarray: np.array(np.nan), str: "", Real: np.nan}
 
 
 def get_module(nwbfile: NWBFile, name: str, description: str = None):
@@ -65,3 +69,59 @@ def check_regular_timestamps(ts):
     time_tol_decimals = 9
     uniq_diff_ts = np.unique(np.diff(ts).round(decimals=time_tol_decimals))
     return len(uniq_diff_ts) == 1
+
+
+def add_properties_to_dynamictable(nwbfile, dt_name, prop_dict, defaults):
+    if dt_name == "electrodes":
+        add_method = nwbfile.add_electrode_column
+        dt = nwbfile.electrodes
+    else:
+        add_method = nwbfile.add_unit_column
+        dt = nwbfile.units
+
+    if dt is None:
+        for prop_name, prop_args in prop_dict.items():
+            if prop_name not in defaults:
+                add_dict = dict(prop_args)
+                _ = add_dict.pop("data")
+                add_method(prop_name, **add_dict)
+    else:
+        reshape_dynamictable(dt, prop_dict, defaults)
+
+
+def reshape_dynamictable(dt, prop_dict, defaults):
+    """
+    Prepares an already existing dynamic table to take custom properties using the add_functions.
+    Parameters
+    ----------
+    dt: DynamicTable
+    prop_dict: dict
+        dict(name=dict(description='',data='', index=bool)
+    defaults: dict
+        default row values for dt columns
+    Returns
+    -------
+    default_updated: dict
+    """
+    defaults_updated = defaults
+    if dt is None:
+        return
+    property_default_data = DynamicTableSupportedDtypes
+    for colname in dt.colnames:
+        if colname not in defaults:
+            samp_data = dt[colname].data[0]
+            default_datatype = [proptype for proptype in property_default_data if isinstance(
+                samp_data, proptype)][0]
+            defaults_updated.update(
+                {colname: property_default_data[default_datatype]})
+    # for all columns that are new for the given RX, they will
+    for name, des_dict in prop_dict.items():
+        des_args = dict(des_dict)
+        if name not in defaults_updated:
+            # build default junk values for data and add that as column directly later:
+            default_datatype_list = [
+                proptype for proptype in property_default_data if isinstance(des_dict["data"][0], proptype)
+            ][0]
+            des_args["data"] = [
+                property_default_data[default_datatype_list]] * len(dt.id)
+            dt.add_column(name, **des_args)
