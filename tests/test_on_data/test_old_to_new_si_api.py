@@ -37,7 +37,7 @@ class TestNwbConversions(TestCase):
         new_recording = create_recording_from_old_extractor(oldapi_recording_extractor=interface.recording_extractor)
         new_properties = new_recording.get_property_keys()
         for member in set(initial_properties).union(["location", "gain_to_uV"]) - set(["gain", "offset"]):
-            self.assertEqual(member=member, container=new_properties)
+            self.assertIn(member=member, container=new_properties)
 
     def test_spikeglx_lfp_init_old_to_new_class(self):
         interface = SpikeGLXLFPInterface(
