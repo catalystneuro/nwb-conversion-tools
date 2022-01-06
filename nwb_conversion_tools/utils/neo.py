@@ -229,7 +229,7 @@ def add_icephys_recordings(
     nwbfile=None,
     metadata: dict = None,
     icephys_experiment_type: Optional[str] = None,
-    stimulus_type="unknown",
+    stimulus_type: Optional[str] = None,
 ):
     """
     Adds icephys recordings (stimulus/response pairs) to nwbfile object.
@@ -249,6 +249,9 @@ def add_icephys_recordings(
 
     if icephys_experiment_type is None:
         icephys_experiment_type = "voltage_clamp"
+
+    if stimulus_type is None:
+        stimulus_type = "not described"
 
     n_commands = len(protocol[0])
     if n_commands == 0:
@@ -273,13 +276,23 @@ def add_icephys_recordings(
     else:
         ri = -1
 
-    # Loop through segments - sequential icephys recordings
-    simultaneous_recordings = list()
+    # Check for offset of existing segments
     if getattr(nwbfile, "icephys_simultaneous_recordings", None):
         simultaneous_recordings_offset = len(nwbfile.icephys_simultaneous_recordings)
     else:
         simultaneous_recordings_offset = 0
 
+    # Check for offset of existing sessions
+    if getattr(nwbfile, "icephys_sequential_recordings", None):
+        sessions_offset = len(nwbfile.icephys_sequential_recordings)
+    else:
+        sessions_offset = 0
+    
+    relative_session_start_time = metadata["Icephys"]["Sessions"][sessions_offset]["relative_session_start_time"]
+    session_stimulus_type = metadata["Icephys"]["Sessions"][sessions_offset]["stimulus_type"]
+
+    # Loop through segments - sequential icephys recordings
+    simultaneous_recordings = list()
     for si in range(n_segments):
         # Loop through electrodes - parallel icephys recordings
         recordings = list()
@@ -289,7 +302,7 @@ def add_icephys_recordings(
             # Starting time is the signal starting time within .abf file + time relative to first session (first .abf file)
             ri += 1
             starting_time = neo_reader.get_signal_t_start(block_index=0, seg_index=si)
-            starting_time = starting_time + metadata["Icephys"]["Recordings"][ri]["relative_session_start_time"]
+            starting_time = starting_time + relative_session_start_time
 
             sampling_rate = neo_reader.get_signal_sampling_rate()
             response_unit = neo_reader.header["signal_channels"]["units"][ei]
@@ -298,6 +311,7 @@ def add_icephys_recordings(
 
             response = response_classes[icephys_experiment_type](
                 name=response_name,
+                description=f"Response to: {session_stimulus_type}",
                 electrode=electrode,
                 data=neo_reader.get_analogsignal_chunk(block_index=0, seg_index=si, channel_indexes=ei),
                 starting_time=starting_time,
@@ -310,6 +324,7 @@ def add_icephys_recordings(
                 stim_gain = get_gain_from_unit(unit=stim_unit)
                 stimulus = stim_classes[icephys_experiment_type](
                     name=f"stimulus-{si + 1 + simultaneous_recordings_offset}-ch-{ei}",
+                    description=f"Stim type: {session_stimulus_type}",
                     electrode=electrode,
                     data=protocol[0][si][ei],
                     rate=sampling_rate,
@@ -335,19 +350,20 @@ def add_icephys_recordings(
         simultaneous_recordings=simultaneous_recordings, stimulus_type=stimulus_type
     )
 
-    # Add a list of sequential recordings table indices as a repetition
-    run_index = nwbfile.add_icephys_repetition(
-        sequential_recordings=[
-            seq_rec,
-        ]
-    )
+    # TODO
+    # # Add a list of sequential recordings table indices as a repetition
+    # run_index = nwbfile.add_icephys_repetition(
+    #     sequential_recordings=[
+    #         seq_rec,
+    #     ]
+    # )
 
-    # Add a list of repetition table indices as a experimental condition
-    nwbfile.add_icephys_experimental_condition(
-        repetitions=[
-            run_index,
-        ]
-    )
+    # # Add a list of repetition table indices as a experimental condition
+    # nwbfile.add_icephys_experimental_condition(
+    #     repetitions=[
+    #         run_index,
+    #     ]
+    # )
 
 
 def add_all_to_nwbfile(
@@ -363,6 +379,7 @@ def add_all_to_nwbfile(
     iterator_type: Optional[str] = None,
     iterator_opts: Optional[dict] = None,
     icephys_experiment_type: Optional[str] = "voltage_clamp",
+    stimulus_type: Optional[str] = None,
 ):
     """
     Auxiliary static method for nwbextractor.
@@ -428,6 +445,7 @@ def add_all_to_nwbfile(
         nwbfile=nwbfile,
         metadata=metadata,
         icephys_experiment_type=icephys_experiment_type,
+        stimulus_type=stimulus_type
     )
 
 
@@ -446,6 +464,7 @@ def write_neo_to_nwb(
     iterator_type: Optional[str] = None,
     iterator_opts: Optional[dict] = None,
     icephys_experiment_type: Optional[str] = None,
+    stimulus_type: Optional[str] = None,
 ):
     """
     Primary method for writing a Neo reader object to an NWBFile.
@@ -571,6 +590,7 @@ def write_neo_to_nwb(
                 iterator_type=iterator_type,
                 iterator_opts=iterator_opts,
                 icephys_experiment_type=icephys_experiment_type,
+                stimulus_type=stimulus_type
             )
             io.write(nwbfile)
     else:
@@ -587,4 +607,5 @@ def write_neo_to_nwb(
             iterator_type=iterator_type,
             iterator_opts=iterator_opts,
             icephys_experiment_type=icephys_experiment_type,
+            stimulus_type=stimulus_type
         )

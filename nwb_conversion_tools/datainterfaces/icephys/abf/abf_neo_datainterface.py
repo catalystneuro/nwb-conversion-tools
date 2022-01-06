@@ -77,9 +77,9 @@ class AbfNeoDataInterface(BaseIcephysNeoInterface):
             inferred_layer=metafile_data.get("estimate_laminate", ""),
         )
 
-        # Recordings metadata
+        # Recordings sessions metadata (one Session is one abf file / neo reader)
         metafile_sessions = metafile_data.get("recording_sessions", dict())
-        metadata["Icephys"]["Recordings"] = list()
+        metadata["Icephys"]["Sessions"] = list()
 
         # Extract useful metadata from each reader in the sequence
         i = 0
@@ -101,6 +101,16 @@ class AbfNeoDataInterface(BaseIcephysNeoInterface):
             relative_session_start_time = abfDateTime - first_session_time
             relative_session_start_time = float(relative_session_start_time.seconds)
 
+            metadata["Icephys"]["Sessions"].append(
+                dict(
+                    abf_file_name=abf_file_name,
+                    relative_session_start_time=relative_session_start_time,
+                    icephys_experiment_type=extra_info.get("icephys_experiment_type", None),
+                    stimulus_type=extra_info.get("stimulus_type", "not described"),
+                    recordings=list()
+                )
+            )
+
             n_segments = get_number_of_segments(reader, block=0)
             n_electrodes = get_number_of_electrodes(reader)
 
@@ -108,11 +118,8 @@ class AbfNeoDataInterface(BaseIcephysNeoInterface):
             for sg in range(n_segments):
                 # Loop through channels (simultaneous recordings table)
                 for el in range(n_electrodes):
-                    metadata["Icephys"]["Recordings"].append(
+                    metadata["Icephys"]["Sessions"][ir]["recordings"].append(
                         dict(
-                            relative_session_start_time=relative_session_start_time,
-                            stimulus_type=extra_info.get("stimulus_type", "not described"),
-                            icephys_experiment_type=extra_info.get("icephys_experiment_type", None),
                             intracellular_recordings_table_id=i,
                             simultaneous_recordings_table_id=ii,
                             sequential_recordings_table_id=iii,
