@@ -68,7 +68,7 @@ class AbfNeoDataInterface(BaseIcephysNeoInterface):
         )
 
         # LabMetadata
-        metadata["LabMetadata"] = dict(
+        metadata["ndx-dandi-icephys"] = dict(
             # Required fields for DANDI
             cell_id=metafile_data.get("cell_id", ""),
             slice_id=metafile_data.get("slice_id", ""),
