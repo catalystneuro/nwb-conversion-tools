@@ -1,10 +1,32 @@
 from datetime import datetime, timedelta
 from pathlib import Path
+from warnings import warn
 import json
 from neo import AxonIO
 
 from ..base_interface_icephys_neo import BaseIcephysNeoInterface
 from ....utils.neo import get_number_of_electrodes, get_number_of_segments
+
+
+def get_start_datetime(neo_reader):
+    """
+    Get start datetime for .abf file
+
+    Args:
+        neo_reader ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    if all(k in neo_reader._axon_info for k in ["uFileStartDate", "uFileStartTimeMS"]):
+        startDate = str(neo_reader._axon_info["uFileStartDate"])
+        startTime = round(neo_reader._axon_info["uFileStartTimeMS"] / 1000)
+        startDate = datetime.strptime(startDate, "%Y%m%d")
+        startTime = timedelta(seconds=startTime)
+        return startDate + startTime
+    else:
+        warn(f"uFileStartDate or uFileStartTimeMS not found in {neo_reader.filename.split('/')[-1]}, datetime for recordings might be wrongly stored.")
+        return neo_reader._axon_info['rec_datetime']
 
 
 class AbfNeoDataInterface(BaseIcephysNeoInterface):
@@ -39,24 +61,21 @@ class AbfNeoDataInterface(BaseIcephysNeoInterface):
         # This metafile can carry extra information such as: Subject, LabMetadata and stimulus_type for recording sessions
         metafile_data = dict()
         metafile = self.source_data["metadata_file_path"]
-        if Path(metafile).is_file():
+        if metafile is not None and Path(metafile).is_file():
             with open(metafile) as json_file:
                 metafile_data = json.load(json_file)
 
         # Extract start_time info
         first_reader = self.readers_list[0]
-        startDate = str(first_reader._axon_info["uFileStartDate"])
-        startTime = round(first_reader._axon_info["uFileStartTimeMS"] / 1000)
-        startDate = datetime.strptime(startDate, "%Y%m%d")
-        startTime = timedelta(seconds=startTime)
-        first_session_time = startDate + startTime
+        first_session_time = get_start_datetime(neo_reader=first_reader)
         session_start_time = first_session_time.strftime("%Y-%m-%dT%H:%M:%S%z")
 
         # NWBFile metadata
         if "NWBFile" not in metadata:
             metadata["NWBFile"] = dict()
         metadata["NWBFile"].update(
-            session_start_time=session_start_time, experimenter=[metafile_data.get("experimenter", "")]
+            session_start_time=session_start_time, 
+            experimenter=[metafile_data.get("experimenter", "")]
         )
 
         # Subject metadata
@@ -91,11 +110,7 @@ class AbfNeoDataInterface(BaseIcephysNeoInterface):
             item = [s for s in metafile_sessions if s.get("abf_file_name", "") == abf_file_name]
             extra_info = item[0] if len(item) > 0 else dict()
 
-            startDate = str(reader._axon_info["uFileStartDate"])
-            startTime = round(reader._axon_info["uFileStartTimeMS"] / 1000)
-            startDate = datetime.strptime(startDate, "%Y%m%d")
-            startTime = timedelta(seconds=startTime)
-            abfDateTime = startDate + startTime
+            abfDateTime = get_start_datetime(neo_reader=reader)
 
             # Calculate session start time relative to first abf file (first session), in seconds
             relative_session_start_time = abfDateTime - first_session_time
