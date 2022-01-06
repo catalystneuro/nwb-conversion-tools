@@ -307,7 +307,7 @@ def add_icephys_recordings(
             sampling_rate = neo_reader.get_signal_sampling_rate()
             response_unit = neo_reader.header["signal_channels"]["units"][ei]
             response_gain = get_gain_from_unit(unit=response_unit)
-            response_name = f"{icephys_experiment_type}_response_{si + 1 + simultaneous_recordings_offset}_ch_{ei}"
+            response_name = f"{icephys_experiment_type}-response-{si + 1 + simultaneous_recordings_offset}-ch-{ei}"
 
             response = response_classes[icephys_experiment_type](
                 name=response_name,
