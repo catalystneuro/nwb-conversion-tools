@@ -273,12 +273,6 @@ def add_icephys_recordings(
     else:
         ri = -1
 
-    # Check if nwb object already has sequential recordings
-    if getattr(nwbfile, "icephys_sequential_recordings", None):
-        offset_sequences = nwbfile.icephys_sequential_recordings.id.data[-1]
-    else:
-        offset_sequences = 0
-
     # Loop through segments - sequential icephys recordings
     simultaneous_recordings = list()
     if getattr(nwbfile, "icephys_simultaneous_recordings", None):
@@ -287,7 +281,6 @@ def add_icephys_recordings(
         simultaneous_recordings_offset = 0
 
     for si in range(n_segments):
-        si_o = offset_sequences + si + 1
         # Loop through electrodes - parallel icephys recordings
         recordings = list()
         for ei, electrode in enumerate(
@@ -301,7 +294,7 @@ def add_icephys_recordings(
             sampling_rate = neo_reader.get_signal_sampling_rate()
             response_unit = neo_reader.header["signal_channels"]["units"][ei]
             response_gain = get_gain_from_unit(unit=response_unit)
-            response_name = f"{icephys_experiment_type}_response_{si_o + simultaneous_recordings_offset}_ch_{ei}"
+            response_name = f"{icephys_experiment_type}_response_{si + 1 + simultaneous_recordings_offset}_ch_{ei}"
 
             response = response_classes[icephys_experiment_type](
                 name=response_name,
@@ -316,7 +309,7 @@ def add_icephys_recordings(
                 stim_unit = protocol[2][ei]
                 stim_gain = get_gain_from_unit(unit=stim_unit)
                 stimulus = stim_classes[icephys_experiment_type](
-                    name=f"stimulus-{si_o + simultaneous_recordings_offset}-ch-{ei}",
+                    name=f"stimulus-{si + 1 + simultaneous_recordings_offset}-ch-{ei}",
                     electrode=electrode,
                     data=protocol[0][si][ei],
                     rate=sampling_rate,
