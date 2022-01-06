@@ -1,6 +1,6 @@
+import numpy.testing as npt
 from os import getenv
 from unittest import TestCase
-from tempfile import mkdtemp
 from pathlib import Path
 
 from spikeinterface.core.old_api_utils import create_recording_from_old_extractor, OldToNewRecording
@@ -23,8 +23,6 @@ HAVE_DATA = DATA_PATH.exists()
 
 
 class TestNwbConversions(TestCase):
-    savedir = Path(mkdtemp())
-
     def test_spikeglx_lfp_create_old_to_new_method(self):
         interface = SpikeGLXLFPInterface(
             file_path=str(
@@ -39,6 +37,10 @@ class TestNwbConversions(TestCase):
         for member in set(initial_properties).union(["location", "gain_to_uV"]) - set(["gain", "offset"]):
             self.assertIn(member=member, container=new_properties)
 
+        initial_locations = interface.recording_extractor.get_channel_locations()
+        new_locations = new_recording.get_channel_locations()
+        npt.assert_array_equal(x=initial_locations, y=new_locations)
+
     def test_spikeglx_lfp_init_old_to_new_class(self):
         interface = SpikeGLXLFPInterface(
             file_path=str(
@@ -52,3 +54,7 @@ class TestNwbConversions(TestCase):
         new_properties = new_recording.get_property_keys()
         for member in set(initial_properties).union(["location", "gain_to_uV"]) - set(["gain", "offset"]):
             self.assertIn(member=member, container=new_properties)
+
+        initial_locations = interface.recording_extractor.get_channel_locations()
+        new_locations = new_recording.get_channel_locations()
+        npt.assert_array_equal(x=initial_locations, y=new_locations)
