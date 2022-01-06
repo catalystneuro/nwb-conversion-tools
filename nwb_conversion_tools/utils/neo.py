@@ -287,7 +287,7 @@ def add_icephys_recordings(
         sessions_offset = len(nwbfile.icephys_sequential_recordings)
     else:
         sessions_offset = 0
-    
+
     relative_session_start_time = metadata["Icephys"]["Sessions"][sessions_offset]["relative_session_start_time"]
     session_stimulus_type = metadata["Icephys"]["Sessions"][sessions_offset]["stimulus_type"]
 
@@ -445,7 +445,7 @@ def add_all_to_nwbfile(
         nwbfile=nwbfile,
         metadata=metadata,
         icephys_experiment_type=icephys_experiment_type,
-        stimulus_type=stimulus_type
+        stimulus_type=stimulus_type,
     )
 
 
@@ -590,7 +590,7 @@ def write_neo_to_nwb(
                 iterator_type=iterator_type,
                 iterator_opts=iterator_opts,
                 icephys_experiment_type=icephys_experiment_type,
-                stimulus_type=stimulus_type
+                stimulus_type=stimulus_type,
             )
             io.write(nwbfile)
     else:
@@ -607,5 +607,5 @@ def write_neo_to_nwb(
             iterator_type=iterator_type,
             iterator_opts=iterator_opts,
             icephys_experiment_type=icephys_experiment_type,
-            stimulus_type=stimulus_type
+            stimulus_type=stimulus_type,
         )

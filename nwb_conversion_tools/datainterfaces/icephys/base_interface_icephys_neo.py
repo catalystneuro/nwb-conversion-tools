@@ -142,5 +142,5 @@ class BaseIcephysNeoInterface(BaseDataInterface, ABC):
                 save_path=save_path,
                 overwrite=overwrite if i == 0 else False,
                 icephys_experiment_type=metadata["Icephys"]["Sessions"][i]["icephys_experiment_type"],
-                stimulus_type=metadata["Icephys"]["Sessions"][i]["stimulus_type"]
+                stimulus_type=metadata["Icephys"]["Sessions"][i]["stimulus_type"],
             )

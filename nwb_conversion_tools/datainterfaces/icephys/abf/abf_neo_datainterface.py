@@ -107,7 +107,7 @@ class AbfNeoDataInterface(BaseIcephysNeoInterface):
                     relative_session_start_time=relative_session_start_time,
                     icephys_experiment_type=extra_info.get("icephys_experiment_type", None),
                     stimulus_type=extra_info.get("stimulus_type", "not described"),
-                    recordings=list()
+                    recordings=list(),
                 )
             )
 
