@@ -25,8 +25,10 @@ def get_start_datetime(neo_reader):
         startTime = timedelta(seconds=startTime)
         return startDate + startTime
     else:
-        warn(f"uFileStartDate or uFileStartTimeMS not found in {neo_reader.filename.split('/')[-1]}, datetime for recordings might be wrongly stored.")
-        return neo_reader._axon_info['rec_datetime']
+        warn(
+            f"uFileStartDate or uFileStartTimeMS not found in {neo_reader.filename.split('/')[-1]}, datetime for recordings might be wrongly stored."
+        )
+        return neo_reader._axon_info["rec_datetime"]
 
 
 class AbfNeoDataInterface(BaseIcephysNeoInterface):
@@ -74,8 +76,7 @@ class AbfNeoDataInterface(BaseIcephysNeoInterface):
         if "NWBFile" not in metadata:
             metadata["NWBFile"] = dict()
         metadata["NWBFile"].update(
-            session_start_time=session_start_time, 
-            experimenter=[metafile_data.get("experimenter", "")]
+            session_start_time=session_start_time, experimenter=[metafile_data.get("experimenter", "")]
         )
 
         # Subject metadata
