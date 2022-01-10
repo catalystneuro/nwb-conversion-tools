@@ -47,12 +47,13 @@ def create_movies(tmp_path_factory):
 
 @pytest.fixture(scope="module")
 def movie_converter(create_movies):
-    class MovieTestNWBConverter(NWBConverter):
-        data_interface_classes = dict(Movie=MovieInterface)
+    if HAVE_OPENCV:
+        class MovieTestNWBConverter(NWBConverter):
+            data_interface_classes = dict(Movie=MovieInterface)
 
-    source_data = dict(Movie=dict(file_paths=create_movies))
-    converter = MovieTestNWBConverter(source_data)
-    return converter
+        source_data = dict(Movie=dict(file_paths=create_movies))
+        converter = MovieTestNWBConverter(source_data)
+        return converter
 
 
 def assert_nwbfile_conversion(
