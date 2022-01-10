@@ -193,7 +193,7 @@ class MovieInterface(BaseDataInterface):
                 image_series_kwargs.update(format="external", external_file=file_list)
                 with VideoCaptureContext(str(file_list[0]), stub=stub_test) as vc:
                     fps = vc.get_movie_fps()
-                    image_series_kwargs.update(starting_time=0.0, rate=fps) # TODO manage custom starting_times
+                    image_series_kwargs.update(starting_time=0.0, rate=fps)  # TODO manage custom starting_times
             else:
                 file = file_list[0]
                 uncompressed_estimate = Path(file).stat().st_size * 70

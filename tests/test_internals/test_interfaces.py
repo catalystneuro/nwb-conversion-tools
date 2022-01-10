@@ -30,8 +30,8 @@ class TestAssertions(TestCase):
     def test_import_assertions(self):
         if platform == "darwin" and version.parse(python_version()) < version.parse("3.8"):
             with self.assertRaisesWith(
-                    exc_type=AssertionError,
-                    exc_msg="The sonpy package (CED dependency) is not available on Mac for Python versions below 3.8!",
+                exc_type=AssertionError,
+                exc_msg="The sonpy package (CED dependency) is not available on Mac for Python versions below 3.8!",
             ):
                 CEDRecordingInterface.get_all_channels_info(file_path="does_not_matter.smrx")
         else:
@@ -50,7 +50,7 @@ def test_tutorials():
     sampling_frequency = 30000.0  # Hz
     stub_test = False
     test_dir = Path(mkdtemp())
-    output_file = str(test_dir/"TestTutorial.nwb")
+    output_file = str(test_dir / "TestTutorial.nwb")
     source_data = dict(
         RecordingTutorial=dict(duration=duration, num_channels=num_channels, sampling_frequency=sampling_frequency),
         SortingTutorial=dict(duration=duration, num_units=num_units, sampling_frequency=sampling_frequency),
@@ -77,7 +77,7 @@ def test_tutorial_interfaces():
         )
 
     test_dir = Path(mkdtemp())
-    output_file = str(test_dir/"TestTutorial.nwb")
+    output_file = str(test_dir / "TestTutorial.nwb")
     source_data = dict(
         RecordingTutorial=dict(),
         SortingTutorial=dict(),
@@ -89,8 +89,8 @@ def test_tutorial_interfaces():
 def test_pkl_interface():
     toy_data = se.example_datasets.toy_example()
     test_dir = Path(mkdtemp())
-    output_folder = test_dir/"test_pkl"
-    nwbfile_path = str(test_dir/"test_pkl_files.nwb")
+    output_folder = test_dir / "test_pkl"
+    nwbfile_path = str(test_dir / "test_pkl_files.nwb")
 
     se.save_si_object(object_name="test_recording", si_object=toy_data[0], output_folder=output_folder)
     se.save_si_object(object_name="test_sorting", si_object=toy_data[1], output_folder=output_folder)
@@ -101,8 +101,8 @@ def test_pkl_interface():
         )
 
     source_data = dict(
-        Recording=dict(file_path=str(test_dir/"test_pkl"/"test_recording.pkl")),
-        Sorting=dict(file_path=str(test_dir/"test_pkl"/"test_sorting.pkl")),
+        Recording=dict(file_path=str(test_dir / "test_pkl" / "test_recording.pkl")),
+        Sorting=dict(file_path=str(test_dir / "test_pkl" / "test_sorting.pkl")),
     )
     converter = SpikeInterfaceTestNWBConverter(source_data=source_data)
     converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True)

@@ -4,9 +4,7 @@ import numpy as np
 import pytest
 from pynwb import NWBHDF5IO
 
-from nwb_conversion_tools import (
-    NWBConverter,
-    MovieInterface)
+from nwb_conversion_tools import NWBConverter, MovieInterface
 
 try:
     import cv2
@@ -20,8 +18,8 @@ except ImportError:
 def create_movies(tmp_path_factory):
     if HAVE_OPENCV:
         base_path = tmp_path_factory.mktemp("movie_tests")
-        movie_file1 = base_path/"test1.avi"
-        movie_file2 = base_path/"test2.avi"
+        movie_file1 = base_path / "test1.avi"
+        movie_file2 = base_path / "test2.avi"
         (nf, nx, ny) = (50, 640, 480)
         writer1 = cv2.VideoWriter(
             filename=str(movie_file1),
@@ -57,32 +55,34 @@ def movie_converter(create_movies):
     return converter
 
 
-def assert_nwbfile_conversion(converter,
-                              nwbfile_path,
-                              starting_times: list = None,
-                              module_name: str = None,
-                              module_description: str = None,
-                              metadata: dict = None,
-                              iterator_type: str = "v2",
-                              stub_test: bool = False,
-                              external_mode: bool = True,
-                              chunk_data: bool = True):
+def assert_nwbfile_conversion(
+    converter,
+    nwbfile_path,
+    starting_times: list = None,
+    module_name: str = None,
+    module_description: str = None,
+    metadata: dict = None,
+    iterator_type: str = "v2",
+    stub_test: bool = False,
+    external_mode: bool = True,
+    chunk_data: bool = True,
+):
     metadata = converter.get_metadata() if metadata is None else metadata
-    custom_names = [metadata["Behavior"]["Movies"][i]["name"]
-                    for i in range(len(metadata["Behavior"]["Movies"]))]
-    conversion_opts = dict(starting_times=starting_times,
-                           iterator_type=iterator_type,
-                           stub_test=stub_test,
-                           external_mode=external_mode,
-                           chunk_data=chunk_data)
+    custom_names = [metadata["Behavior"]["Movies"][i]["name"] for i in range(len(metadata["Behavior"]["Movies"]))]
+    conversion_opts = dict(
+        starting_times=starting_times,
+        iterator_type=iterator_type,
+        stub_test=stub_test,
+        external_mode=external_mode,
+        chunk_data=chunk_data,
+    )
     if module_name:
         conversion_opts.update(module_name=module_name)
     if module_description:
         conversion_opts.update(module_description=module_description)
-    converter.run_conversion(metadata=metadata,
-                             nwbfile_path=nwbfile_path,
-                             overwrite=True,
-                             conversion_options=dict(Movie=conversion_opts))
+    converter.run_conversion(
+        metadata=metadata, nwbfile_path=nwbfile_path, overwrite=True, conversion_options=dict(Movie=conversion_opts)
+    )
     module_name = module_name if module_name is not None else "acquisition"
     with NWBHDF5IO(path=nwbfile_path, mode="r") as io:
         nwbfile = io.read()
@@ -102,37 +102,34 @@ def assert_nwbfile_conversion(converter,
 
 @pytest.fixture(scope="module")
 def nwbfile_path(tmp_path_factory):
-    nwbfile_path = str(tmp_path_factory.mktemp('movie_tests')/'test.nwb')
+    nwbfile_path = str(tmp_path_factory.mktemp("movie_tests") / "test.nwb")
     return nwbfile_path
 
 
 def test_conversion_default(movie_converter, create_movies, nwbfile_path):
     starting_times = [np.float(np.random.randint(200)) for i in range(len(create_movies))]
-    assert_nwbfile_conversion(converter=movie_converter,
-                              nwbfile_path=nwbfile_path,
-                              starting_times=starting_times)
+    assert_nwbfile_conversion(converter=movie_converter, nwbfile_path=nwbfile_path, starting_times=starting_times)
 
 
 def test_conversion_custom(movie_converter, nwbfile_path):
     module_name = "TestModule"
     module_description = "This is a test module."
-    assert_nwbfile_conversion(converter=movie_converter,
-                              nwbfile_path=nwbfile_path,
-                              module_description=module_description,
-                              module_name=module_name)
+    assert_nwbfile_conversion(
+        converter=movie_converter,
+        nwbfile_path=nwbfile_path,
+        module_description=module_description,
+        module_name=module_name,
+    )
 
 
 def test_conversion_options(movie_converter, nwbfile_path):
     conversion_options_testing_matrix = [
         dict(external_mode=False, stub_test=True, chunk_data=i, iterator_type=j)
-        for i, j in product([True, False], ["v1", "v2"])]
+        for i, j in product([True, False], ["v1", "v2"])
+    ]
     for conv_ops in conversion_options_testing_matrix:
-        assert_nwbfile_conversion(converter=movie_converter,
-                                  nwbfile_path=nwbfile_path,
-                                  **conv_ops)
+        assert_nwbfile_conversion(converter=movie_converter, nwbfile_path=nwbfile_path, **conv_ops)
 
 
 def test_conversion_external_mode(movie_converter, nwbfile_path):
-    assert_nwbfile_conversion(converter=movie_converter,
-                              nwbfile_path=nwbfile_path,
-                              external_mode=True)
+    assert_nwbfile_conversion(converter=movie_converter, nwbfile_path=nwbfile_path, external_mode=True)
