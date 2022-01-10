@@ -107,29 +107,33 @@ def nwbfile_path(tmp_path_factory):
 
 
 def test_conversion_default(movie_converter, create_movies, nwbfile_path):
-    starting_times = [np.float(np.random.randint(200)) for i in range(len(create_movies))]
-    assert_nwbfile_conversion(converter=movie_converter, nwbfile_path=nwbfile_path, starting_times=starting_times)
+    if HAVE_OPENCV:
+        starting_times = [np.float(np.random.randint(200)) for i in range(len(create_movies))]
+        assert_nwbfile_conversion(converter=movie_converter, nwbfile_path=nwbfile_path, starting_times=starting_times)
 
 
 def test_conversion_custom(movie_converter, nwbfile_path):
-    module_name = "TestModule"
-    module_description = "This is a test module."
-    assert_nwbfile_conversion(
-        converter=movie_converter,
-        nwbfile_path=nwbfile_path,
-        module_description=module_description,
-        module_name=module_name,
-    )
+    if HAVE_OPENCV:
+        module_name = "TestModule"
+        module_description = "This is a test module."
+        assert_nwbfile_conversion(
+            converter=movie_converter,
+            nwbfile_path=nwbfile_path,
+            module_description=module_description,
+            module_name=module_name,
+        )
 
 
 def test_conversion_options(movie_converter, nwbfile_path):
-    conversion_options_testing_matrix = [
-        dict(external_mode=False, stub_test=True, chunk_data=i, iterator_type=j)
-        for i, j in product([True, False], ["v1", "v2"])
-    ]
-    for conv_ops in conversion_options_testing_matrix:
-        assert_nwbfile_conversion(converter=movie_converter, nwbfile_path=nwbfile_path, **conv_ops)
+    if HAVE_OPENCV:
+        conversion_options_testing_matrix = [
+            dict(external_mode=False, stub_test=True, chunk_data=i, iterator_type=j)
+            for i, j in product([True, False], ["v1", "v2"])
+        ]
+        for conv_ops in conversion_options_testing_matrix:
+            assert_nwbfile_conversion(converter=movie_converter, nwbfile_path=nwbfile_path, **conv_ops)
 
 
 def test_conversion_external_mode(movie_converter, nwbfile_path):
-    assert_nwbfile_conversion(converter=movie_converter, nwbfile_path=nwbfile_path, external_mode=True)
+    if HAVE_OPENCV:
+        assert_nwbfile_conversion(converter=movie_converter, nwbfile_path=nwbfile_path, external_mode=True)
