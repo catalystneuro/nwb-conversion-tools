@@ -14,7 +14,6 @@ from hdmf.data_utils import DataChunkIterator
 from ....basedatainterface import BaseDataInterface
 from ....utils.conversion_tools import check_regular_timestamps, get_module
 from ....utils.json_schema import get_schema_from_hdmf_class, get_base_schema
-from .movie_utils import MovieDataChunkIterator, VideoCaptureContext
 
 try:
     import cv2
@@ -150,6 +149,7 @@ class MovieInterface(BaseDataInterface):
             If buffer_shape is not specified, it will be inferred as the smallest chunk below the buffer_gb threshold.
             Defaults to 1 GB.
         """
+        from .movie_utils import MovieDataChunkIterator, VideoCaptureContext
         file_paths = self.source_data["file_paths"]
         assert iterator_type in ["v1", "v2"], "for new iterator using GenericDatachunkIteartor use v2, else v1"
         if starting_times is not None:
