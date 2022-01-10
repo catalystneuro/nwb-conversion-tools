@@ -31,6 +31,7 @@ class VideoCaptureContext(cv2.VideoCapture):
     def get_movie_timestamps(self):
         """
         Return numpy array of the timestamps for a movie file.
+
         """
         if not self.isOpened():
             raise ValueError("movie file is not open")
@@ -44,6 +45,7 @@ class VideoCaptureContext(cv2.VideoCapture):
     def get_movie_fps(self):
         """
         Return the internal frames per second (fps) for a movie file.
+
         """
         if int(cv2.__version__.split(".")[0]) < 3:
             return self.get(cv2.cv.CV_CAP_PROP_FPS)
@@ -58,6 +60,7 @@ class VideoCaptureContext(cv2.VideoCapture):
     def get_movie_frame_count(self):
         """
         Return the total number of frames for a movie file.
+
         """
         if self.stub:
             # if stub the assume a max frame count of 10
@@ -135,3 +138,49 @@ class VideoCaptureContext(cv2.VideoCapture):
 
     def __del__(self):
         self.release()
+
+
+class MovieDataChunkIterator(GenericDataChunkIterator):
+    """DataChunkIterator specifically for use on RecordingExtractor objects."""
+
+    def __init__(
+        self,
+        movie_file: PathType,
+        buffer_gb: float = None,
+        buffer_shape: tuple = None,
+        chunk_mb: float = None,
+        chunk_shape: tuple = None,
+        stub: bool = False,
+    ):
+        self.video_capture_ob = VideoCaptureContext(movie_file, stub=stub)
+        self._default_chunk_shape = False
+        if chunk_shape is None:
+            chunk_shape = (1, *self.video_capture_ob.get_frame_shape())
+            self._default_chunk_shape = True
+        super().__init__(buffer_gb=buffer_gb, buffer_shape=buffer_shape, chunk_mb=chunk_mb, chunk_shape=chunk_shape)
+        self._current_chunk = 1
+        self._pbar = None
+
+    def _get_data(self, selection: Tuple[slice]) -> Iterable:
+        if self._pbar is None:
+            self._pbar = tqdm(total=np.prod(self.num_buffers), desc="retrieving movie data chunk")
+        if self._default_chunk_shape:
+            print("calling next")
+            self._current_chunk += 1
+            self._pbar.update()
+            frame = next(self.video_capture_ob)
+            return frame[np.newaxis, :]
+        frames_return = []
+        step = selection[0].step if selection[0].step is not None else 1
+        for frame_no in range(selection[0].start, selection[0].stop, step):
+            frame = self.video_capture_ob.get_movie_frame(frame_no)
+            frames_return.append(frame[selection[1:]])
+            self._pbar.update()
+            self._current_chunk += 1
+        return np.concatenate(frames_return, axis=0)
+
+    def _get_dtype(self):
+        return self.video_capture_ob.get_movie_frame_dtype()
+
+    def _get_maxshape(self):
+        return (self.video_capture_ob.get_movie_frame_count(), *self.video_capture_ob.get_frame_shape())
