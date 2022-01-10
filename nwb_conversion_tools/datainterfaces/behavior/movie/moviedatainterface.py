@@ -150,6 +150,7 @@ class MovieInterface(BaseDataInterface):
             Defaults to 1 GB.
         """
         from .movie_utils import MovieDataChunkIterator, VideoCaptureContext
+
         file_paths = self.source_data["file_paths"]
         assert iterator_type in ["v1", "v2"], "for new iterator using GenericDatachunkIteartor use v2, else v1"
         if starting_times is not None:

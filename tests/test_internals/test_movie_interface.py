@@ -48,6 +48,7 @@ def create_movies(tmp_path_factory):
 @pytest.fixture(scope="module")
 def movie_converter(create_movies):
     if HAVE_OPENCV:
+
         class MovieTestNWBConverter(NWBConverter):
             data_interface_classes = dict(Movie=MovieInterface)
 
