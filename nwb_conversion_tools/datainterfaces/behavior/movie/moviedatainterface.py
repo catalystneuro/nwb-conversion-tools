@@ -73,21 +73,21 @@ class MovieInterface(BaseDataInterface):
         return metadata
 
     def run_conversion(
-            self,
-            nwbfile: NWBFile,
-            metadata: dict,
-            stub_test: bool = False,
-            external_mode: bool = True,
-            starting_times: Optional[list] = None,
-            chunk_data: bool = True,
-            module_name: Optional[str] = None,
-            module_description: Optional[str] = None,
-            buffer_gb: float = None,
-            buffer_shape: list = None,
-            chunk_mb: float = None,
-            chunk_shape: list = None,
-            iterator_type: str = "v2",
-            compression: str = "gzip",
+        self,
+        nwbfile: NWBFile,
+        metadata: dict,
+        stub_test: bool = False,
+        external_mode: bool = True,
+        starting_times: Optional[list] = None,
+        chunk_data: bool = True,
+        module_name: Optional[str] = None,
+        module_description: Optional[str] = None,
+        buffer_gb: float = None,
+        buffer_shape: list = None,
+        chunk_mb: float = None,
+        chunk_shape: list = None,
+        iterator_type: str = "v2",
+        compression: str = "gzip",
     ):
         """
         Convert the movie data files to ImageSeries and write them in the NWBFile.
@@ -154,9 +154,9 @@ class MovieInterface(BaseDataInterface):
         assert iterator_type in ["v1", "v2"], "for new iterator using GenericDatachunkIteartor use v2, else v1"
         if starting_times is not None:
             assert (
-                    isinstance(starting_times, list)
-                    and all([isinstance(x, float) for x in starting_times])
-                    and len(starting_times) == len(file_paths)
+                isinstance(starting_times, list)
+                and all([isinstance(x, float) for x in starting_times])
+                and len(starting_times) == len(file_paths)
             ), "Argument 'starting_times' must be a list of floats in one-to-one correspondence with 'file_paths'!"
         else:
             starting_times = [0.0]
@@ -173,7 +173,7 @@ class MovieInterface(BaseDataInterface):
         def _check_duplicates(image_series_kwargs_list):
             image_series_kwargs_list_keys = [i["name"] for i in image_series_kwargs_list]
             if len(set(image_series_kwargs_list_keys)) < len(image_series_kwargs_list_keys):
-                assert external_mode, 'for multiple video files under the same ImageSeries name, use exernal_mode=True'
+                assert external_mode, "for multiple video files under the same ImageSeries name, use exernal_mode=True"
             keys_set = []
             image_series_kwargs_list_unique = []
             for no, image_series_kwargs in enumerate(image_series_kwargs_list):
@@ -196,7 +196,7 @@ class MovieInterface(BaseDataInterface):
                     image_series_kwargs.update(starting_time=0.0, rate=fps) # TODO manage custom starting_times
             else:
                 file = file_list[0]
-                uncompressed_estimate = Path(file).stat().st_size*70
+                uncompressed_estimate = Path(file).stat().st_size * 70
                 available_memory = psutil.virtual_memory().available
                 if not chunk_data and not stub_test and uncompressed_estimate >= available_memory:
                     warn(
@@ -236,10 +236,10 @@ class MovieInterface(BaseDataInterface):
                     else:
                         iterable = []
                         with tqdm(
-                                desc=f"Reading movie data for {Path(file).name}",
-                                position=tqdm_pos,
-                                total=total_frames,
-                                mininterval=tqdm_mininterval,
+                            desc=f"Reading movie data for {Path(file).name}",
+                            position=tqdm_pos,
+                            total=total_frames,
+                            mininterval=tqdm_mininterval,
                         ) as pbar:
                             for frame in video_capture_ob:
                                 iterable.append(frame)
