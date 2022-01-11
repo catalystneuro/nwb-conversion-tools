@@ -10,7 +10,7 @@ from warnings import warn
 from collections import defaultdict
 
 import pynwb
-from spikeextractors import RecordingExtractor, SortingExtractor
+from spikeextractors import RecordingExtractor, SortingExtractor, SubRecordingExtractor
 from numbers import Real
 from hdmf.data_utils import DataChunkIterator
 from hdmf.backends.hdf5.h5_utils import H5DataIO
@@ -295,10 +295,7 @@ def add_electrodes(recording: RecordingExtractor, nwbfile=None, metadata: dict =
         metadata["Ecephys"]["Electrodes"] = []
 
     assert all(
-        [
-            isinstance(x, dict) and set(x.keys()) == set(["name", "description"])
-            for x in metadata["Ecephys"]["Electrodes"]
-        ]
+        [isinstance(x, dict) and set(x.keys()) == {"name", "description"} for x in metadata["Ecephys"]["Electrodes"]]
     ), (
         "Expected metadata['Ecephys']['Electrodes'] to be a list of dictionaries, "
         "containing the keys 'name' and 'description'"
@@ -441,6 +438,7 @@ def add_electrical_series(
     recording: RecordingExtractor,
     nwbfile=None,
     metadata: dict = None,
+    starting_time: Optional[float] = None,
     use_times: bool = False,
     write_as: str = "raw",
     es_key: str = None,
@@ -467,6 +465,9 @@ def add_electrical_series(
                 name=my_name,
                 description=my_description
             )
+    starting_time: float (optional)
+        Sets the starting time of the ElectricalSeries to a manually set value.
+        Increments timestamps if use_times is True.
     use_times: bool (optional, defaults to False)
         If True, the times are saved to the nwb file using recording.frame_to_time(). If False (defualut),
         the sampling rate is used.
@@ -588,8 +589,25 @@ def add_electrical_series(
     # channels gains - for RecordingExtractor, these are values to cast traces to uV.
     # For nwb, the conversions (gains) cast the data to Volts.
     # To get traces in Volts we take data*channel_conversion*conversion.
+    # If the object is a SubRecording, we recover the gains either the first parent with non-default gains, or the
+    # highest level parent.
+
     channel_conversion = recording.get_channel_gains()
     channel_offset = recording.get_channel_offsets()
+    temp_recording = recording
+    while isinstance(temp_recording, SubRecordingExtractor):
+        # If SubRecordingExtractor instance then it has a parent ercording
+        parent_recording = temp_recording._parent_recording
+        channel_conversion = parent_recording.get_channel_gains()
+        channel_offset = parent_recording.get_channel_offsets()
+
+        # If gains / conversion appears is non default then keep the last
+        default_channel_conversion = np.ones_like(channel_conversion)
+        if np.any(channel_conversion != default_channel_conversion):
+            break
+        else:
+            temp_recording = parent_recording
+
     unsigned_coercion = channel_offset / channel_conversion
     if not np.all([x.is_integer() for x in unsigned_coercion]):
         raise NotImplementedError(
@@ -624,11 +642,21 @@ def add_electrical_series(
         raise NotImplementedError(f"iterator_type ({iterator_type}) should be either 'v1' or 'v2' (recommended)!")
 
     eseries_kwargs.update(data=H5DataIO(data=ephys_data, compression=compression, compression_opts=compression_opts))
+    if not use_times and starting_time is None:
+        eseries_kwargs.update(starting_time=float(recording.frame_to_time(0)))
+    elif not use_times and starting_time is not None:
+        eseries_kwargs.update(starting_time=starting_time)
     if not use_times:
+        eseries_kwargs.update(rate=float(recording.get_sampling_frequency()))
+    elif use_times and starting_time is not None:
         eseries_kwargs.update(
-            starting_time=float(recording.frame_to_time(0)), rate=float(recording.get_sampling_frequency())
+            timestamps=H5DataIO(
+                data=starting_time + recording.frame_to_time(np.arange(recording.get_num_frames())),
+                compression=compression,
+                compression_opts=compression_opts,
+            )
         )
-    else:
+    elif use_times and starting_time is None:
         eseries_kwargs.update(
             timestamps=H5DataIO(
                 data=recording.frame_to_time(np.arange(recording.get_num_frames())),
@@ -687,6 +715,7 @@ def add_epochs(recording: RecordingExtractor, nwbfile=None, metadata: dict = Non
 def add_all_to_nwbfile(
     recording: RecordingExtractor,
     nwbfile=None,
+    starting_time: Optional[float] = None,
     use_times: bool = False,
     metadata: dict = None,
     write_as: str = "raw",
@@ -707,6 +736,9 @@ def add_all_to_nwbfile(
     recording: SpikeInterfaceRecording
     nwbfile: NWBFile
         nwb file to which the recording information is to be added
+    starting_time: float (optional)
+        Sets the starting time of the ElectricalSeries to a manually set value.
+        Increments timestamps if use_times is True.
     use_times: bool
         If True, the times are saved to the nwb file using recording.frame_to_time(). If False (defualut),
         the sampling rate is used.
@@ -755,6 +787,7 @@ def add_all_to_nwbfile(
     add_electrical_series(
         recording=recording,
         nwbfile=nwbfile,
+        starting_time=starting_time,
         use_times=use_times,
         metadata=metadata,
         write_as=write_as,
@@ -773,6 +806,7 @@ def write_recording(
     save_path: OptionalFilePathType = None,
     overwrite: bool = False,
     nwbfile=None,
+    starting_time: Optional[float] = None,
     use_times: bool = False,
     metadata: dict = None,
     write_as: str = "raw",
@@ -801,6 +835,9 @@ def write_recording(
             my_recording_extractor, my_nwbfile
         )
         will result in the appropriate changes to the my_nwbfile object.
+    starting_time: float (optional)
+        Sets the starting time of the ElectricalSeries to a manually set value.
+        Increments timestamps if use_times is True.
     use_times: bool
         If True, the times are saved to the nwb file using recording.frame_to_time(). If False (defualut),
         the sampling rate is used.
@@ -902,6 +939,7 @@ def write_recording(
                 recording=recording,
                 nwbfile=nwbfile,
                 metadata=metadata,
+                starting_time=starting_time,
                 use_times=use_times,
                 write_as=write_as,
                 es_key=es_key,
@@ -916,6 +954,7 @@ def write_recording(
         add_all_to_nwbfile(
             recording=recording,
             nwbfile=nwbfile,
+            starting_time=starting_time,
             use_times=use_times,
             metadata=metadata,
             write_as=write_as,
@@ -1070,19 +1109,33 @@ def write_units(
             unit_col_args.update(table=nwbfile.electrodes)
         units_table.add_column(**unit_col_args)
 
+    aggregated_unit_properties = defaultdict(list)
     for unit_id in unit_ids:
-        unit_kwargs = dict()
+
+        for pr in write_properties:
+            if pr in sorting.get_unit_property_names(unit_id):
+                aggregated_unit_properties[pr].append(sorting.get_unit_property(unit_id, pr))
+            else:  # Case of missing data for this unit and this property
+                aggregated_unit_properties[pr].append(None)
+
+    # handle missing data differently depending on type of data
+    for key, val in aggregated_unit_properties.items():
+        if all(isinstance(x, int) or x is None for x in val) and any(x is None for x in val):
+            aggregated_unit_properties[key] = [np.nan if x is None else float(x) for x in val]
+        if all(isinstance(x, str) or x is None for x in val):
+            aggregated_unit_properties[key] = [x or "" for x in val]
+        if all(isinstance(x, float) or x is None for x in val):
+            aggregated_unit_properties[key] = [np.nan if x is None else x for x in val]
+
+    for i, unit_id in enumerate(unit_ids):
         if use_times:
             spkt = sorting.frame_to_time(sorting.get_unit_spike_train(unit_id=unit_id))
         else:
             spkt = sorting.get_unit_spike_train(unit_id=unit_id) / sorting.get_sampling_frequency()
-        for pr in write_properties:
-            if pr in sorting.get_unit_property_names(unit_id):
-                prop_value = sorting.get_unit_property(unit_id, pr)
-                unit_kwargs.update({pr: prop_value})
-            else:  # Case of missing data for this unit and this property
-                unit_kwargs.update({pr: np.nan})
-        units_table.add_unit(id=int(unit_id), spike_times=spkt, **unit_kwargs)
+
+        kwargs = {key: val[i] for key, val in aggregated_unit_properties.items()}
+
+        units_table.add_unit(id=int(unit_id), spike_times=spkt, **kwargs)
 
         # TODO
         # # Stores average and std of spike traces
