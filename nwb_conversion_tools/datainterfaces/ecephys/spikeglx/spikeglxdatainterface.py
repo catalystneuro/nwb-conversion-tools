@@ -11,8 +11,8 @@ from ..baselfpextractorinterface import BaseLFPExtractorInterface
 from ....utils.json_schema import get_schema_from_method_signature, get_schema_from_hdmf_class, FilePathType, dict_deep_update
 
 
-def fetch_spikeglx_metadata(file_path: FilePathType, recording: SpikeGLXRecordingExtractor, metadata: dict):
-    file_path = Path(file_path)
+def fetch_spikeglx_metadata(folder_path: FilePathType, recording: SpikeGLXRecordingExtractor, metadata: dict):
+    folder_path = Path(folder_path)
 
     n_shanks = int(recording._meta.get("snsShankMap", [1, 1])[1])
     if n_shanks > 1:
@@ -24,7 +24,7 @@ def fetch_spikeglx_metadata(file_path: FilePathType, recording: SpikeGLXRecordin
         dict(
             NWBFile=dict(
                 session_start_time=session_start_time.strftime("%Y-%m-%dT%H:%M:%S"),
-                session_id=file_path.parent.stem,
+                session_id=folder_path.parent.stem,
             ),
             Ecephys=dict(
                 Electrodes=[
@@ -44,11 +44,11 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
     @classmethod
     def get_source_schema(cls):
         source_schema = get_schema_from_method_signature(class_method=cls.__init__, exclude=["x_pitch", "y_pitch"])
-        source_schema["properties"]["file_path"]["description"] = "Path to SpikeGLX file."
+        source_schema["properties"]["folder_path"]["description"] = "Path to SpikeGLX file."
         return source_schema
 
-    def __init__(self, file_path: FilePathType, stub_test: Optional[bool] = False):
-        super().__init__(file_path=str(file_path))
+    def __init__(self, folder_path: FilePathType, stub_test: Optional[bool] = False):
+        super().__init__(folrder_path=str(folder_path))
         if stub_test:
             self.subset_channels = [0, 1]
 
@@ -71,7 +71,7 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
     def get_metadata(self):
         metadata = super().get_metadata()
         fetch_spikeglx_metadata(
-            file_path=self.source_data["file_path"], recording=self.recording_extractor, metadata=metadata
+            folder_path=self.source_data["folder_path"], recording=self.recording_extractor, metadata=metadata
         )
         metadata["Ecephys"]["ElectricalSeries_raw"] = dict(
             name="ElectricalSeries_raw", description="Raw acquisition traces for the high-pass (ap) SpikeGLX data."
@@ -92,11 +92,11 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
     def get_source_schema(cls):
         """Compile input schema for the RecordingExtractor."""
         source_schema = get_schema_from_method_signature(class_method=cls.__init__, exclude=["x_pitch", "y_pitch"])
-        source_schema["properties"]["file_path"]["description"] = "Path to SpikeGLX file."
+        source_schema["properties"]["folder_path"]["description"] = "Path to SpikeGLX file."
         return source_schema
 
-    def __init__(self, file_path: FilePathType, stub_test: Optional[bool] = False):
-        super().__init__(file_path=str(file_path))
+    def __init__(self, folder_path: FilePathType, stub_test: Optional[bool] = False):
+        super().__init__(folder_path=str(folder_path))
         if stub_test:
             self.subset_channels = [0, 1]
 
@@ -119,7 +119,7 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
     def get_metadata(self):
         metadata = super().get_metadata()
         fetch_spikeglx_metadata(
-            file_path=self.source_data["file_path"], recording=self.recording_extractor, metadata=metadata
+            folder_path=self.source_data["folder_path"], recording=self.recording_extractor, metadata=metadata
         )
         metadata["Ecephys"]["ElectricalSeries_lfp"].update(
             description="LFP traces for the processed (lf) SpikeGLX data."
