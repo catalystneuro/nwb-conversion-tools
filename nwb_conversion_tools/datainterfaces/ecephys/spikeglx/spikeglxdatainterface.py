@@ -3,34 +3,37 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from spikeextractors import SpikeGLXRecordingExtractor, SubRecordingExtractor, RecordingExtractor
 from pynwb.ecephys import ElectricalSeries
+from spikeinterface.extractors import SpikeGLXRecordingExtractor
 
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ..baselfpextractorinterface import BaseLFPExtractorInterface
-from ....utils.json_schema import get_schema_from_method_signature, get_schema_from_hdmf_class, FilePathType
+from ....utils.json_schema import get_schema_from_method_signature, get_schema_from_hdmf_class, FilePathType, dict_deep_update
 
 
-def fetch_spikeglx_metadata(file_path: FilePathType, recording: RecordingExtractor, metadata: dict):
+def fetch_spikeglx_metadata(file_path: FilePathType, recording: SpikeGLXRecordingExtractor, metadata: dict):
     file_path = Path(file_path)
-    session_id = file_path.parent.stem
 
-    if isinstance(recording, SubRecordingExtractor):
-        n_shanks = int(recording._parent_recording._meta.get("snsShankMap", [1, 1])[1])
-        session_start_time = datetime.fromisoformat(recording._parent_recording._meta["fileCreateTime"]).astimezone()
-    else:
-        n_shanks = int(recording._meta.get("snsShankMap", [1, 1])[1])
-        session_start_time = datetime.fromisoformat(recording._meta["fileCreateTime"]).astimezone()
+    n_shanks = int(recording._meta.get("snsShankMap", [1, 1])[1])
     if n_shanks > 1:
         raise NotImplementedError("SpikeGLX metadata for more than a single shank is not yet supported.")
+    session_start_time = datetime.fromisoformat(recording._meta["fileCreateTime"]).astimezone()
 
-    metadata["NWBFile"] = dict(session_start_time=session_start_time.strftime("%Y-%m-%dT%H:%M:%S"))
-
-    # Electrodes columns descriptions
-    metadata["Ecephys"]["Electrodes"] = [
-        dict(name="shank_electrode_number", description="0-indexed channel within a shank."),
-        dict(name="shank_group_name", description="The name of the ElectrodeGroup this electrode is a part of."),
-    ]
+    return dict_deep_update(
+        metadata,
+        dict(
+            NWBFile=dict(
+                session_start_time=session_start_time.strftime("%Y-%m-%dT%H:%M:%S"),
+                session_id=file_path.parent.stem,
+            ),
+            Ecephys=dict(
+                Electrodes=[
+                    dict(name="shank_electrode_number", description="0-indexed channel within a shank."),
+                    dict(name="shank_group_name", description="The name of the ElectrodeGroup this electrode is a part of."),
+                ]
+            )
+        )
+    )
 
 
 class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
