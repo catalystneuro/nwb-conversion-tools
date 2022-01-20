@@ -8,7 +8,12 @@ from spikeinterface.extractors import SpikeGLXRecordingExtractor
 
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ..baselfpextractorinterface import BaseLFPExtractorInterface
-from ....utils.json_schema import get_schema_from_method_signature, get_schema_from_hdmf_class, FilePathType, dict_deep_update
+from ....utils.json_schema import (
+    get_schema_from_method_signature,
+    get_schema_from_hdmf_class,
+    FilePathType,
+    dict_deep_update,
+)
 
 
 def fetch_spikeglx_metadata(folder_path: FilePathType, recording: SpikeGLXRecordingExtractor, metadata: dict):
@@ -29,10 +34,13 @@ def fetch_spikeglx_metadata(folder_path: FilePathType, recording: SpikeGLXRecord
             Ecephys=dict(
                 Electrodes=[
                     dict(name="shank_electrode_number", description="0-indexed channel within a shank."),
-                    dict(name="shank_group_name", description="The name of the ElectrodeGroup this electrode is a part of."),
+                    dict(
+                        name="shank_group_name",
+                        description="The name of the ElectrodeGroup this electrode is a part of.",
+                    ),
                 ]
-            )
-        )
+            ),
+        ),
     )
 
 
