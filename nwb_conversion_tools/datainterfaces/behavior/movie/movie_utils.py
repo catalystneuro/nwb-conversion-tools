@@ -76,7 +76,7 @@ def get_movie_frame_count(movie_file: PathType):
     return int(count)
 
 
-def get_frame_no(movie_file: PathType, frame_no: int=0):
+def get_frame_no(movie_file: PathType, frame_no: int = 0):
     """
     Retrive the frame no from a movie and return as array
     Parameters
@@ -101,7 +101,7 @@ def get_frame_no(movie_file: PathType, frame_no: int=0):
         return frame
 
 
-def get_movie_frames(movie_file: PathType, count_max: int=None):
+def get_movie_frames(movie_file: PathType, count_max: int = None):
     """
     Returns a generator that returns sequential movie frames
     Parameters

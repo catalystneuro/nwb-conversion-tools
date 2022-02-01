@@ -14,13 +14,7 @@ from tqdm import tqdm
 from ....basedatainterface import BaseDataInterface
 from ....utils.conversion_tools import check_regular_timestamps, get_module
 from ....utils.json_schema import get_schema_from_hdmf_class, get_base_schema
-from .movie_utils import (
-    get_movie_fps,
-    get_movie_timestamps,
-    get_frame_shape,
-    get_movie_frames,
-    get_movie_frame_count
-)
+from .movie_utils import get_movie_fps, get_movie_timestamps, get_frame_shape, get_movie_frames, get_movie_frame_count
 
 try:
     import cv2
