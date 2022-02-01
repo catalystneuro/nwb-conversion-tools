@@ -1,21 +1,26 @@
 """Authors: Cody Baker and Ben Dichter."""
 from pathlib import Path
-import numpy as np
 from typing import Optional
-from tqdm import tqdm
 from warnings import warn
 
+import numpy as np
 import psutil
-from pynwb import NWBFile
-from pynwb.image import ImageSeries
 from hdmf.backends.hdf5.h5_utils import H5DataIO
 from hdmf.data_utils import DataChunkIterator
+from pynwb import NWBFile
+from pynwb.image import ImageSeries
+from tqdm import tqdm
 
-from .movie_utils import get_movie_timestamps, get_movie_fps, get_frame_shape
 from ....basedatainterface import BaseDataInterface
 from ....utils.conversion_tools import check_regular_timestamps, get_module
 from ....utils.json_schema import get_schema_from_hdmf_class, get_base_schema
-
+from .movie_utils import (
+    get_movie_fps,
+    get_movie_timestamps,
+    get_frame_shape,
+    get_movie_frames,
+    get_movie_frame_count
+)
 
 try:
     import cv2
@@ -83,6 +88,7 @@ class MovieInterface(BaseDataInterface):
         chunk_data: bool = True,
         module_name: Optional[str] = None,
         module_description: Optional[str] = None,
+        compression: str = "gzip",
     ):
         """
         Convert the movie data files to ImageSeries and write them in the NWBFile.
@@ -105,6 +111,8 @@ class MovieInterface(BaseDataInterface):
             and may contain most keywords normally accepted by an ImageSeries
             (https://pynwb.readthedocs.io/en/stable/pynwb.image.html#pynwb.image.ImageSeries).
              The list for the 'Movies' key should correspond one to one to the movie files in the file_paths list.
+             If multiple movies need to be in the same ImageSeries, then supply the same value for "name" key.
+             Multiple movies in same ImageSeries is only supported if 'external_mode'=True.
         stub_test : bool, optional
             If True, truncates the write operation for fast testing. The default is False.
         external_mode : bool, optional
@@ -130,10 +138,6 @@ class MovieInterface(BaseDataInterface):
         """
         file_paths = self.source_data["file_paths"]
 
-        if stub_test:
-            count_max = 10
-        else:
-            count_max = np.inf
         if starting_times is not None:
             assert (
                 isinstance(starting_times, list)
@@ -151,49 +155,52 @@ class MovieInterface(BaseDataInterface):
             f"({len(image_series_kwargs_list)}) vs. file_paths ({len(self.source_data['file_paths'])})!"
         )
 
-        for j, file in enumerate(file_paths):
-            timestamps = starting_times[j] + get_movie_timestamps(movie_file=file)
+        # check for duplicates in image_series_kwargs list keys:
+        def _check_duplicates(image_series_kwargs_list):
+            image_series_kwargs_list_keys = [i["name"] for i in image_series_kwargs_list]
+            if len(set(image_series_kwargs_list_keys)) < len(image_series_kwargs_list_keys):
+                assert external_mode, "for multiple video files under the same ImageSeries name, use exernal_mode=True"
+            keys_set = []
+            image_series_kwargs_list_unique = []
+            for no, image_series_kwargs in enumerate(image_series_kwargs_list):
+                if image_series_kwargs["name"] not in keys_set:
+                    keys_set.append(image_series_kwargs["name"])
+                    image_series_kwargs_list_unique.append(dict(image_series_kwargs, data=[file_paths[no]]))
+                else:
+                    idx = keys_set.index(image_series_kwargs["name"])
+                    image_series_kwargs_list_unique[idx]["data"].append(file_paths[no])
+            return image_series_kwargs_list_unique
 
-            if len(starting_times) != len(file_paths):
-                starting_times.append(timestamps[-1])
+        image_series_kwargs_list_updated = _check_duplicates(image_series_kwargs_list)
 
-            image_series_kwargs = dict(image_series_kwargs_list[j])
-            if check_regular_timestamps(ts=timestamps):
-                fps = get_movie_fps(movie_file=file)
-                image_series_kwargs.update(starting_time=starting_times[j], rate=fps)
-            else:
-                image_series_kwargs.update(timestamps=H5DataIO(timestamps, compression="gzip"))
-
+        for j, image_series_kwargs in enumerate(image_series_kwargs_list_updated):
+            file_list = image_series_kwargs.pop("data")
             if external_mode:
-                image_series_kwargs.update(format="external", external_file=[file])
+                image_series_kwargs.update(format="external", external_file=file_list)
+                fps = get_movie_fps(str(file_list[0]))
+                image_series_kwargs.update(starting_time=0.0, rate=fps)  # TODO manage custom starting_times
             else:
+                file = file_list[0]
                 uncompressed_estimate = Path(file).stat().st_size * 70
                 available_memory = psutil.virtual_memory().available
-                if not chunk_data and uncompressed_estimate >= available_memory:
+                if not chunk_data and not stub_test and uncompressed_estimate >= available_memory:
                     warn(
                         f"Not enough memory (estimated {round(uncompressed_estimate/1e9, 2)} GB) to load movie file as "
                         f"array ({round(available_memory/1e9, 2)} GB available)! Forcing chunk_data to True."
                     )
                     chunk_data = True
 
-                total_frames = len(timestamps)
-                frame_shape = get_frame_shape(movie_file=file)
-                maxshape = [total_frames]
-                maxshape.extend(frame_shape)
+                total_frames = get_movie_frame_count(str(file))
+                frame_shape = get_frame_shape(str(file))
+                timestamps = starting_times[j] + get_movie_timestamps(str(file))
+                fps = get_movie_fps(str(file))
+                maxshape = (total_frames, *frame_shape)
                 best_gzip_chunk = (1, frame_shape[0], frame_shape[1], 3)
                 tqdm_pos, tqdm_mininterval = (0, 10)
                 if chunk_data:
-
-                    def data_generator(file, count_max):
-                        cap = cv2.VideoCapture(str(file))
-                        for _ in range(min(count_max, total_frames)):
-                            success, frame = cap.read()
-                            yield frame
-                        cap.release()
-
-                    mov = DataChunkIterator(
+                    iterable = DataChunkIterator(
                         data=tqdm(
-                            iterable=data_generator(file=file, count_max=count_max),
+                            iterable=get_movie_frames(str(file)),
                             desc=f"Copying movie data for {Path(file).name}",
                             position=tqdm_pos,
                             total=total_frames,
@@ -202,37 +209,42 @@ class MovieInterface(BaseDataInterface):
                         iter_axis=0,  # nwb standard is time as zero axis
                         maxshape=tuple(maxshape),
                     )
-                    image_series_kwargs.update(data=H5DataIO(mov, compression="gzip", chunks=best_gzip_chunk))
+                    data = H5DataIO(iterable, compression=compression, chunks=best_gzip_chunk)
                 else:
-                    cap = cv2.VideoCapture(str(file))
-                    mov = []
+                    iterable = []
                     with tqdm(
                         desc=f"Reading movie data for {Path(file).name}",
                         position=tqdm_pos,
                         total=total_frames,
                         mininterval=tqdm_mininterval,
                     ) as pbar:
-                        for _ in range(min(count_max, total_frames)):
-                            success, frame = cap.read()
-                            mov.append(frame)
+                        for frame in get_movie_frames(str(file)):
+                            iterable.append(frame)
                             pbar.update(1)
-                    cap.release()
-                    image_series_kwargs.update(
-                        data=H5DataIO(
-                            DataChunkIterator(
-                                tqdm(
-                                    iterable=np.array(mov),
-                                    desc=f"Writing movie data for {Path(file).name}",
-                                    position=tqdm_pos,
-                                    mininterval=tqdm_mininterval,
-                                ),
-                                iter_axis=0,  # nwb standard is time as zero axis
-                                maxshape=tuple(maxshape),
+                    data = H5DataIO(
+                        DataChunkIterator(
+                            tqdm(
+                                iterable=np.array(iterable),
+                                desc=f"Writing movie data for {Path(file).name}",
+                                position=tqdm_pos,
+                                mininterval=tqdm_mininterval,
                             ),
-                            compression="gzip",
-                            chunks=best_gzip_chunk,
-                        )
+                            iter_axis=0,  # nwb standard is time as zero axis
+                            maxshape=tuple(maxshape),
+                        ),
+                        compression="gzip",
+                        chunks=best_gzip_chunk,
                     )
+
+                # capture data in kwargs:
+                image_series_kwargs.update(data=data)
+                if len(starting_times) != len(file_paths):
+                    starting_times.append(timestamps[-1])
+                if check_regular_timestamps(ts=timestamps):
+                    image_series_kwargs.update(starting_time=starting_times[j], rate=fps)
+                else:
+                    image_series_kwargs.update(timestamps=timestamps)
+
             if module_name is None:
                 nwbfile.add_acquisition(ImageSeries(**image_series_kwargs))
             else:

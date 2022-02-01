@@ -22,7 +22,7 @@ def get_movie_timestamps(movie_file: PathType):
     movie_file : PathType
     """
     cap = cv2.VideoCapture(str(movie_file))
-    timestamps = [cap.get(cv2.CAP_PROP_POS_MSEC)]
+    timestamps = []
     success, frame = cap.read()
     while success:
         timestamps.append(cap.get(cv2.CAP_PROP_POS_MSEC))
@@ -60,3 +60,62 @@ def get_frame_shape(movie_file: PathType):
     success, frame = cap.read()
     cap.release()
     return frame.shape
+
+
+def get_movie_frame_count(movie_file: PathType):
+    """
+    Return the total number of frames for a movie file.
+
+    """
+    cap = cv2.VideoCapture(str(movie_file))
+    if int(cv2.__version__.split(".")[0]) < 3:
+        count = cap.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT)
+    else:
+        count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+    cap.release()
+    return int(count)
+
+
+def get_frame_no(movie_file: PathType, frame_no: int=0):
+    """
+    Retrive the frame no from a movie and return as array
+    Parameters
+    ----------
+    movie_file: PathType
+    frame_no: int
+    Returns
+    -------
+    frame: np.array
+    """
+    assert frame_no < get_movie_frame_count(movie_file), "frame number is greater than length of movie"
+    cap = cv2.VideoCapture(str(movie_file))
+    if int(cv2.__version__.split(".")[0]) < 3:
+        set_arg = cv2.cv.CV_CAP_PROP_POS_FRAMES
+    else:
+        set_arg = cv2.CAP_PROP_POS_FRAMES
+    set_value = cap.set(set_arg, frame_no)
+    if not set_value:
+        return
+    success, frame = cap.read()
+    if success:
+        return frame
+
+
+def get_movie_frames(movie_file: PathType, count_max: int=None):
+    """
+    Returns a generator that returns sequential movie frames
+    Parameters
+    ----------
+    movie_file: PathType
+
+    Returns
+    -------
+    frame: np.array
+    """
+    no_frames = get_movie_frame_count(movie_file)
+    count_max = no_frames if count_max is None else count_max
+    for frame_no in range(count_max):
+        cap = cv2.VideoCapture(str(movie_file))
+        success, frame = cap.read()
+        yield frame
+    cap.release()
