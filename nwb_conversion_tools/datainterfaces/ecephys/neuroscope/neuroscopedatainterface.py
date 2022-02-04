@@ -42,9 +42,11 @@ def subset_shank_channels(
     return sub_recording
 
 
-def add_recording_extractor_properties(recording_extractor: Union[se.RecordingExtractor, si.BaseRecording], gain: float, xml_file_path: str):
+def add_recording_extractor_properties(
+    recording_extractor: Union[se.RecordingExtractor, si.BaseRecording], gain: float, xml_file_path: str
+):
     """Automatically add properties to RecordingExtractor object."""
-    
+
     channel_groups = get_channel_groups(xml_file_path=xml_file_path)
     channel_map = {
         channel_id: idx
@@ -55,12 +57,12 @@ def add_recording_extractor_properties(recording_extractor: Union[se.RecordingEx
     group_names = [f"Group{n}" for n in group_nums]
 
     channel_id_list = list(channel_map.keys())
-    
+
     if isinstance(recording_extractor, se.RecordingExtractor):
         recording_extractor = OldToNewRecording(oldapi_recording_extractor=recording_extractor)
     else:
         recording_extractor = recording_extractor
-    
+
     # Gains
     recording_extractor.set_channel_gains(gain)
 
