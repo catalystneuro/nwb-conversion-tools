@@ -66,12 +66,6 @@ def add_recording_extractor_properties(recording_extractor: se.RecordingExtracto
                 value=group_electrode_numbers[channel_map[channel_id]],
             )
     else:
-        # new_rec = rec.channel_slice(channel_ids_list, renamed_channel_ids=channel_id_list)
-        # import numpy as np
-        # recording_extractor.channel_ids = np.array(channel_id_list)
-        # recording_extractor._main_ids = np.array(channel_id_list)
-        # channel_id_list_str = [str(channel_id) for channel_id in channel_id_list]
-
         # Channel groups
 
         # Group names
