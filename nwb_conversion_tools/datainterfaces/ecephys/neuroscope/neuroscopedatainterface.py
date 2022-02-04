@@ -68,7 +68,7 @@ def add_recording_extractor_properties(recording_extractor: se.RecordingExtracto
     else:
         # Gain
         recording_extractor.set_channel_gains(gain)
-        
+
         # Channel groups
 
         # Group names
@@ -144,7 +144,9 @@ class NeuroscopeRecordingInterface(BaseRecordingExtractorInterface):
             channel_ids, renamed_channel_ids=channel_ids_integers
         )
 
-        add_recording_extractor_properties(recording_extractor=self.recording_extractor, gain=gain, xml_file_path=xml_file_path)
+        add_recording_extractor_properties(
+            recording_extractor=self.recording_extractor, gain=gain, xml_file_path=xml_file_path
+        )
         self.recording_extractor = subset_shank_channels(
             recording_extractor=self.recording_extractor, xml_file_path=xml_file_path
         )
