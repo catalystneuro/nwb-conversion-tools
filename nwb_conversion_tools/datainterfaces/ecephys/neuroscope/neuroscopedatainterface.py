@@ -31,6 +31,7 @@ def subset_shank_channels(
         recording = OldToNewRecording(oldapi_recording_extractor=recording_extractor)
     else:
         recording = recording_extractor
+    
     shank_channels = get_shank_channels(xml_file_path=xml_file_path)
 
     if shank_channels is not None:
@@ -51,23 +52,42 @@ def add_recording_extractor_properties(recording_extractor: se.RecordingExtracto
     group_electrode_numbers = [x for channels in channel_groups for x, _ in enumerate(channels)]
     group_nums = [n + 1 for n, channels in enumerate(channel_groups) for _ in channels]
     group_names = [f"Group{n}" for n in group_nums]
+    
+    channel_id_list = list(channel_map.keys())
+    if isinstance(recording_extractor, se.RecordingExtractor):
+        for channel_id in channel_id_list:
+            recording_extractor.set_channel_groups(channel_ids=[channel_id], groups=group_nums[channel_map[channel_id]])
+            recording_extractor.set_channel_property(
+                channel_id=channel_id, property_name="group_name", value=group_names[channel_map[channel_id]]
+            )
+            recording_extractor.set_channel_property(
+                channel_id=channel_id,
+                property_name="shank_electrode_number",
+                value=group_electrode_numbers[channel_map[channel_id]],
+            )
+    else:
+        #new_rec = rec.channel_slice(channel_ids_list, renamed_channel_ids=channel_id_list)
+        #import numpy as np
+        #recording_extractor.channel_ids = np.array(channel_id_list)
+        #recording_extractor._main_ids = np.array(channel_id_list) 
+        #channel_id_list_str = [str(channel_id) for channel_id in channel_id_list]
 
-    for channel_id in channel_map.keys():
-        recording_extractor.set_channel_groups(channel_ids=[channel_id], groups=group_nums[channel_map[channel_id]])
-        recording_extractor.set_channel_property(
-            channel_id=channel_id, property_name="group_name", value=group_names[channel_map[channel_id]]
-        )
-        recording_extractor.set_channel_property(
-            channel_id=channel_id,
-            property_name="shank_electrode_number",
-            value=group_electrode_numbers[channel_map[channel_id]],
-        )
-
-
+        # Channel groups
+        
+        # Group names
+        group_names = [group_names[channel_map[channel_id]] for channel_id in channel_id_list]
+        recording_extractor.set_property(key='group_name', ids=channel_id_list, values=group_names)
+        # Shank electrode number
+        group_electrode_numbers = [group_electrode_numbers[channel_map[channel_id]] for channel_id in channel_id_list]
+        recording_extractor.set_property(key='shank_electrode_number', ids=channel_id_list, values=group_names)
+        
+        
 class NeuroscopeRecordingInterface(BaseRecordingExtractorInterface):
     """Primary data interface class for converting a NeuroscopeRecordingExtractor."""
 
-    RX = se.NeuroscopeRecordingExtractor
+    # RX = se.NeuroscopeRecordingExtractor
+    from spikeinterface.extractors import NeuroScopeRecordingExtractor
+    RX = NeuroScopeRecordingExtractor
 
     @staticmethod
     def get_ecephys_metadata(xml_file_path: str):
@@ -113,9 +133,15 @@ class NeuroscopeRecordingInterface(BaseRecordingExtractorInterface):
 
         if xml_file_path is None:
             xml_file_path = get_xml_file_path(data_file_path=file_path)
-        super().__init__(file_path=file_path, gain=gain, xml_file_path=xml_file_path)
+        
+        #super().__init__(file_path=file_path, gain=gain, xml_file_path=xml_file_path)
+        super().__init__(file_path=file_path, )
 
         # Add the properties
+        channel_ids = self.recording_extractor.channel_ids
+        channel_ids_integers = [int(channel_id) for channel_id in channel_ids]
+        self.recording_extractor = self.recording_extractor.channel_slice(channel_ids, renamed_channel_ids=channel_ids_integers)
+        
         add_recording_extractor_properties(recording_extractor=self.recording_extractor, xml_file_path=xml_file_path)
         self.recording_extractor = subset_shank_channels(
             recording_extractor=self.recording_extractor, xml_file_path=xml_file_path
@@ -174,6 +200,7 @@ class NeuroscopeMultiRecordingTimeInterface(NeuroscopeRecordingInterface):
 
         if xml_file_path is None:
             xml_file_path = get_xml_file_path(data_file_path=folder_path)
+        
         super(NeuroscopeRecordingInterface, self).__init__(
             folder_path=folder_path, gain=gain, xml_file_path=xml_file_path
         )

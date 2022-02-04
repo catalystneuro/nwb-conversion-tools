@@ -406,10 +406,11 @@ def add_electrodes(
             electrode_kwargs.update(id=channel_id)
 
             # checked_recording.get_channel_locations defaults to np.nan if there are none
-            location = checked_recording.get_channel_locations(channel_ids=[channel_id])[0]
-            if all([not np.isnan(loc) for loc in location]):
-                # property 'location' of RX channels corresponds to rel_x and rel_ y of NWB electrodes
-                electrode_kwargs.update(dict(rel_x=float(location[0]), rel_y=float(location[1])))
+            if checked_recording.get_property('location') is not None:
+                location = checked_recording.get_channel_locations(channel_ids=[channel_id])[0]
+                if all([not np.isnan(loc) for loc in location]):
+                    # property 'location' of RX channels corresponds to rel_x and rel_ y of NWB electrodes
+                    electrode_kwargs.update(dict(rel_x=float(location[0]), rel_y=float(location[1])))
 
             for name, desc in elec_columns.items():
                 if name == "group_name":
