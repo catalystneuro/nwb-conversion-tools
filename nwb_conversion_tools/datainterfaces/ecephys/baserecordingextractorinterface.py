@@ -4,6 +4,8 @@ from typing import Optional
 import numpy as np
 
 import spikeextractors as se
+import spikeinterface as si
+
 from pynwb import NWBFile
 from pynwb.device import Device
 from pynwb.ecephys import ElectrodeGroup
@@ -31,8 +33,6 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
     def get_metadata_schema(self):
         """Compile metadata schema for the RecordingExtractor."""
         metadata_schema = super().get_metadata_schema()
-
-        # Initiate Ecephys metadata
         metadata_schema["properties"]["Ecephys"] = get_base_schema(tag="Ecephys")
         metadata_schema["properties"]["Ecephys"]["required"] = ["Device", "ElectrodeGroup"]
         metadata_schema["properties"]["Ecephys"]["properties"] = dict(
@@ -92,7 +92,13 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         if self.subset_channels is not None:
             kwargs.update(channel_ids=self.subset_channels)
 
-        recording_extractor = se.SubRecordingExtractor(self.recording_extractor, **kwargs)
+        if isinstance(self.recording_extractor, se.RecordingExtractor):
+            recording_extractor = se.SubRecordingExtractor(self.recording_extractor, **kwargs)
+        elif isinstance(self.recording_extractor, si.BaseRecording):
+            recording_extractor = self.recording_extractor.frame_slice(start_frame=0, end_frame=end_frame)
+        else:
+            raise TypeError(f"{self.recording_extractor} should be either se.RecordingExtractor or si.BaseRecording")
+
         return recording_extractor
 
     def run_conversion(
