@@ -258,7 +258,7 @@ def add_electrodes(
         Missing keys in an element of metadata['Ecephys']['ElectrodeGroup'] will be auto-populated with defaults
         whenever possible.
         If 'my_name' is set to one of the required fields for nwbfile
-        electrodes (id, x, y, z, imp, loccation, filtering, group_name),
+        electrodes (id, x, y, z, imp, location, filtering, group_name),
         then the metadata will override their default values.
         Setting 'my_name' to metadata field 'group' is not supported as the linking to
         nwbfile.electrode_groups is handled automatically; please specify the string 'group_name' in this case.
