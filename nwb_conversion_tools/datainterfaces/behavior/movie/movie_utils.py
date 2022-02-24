@@ -1,11 +1,12 @@
 """Authors: Saksham Sharda, Cody Baker."""
 from pathlib import Path
-from typing import Union, Tuple
+from typing import Union, Tuple, Iterable
 
 import numpy as np
 from tqdm import tqdm
 
 from ....utils.json_schema import FilePathType
+from hdmf.data_utils import GenericDataChunkIterator
 
 try:
     import cv2
@@ -141,3 +142,49 @@ class VideoCaptureContext:
 
     def __del__(self):
         self.vc.release()
+
+
+class MovieDataChunkIterator(GenericDataChunkIterator):
+    """DataChunkIterator specifically for use on RecordingExtractor objects."""
+
+    def __init__(
+        self,
+        movie_file: PathType,
+        buffer_gb: float = None,
+        buffer_shape: tuple = None,
+        chunk_mb: float = None,
+        chunk_shape: tuple = None,
+        stub: bool = False,
+    ):
+        self.video_capture_ob = VideoCaptureContext(movie_file)
+        if stub:
+            self.video_capture_ob.frame_count = 10
+        self._default_chunk_shape = False
+        if chunk_shape is None:
+            chunk_shape = (1, *self.video_capture_ob.get_frame_shape())
+            self._default_chunk_shape = True
+        super().__init__(buffer_gb=buffer_gb,
+                         buffer_shape=buffer_shape,
+                         chunk_mb=chunk_mb,
+                         chunk_shape=chunk_shape,
+                         display_progress=True)
+        self._current_chunk = 1
+
+    def _get_data(self, selection: Tuple[slice]) -> Iterable:
+        if self._default_chunk_shape:
+            self._current_chunk += 1
+            frame = next(self.video_capture_ob)
+            return frame[np.newaxis, :]
+        frames_return = []
+        step = selection[0].step if selection[0].step is not None else 1
+        for frame_no in range(selection[0].start, selection[0].stop, step):
+            frame = self.video_capture_ob.get_movie_frame(frame_no)
+            frames_return.append(frame[selection[1:]])
+            self._current_chunk += 1
+        return np.concatenate(frames_return, axis=0)
+
+    def _get_dtype(self):
+        return self.video_capture_ob.get_movie_frame_dtype()
+
+    def _get_maxshape(self):
+        return (self.video_capture_ob.get_movie_frame_count(), *self.video_capture_ob.get_frame_shape())
