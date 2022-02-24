@@ -399,8 +399,7 @@ def add_electrodes(
         _ = elec_columns.pop(name)
 
     # add channel_id column
-    nwbfile.add_electrode_column(
-        name="channel_id", description="channel_id", index=False)
+    nwbfile.add_electrode_column(name="channel_id", description="channel_id", index=False)
 
     for j, channel_id in enumerate(checked_recording.get_channel_ids()):
         if channel_id not in nwb_elec_ids:
@@ -604,8 +603,7 @@ def add_electrical_series(
         ), f"LFP ElectricalSeries '{eseries_kwargs['name']}' is already written in the NWBFile!"
 
     channel_indices = checked_recording.ids_to_indices(checked_recording.get_channel_ids())
-    table_ids = [list(nwbfile.electrodes.id[:]).index(id)
-                 for id in channel_indices]
+    table_ids = [list(nwbfile.electrodes.id[:]).index(id) for id in channel_indices]
     electrode_table_region = nwbfile.create_electrode_table_region(
         region=table_ids, description="electrode_table_region"
     )
