@@ -398,10 +398,15 @@ def add_electrodes(
     for name in elec_columns_append:
         _ = elec_columns.pop(name)
 
+    # add channel_id column
+    nwbfile.add_electrode_column(
+        name="channel_id", description="channel_id", index=False)
+
     for j, channel_id in enumerate(checked_recording.get_channel_ids()):
         if channel_id not in nwb_elec_ids:
             electrode_kwargs = dict(default_updated)
-            electrode_kwargs.update(id=channel_id)
+            electrode_kwargs.update(id=checked_recording.id_to_index(channel_id))
+            electrode_kwargs.update(channel_id=channel_id)
 
             # checked_recording.get_channel_locations defaults to np.nan if there are none
             location = checked_recording.get_channel_locations(channel_ids=[channel_id])[0]
@@ -598,8 +603,9 @@ def add_electrical_series(
             eseries_kwargs["name"] not in nwbfile.processing["ecephys"].data_interfaces["LFP"].electrical_series
         ), f"LFP ElectricalSeries '{eseries_kwargs['name']}' is already written in the NWBFile!"
 
-    channel_ids = checked_recording.get_channel_ids()
-    table_ids = [list(nwbfile.electrodes.id[:]).index(id) for id in channel_ids]
+    channel_indices = checked_recording.ids_to_indices(checked_recording.get_channel_ids())
+    table_ids = [list(nwbfile.electrodes.id[:]).index(id)
+                 for id in channel_indices]
     electrode_table_region = nwbfile.create_electrode_table_region(
         region=table_ids, description="electrode_table_region"
     )
