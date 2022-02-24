@@ -163,11 +163,13 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
         if chunk_shape is None:
             chunk_shape = (1, *self.video_capture_ob.get_frame_shape())
             self._default_chunk_shape = True
-        super().__init__(buffer_gb=buffer_gb,
-                         buffer_shape=buffer_shape,
-                         chunk_mb=chunk_mb,
-                         chunk_shape=chunk_shape,
-                         display_progress=True)
+        super().__init__(
+            buffer_gb=buffer_gb,
+            buffer_shape=buffer_shape,
+            chunk_mb=chunk_mb,
+            chunk_shape=chunk_shape,
+            display_progress=True,
+        )
         self._current_chunk = 1
 
     def _get_data(self, selection: Tuple[slice]) -> Iterable:
