@@ -154,10 +154,10 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
         buffer_shape: tuple = None,
         chunk_mb: float = None,
         chunk_shape: tuple = None,
-        stub: bool = False,
+        stub_test: bool = False,
     ):
         self.video_capture_ob = VideoCaptureContext(movie_file)
-        if stub:
+        if stub_test:
             self.video_capture_ob.frame_count = 10
         self._default_chunk_shape = False
         if chunk_shape is None:

@@ -163,7 +163,7 @@ class TestMovieInterface(unittest.TestCase):
 
     def test_iterator_stub(self):
         movie_file = self.create_movie()
-        it = H5DataIO(MovieDataChunkIterator(movie_file, stub=True), compression="gzip")
+        it = H5DataIO(MovieDataChunkIterator(movie_file, stub_test=True), compression="gzip")
         img_srs = ImageSeries(name="imageseries",
                               data=it,
                               unit='na',
