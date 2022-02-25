@@ -1,6 +1,5 @@
 """Authors: Saksham Sharda, Cody Baker."""
-from pathlib import Path
-from typing import Union, Tuple, Iterable
+from typing import Tuple, Iterable
 
 import numpy as np
 from tqdm import tqdm
@@ -15,8 +14,6 @@ try:
 except ImportError:
     HAVE_OPENCV = False
 INSTALL_MESSAGE = "Please install opencv to use the VideoCaptureContext class! (pip install opencv-python)"
-
-PathType = Union[str, Path]
 
 
 class VideoCaptureContext:
@@ -149,7 +146,7 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
 
     def __init__(
         self,
-        movie_file: PathType,
+        movie_file: FilePathType,
         buffer_gb: float = None,
         buffer_shape: tuple = None,
         chunk_mb: float = None,
@@ -163,11 +160,13 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
         if chunk_shape is None:
             chunk_shape = (1, *self.video_capture_ob.get_frame_shape())
             self._default_chunk_shape = True
-        super().__init__(buffer_gb=buffer_gb,
-                         buffer_shape=buffer_shape,
-                         chunk_mb=chunk_mb,
-                         chunk_shape=chunk_shape,
-                         display_progress=True)
+        super().__init__(
+            buffer_gb=buffer_gb,
+            buffer_shape=buffer_shape,
+            chunk_mb=chunk_mb,
+            chunk_shape=chunk_shape,
+            display_progress=True,
+        )
         self._current_chunk = 1
 
     def _get_data(self, selection: Tuple[slice]) -> Iterable:
