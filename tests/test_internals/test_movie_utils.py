@@ -148,11 +148,7 @@ class TestMovieInterface(unittest.TestCase):
     def test_iterator_general(self):
         movie_file = self.create_movie()
         it = H5DataIO(MovieDataChunkIterator(movie_file), compression="gzip")
-        img_srs = ImageSeries(name="imageseries",
-                              data=it,
-                              unit='na',
-                              starting_time=None,
-                              rate=1.0)
+        img_srs = ImageSeries(name="imageseries", data=it, unit="na", starting_time=None, rate=1.0)
         self.nwbfile.add_acquisition(img_srs)
         with NWBHDF5IO(path=self.nwbfile_path, mode="w") as io:
             io.write(self.nwbfile)
@@ -164,11 +160,7 @@ class TestMovieInterface(unittest.TestCase):
     def test_iterator_stub(self):
         movie_file = self.create_movie()
         it = H5DataIO(MovieDataChunkIterator(movie_file, stub_test=True), compression="gzip")
-        img_srs = ImageSeries(name="imageseries",
-                              data=it,
-                              unit='na',
-                              starting_time=None,
-                              rate=1.0)
+        img_srs = ImageSeries(name="imageseries", data=it, unit="na", starting_time=None, rate=1.0)
         self.nwbfile.add_acquisition(img_srs)
         with NWBHDF5IO(path=self.nwbfile_path, mode="w") as io:
             io.write(self.nwbfile)

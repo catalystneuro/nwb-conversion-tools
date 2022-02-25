@@ -173,40 +173,34 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
         if self._full_frame_size_mb <= chunk_mb:
             return self._full_frame_shape
         else:
-            pixel_size_mb = self._maxshape[-1]*self._dtype/1e6
+            pixel_size_mb = self._maxshape[-1] * self._dtype / 1e6
             shape = [1] * len(self._maxshape[1:-1]) + [self._maxshape[-1]]
             return self._get_default_shape_movie(chunk_mb, shape, pixel_size_mb, self._maxshape[1:])
 
     @staticmethod
     def _get_default_shape_movie(size_mb, shape, size, max_shape):
         """Given the shape and size of array, return shape that will fit size_mb."""
-        k = np.floor(
-            (size_mb/size) ** (1/len(shape))
-        )
-        return tuple([
-            min(max(int(x), shape[j]), max_shape[j])
-            for j, x in enumerate(k*np.array(shape))
-        ])
+        k = np.floor((size_mb / size) ** (1 / len(shape)))
+        return tuple([min(max(int(x), shape[j]), max_shape[j]) for j, x in enumerate(k * np.array(shape))])
 
     def _get_frame_details(self):
         """Get frame shape and size in MB"""
         frame_shape = (1, *self.video_capture_ob.get_frame_shape())
-        min_frame_size = (np.prod(frame_shape)*self._get_dtype().itemsize)/10e6
+        min_frame_size = (np.prod(frame_shape) * self._get_dtype().itemsize) / 10e6
         return min_frame_size, frame_shape
 
     def _get_default_buffer_shape_movie(self, size_gb):
         """Buffer shape is a multiple of frame shape along the frame dimension."""
-        assert size_gb >= self._full_frame_size_mb/1e3, f"provide buffer size >= {self._full_frame_size_mb/1e3} GB"
-        return self._get_default_shape_movie(size_gb*1e3,
-                                             self._full_frame_shape,
-                                             self._full_frame_size_mb,
-                                             self._maxshape)
+        assert size_gb >= self._full_frame_size_mb / 1e3, f"provide buffer size >= {self._full_frame_size_mb/1e3} GB"
+        return self._get_default_shape_movie(
+            size_gb * 1e3, self._full_frame_shape, self._full_frame_size_mb, self._maxshape
+        )
 
     def _get_data(self, selection: Tuple[slice]) -> Iterable:
         start_frame = selection[0].start
         end_frame = selection[0].stop
-        frames = np.empty(shape=[end_frame-start_frame, *self._maxshape[1:]])
-        for frame_no in range(end_frame-start_frame):
+        frames = np.empty(shape=[end_frame - start_frame, *self._maxshape[1:]])
+        for frame_no in range(end_frame - start_frame):
             frames[frame_no] = self.video_capture_ob.__next__()
         return frames
 
