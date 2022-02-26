@@ -595,7 +595,7 @@ class TestWriteElectrodes(unittest.TestCase):
 
         write_recording(recording=self.RX3, nwbfile=self.nwbfile3)
         with NWBHDF5IO(str(self.path3), "w") as io:
-            io.write(self.nwbfile1)
+            io.write(self.nwbfile3)
         with NWBHDF5IO(str(self.path3), "r") as io:
             nwb = io.read()
 
