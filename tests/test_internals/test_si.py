@@ -160,11 +160,7 @@ class TestExtractors(unittest.TestCase):
         metadata["NWBFile"].update(self.placeholder_metadata["NWBFile"])
         path_multi = self.test_dir + "/test_multiple.nwb"
         write_recording(
-            recording=self.RX,
-            save_path=path_multi,
-            metadata=metadata,
-            write_as="raw",
-            es_key="ElectricalSeries_raw",
+            recording=self.RX, save_path=path_multi, metadata=metadata, write_as="raw", es_key="ElectricalSeries_raw",
         )
         write_recording(
             recording=self.RX2,
@@ -174,11 +170,7 @@ class TestExtractors(unittest.TestCase):
             es_key="ElectricalSeries_processed",
         )
         write_recording(
-            recording=self.RX3,
-            save_path=path_multi,
-            metadata=metadata,
-            write_as="lfp",
-            es_key="ElectricalSeries_lfp",
+            recording=self.RX3, save_path=path_multi, metadata=metadata, write_as="lfp", es_key="ElectricalSeries_lfp",
         )
 
         RX_nwb = se.NwbRecordingExtractor(file_path=path_multi, electrical_series_name="raw_traces")
@@ -497,6 +489,12 @@ class TestWriteElectrodes(unittest.TestCase):
         self.RX2 = se.subrecordingextractor.SubRecordingExtractor(
             self.RX2, renamed_channel_ids=np.array(self.RX2.get_channel_ids()) + id_offset + 1
         )
+
+        # # Make channels string
+        # self.RX3 = se.subrecordingextractor.SubRecordingExtractor(
+        #     self.RX3, renamed_channel_ids=[str(id) for id in self.RX3.get_channel_ids()]
+        # )
+
         self.RX2.set_channel_groups([2 * i for i in self.RX.get_channel_groups()])
         # add common properties:
         for no, (chan_id1, chan_id2) in enumerate(zip(self.RX.get_channel_ids(), self.RX2.get_channel_ids())):
@@ -511,6 +509,7 @@ class TestWriteElectrodes(unittest.TestCase):
                 self.RX.set_channel_property(chan_id1, "prop2", float(chan_id1))
                 self.RX2.set_channel_property(chan_id2, "prop3", str(chan_id2))
                 self.RX.set_channel_property(chan_id1, "prop3", str(chan_id1))
+
 
     def test_append_same_properties(self):
         write_recording(recording=self.RX, nwbfile=self.nwbfile1, metadata=self.metadata_list[0], es_key="es1")
@@ -577,6 +576,23 @@ class TestWriteElectrodes(unittest.TestCase):
                 else:
                     assert nwb.electrodes["group_name"][i] == "M1"
                     assert nwb.electrodes["group"][i].description == "M1 description"
+                    
+    def test_non_ints_as_channel_ids(self):
+        channel_ids = self.RX.get_channel_ids()
+        renamed_channel_ids = [str(id) for id in channel_ids]
+        self.RX3 = se.subrecordingextractor.SubRecordingExtractor(
+            parent_recording=self.RX, channel_ids=channel_ids, renamed_channel_ids=renamed_channel_ids,
+        )
+        
+        write_recording(recording=self.RX3, nwbfile=self.nwbfile3)
+        with NWBHDF5IO(str(self.path3), "w") as io:
+            io.write(self.nwbfile1)
+        with NWBHDF5IO(str(self.path3), "r") as io:
+            nwb = io.read()
+        
+        for i in channel_ids:
+            assert nwb.electrodes['channel_ids'][i] == str(i)
+
 
 
 if __name__ == "__main__":
