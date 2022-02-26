@@ -160,7 +160,11 @@ class TestExtractors(unittest.TestCase):
         metadata["NWBFile"].update(self.placeholder_metadata["NWBFile"])
         path_multi = self.test_dir + "/test_multiple.nwb"
         write_recording(
-            recording=self.RX, save_path=path_multi, metadata=metadata, write_as="raw", es_key="ElectricalSeries_raw",
+            recording=self.RX,
+            save_path=path_multi,
+            metadata=metadata,
+            write_as="raw",
+            es_key="ElectricalSeries_raw",
         )
         write_recording(
             recording=self.RX2,
@@ -170,7 +174,11 @@ class TestExtractors(unittest.TestCase):
             es_key="ElectricalSeries_processed",
         )
         write_recording(
-            recording=self.RX3, save_path=path_multi, metadata=metadata, write_as="lfp", es_key="ElectricalSeries_lfp",
+            recording=self.RX3,
+            save_path=path_multi,
+            metadata=metadata,
+            write_as="lfp",
+            es_key="ElectricalSeries_lfp",
         )
 
         RX_nwb = se.NwbRecordingExtractor(file_path=path_multi, electrical_series_name="raw_traces")
@@ -580,7 +588,9 @@ class TestWriteElectrodes(unittest.TestCase):
         channel_ids = self.RX.get_channel_ids()
         renamed_channel_ids = [str(id) for id in channel_ids]
         self.RX3 = se.subrecordingextractor.SubRecordingExtractor(
-            parent_recording=self.RX, channel_ids=channel_ids, renamed_channel_ids=renamed_channel_ids,
+            parent_recording=self.RX,
+            channel_ids=channel_ids,
+            renamed_channel_ids=renamed_channel_ids,
         )
 
         write_recording(recording=self.RX3, nwbfile=self.nwbfile3)
