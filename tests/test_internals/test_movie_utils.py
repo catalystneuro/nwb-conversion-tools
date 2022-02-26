@@ -120,8 +120,8 @@ class TestVideoContext(unittest.TestCase):
 @unittest.skipIf(not CV2_INSTALLED, "cv2 not installed")
 class TestMovieInterface(unittest.TestCase):
 
-    frame_shape = (1000, 2000, 3)
-    no_frames = 30
+    frame_shape = (800, 600, 3)
+    no_frames = 500
     fps = 25
 
     def setUp(self):
