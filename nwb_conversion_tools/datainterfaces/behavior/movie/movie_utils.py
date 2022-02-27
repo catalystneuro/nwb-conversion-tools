@@ -168,9 +168,24 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
             return self._full_frame_shape[:-1] + (no_frames,)
         else:
             pixel_size_mb = self._maxshape[-1] * self._dtype.itemsize / 1e6
-            shape = [1] * len(self._maxshape[1:-1])
-            frame_chunk_shape = self._get_default_shape_movie(chunk_mb, shape, pixel_size_mb, self._maxshape[1:-1])
-            return (1,) + frame_chunk_shape + (self._maxshape[-1],)
+            no_pixels = chunk_mb//pixel_size_mb
+            max_shape = self._maxshape[1:-1]
+
+            def _func(list, val, index):
+                if len(index)>0:
+                    list_val = val//index[-1]
+                    if list_val == 0:
+                        rem = val%index[-1]
+                        list = [rem] + list
+                    else:
+                        list = index[-1] + list
+                        _func(list, list_val, index[:-1])
+                return list
+
+            shape = _func([], no_pixels, max_shape)
+            shape = [1] * (len(max_shape) - len(shape)) + shape
+
+            return (1,) + shape + (self._maxshape[-1],)
 
     def _get_default_buffer_shape(self, buffer_gb):
         """Buffer shape is a multiple of frame shape along the frame dimension."""
