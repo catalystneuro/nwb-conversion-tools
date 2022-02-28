@@ -163,7 +163,7 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
 
     def _get_default_chunk_shape(self, chunk_mb):
         """Shape is either one frame or a subset: scaled frame size but with all pixel colors"""
-        no_frames = chunk_mb//self._full_frame_size_mb
+        no_frames = chunk_mb // self._full_frame_size_mb
         no_frames = 1 if no_frames is 0 else no_frames
         return self._full_frame_shape[:-1] + (no_frames,)
 
