@@ -587,13 +587,13 @@ class TestWriteElectrodes(unittest.TestCase):
                     assert nwb.electrodes["group"][i].description == "M1 description"
 
     def test_non_ints_as_channel_ids(self):
-        
+
         channel_ids = self.RX.get_channel_ids()
         non_int_channel_ids = [str(id) for id in channel_ids]
-        
+
         self.RX3 = BaseRecording(channels_ids=non_int_channel_ids)
         write_recording(recording=self.RX3, nwbfile=self.nwbfile3)
-        
+
         with NWBHDF5IO(str(self.path3), "w") as io:
             io.write(self.nwbfile3)
         with NWBHDF5IO(str(self.path3), "r") as io:
