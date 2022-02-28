@@ -187,7 +187,7 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
         min_frame_size_mb = (np.prod(frame_shape) * self._get_dtype().itemsize) / 1e6
         return min_frame_size_mb, frame_shape
 
-    def _get_data(self, selection: Tuple[slice]) -> Iterable:
+    def _get_data(self, selection: Tuple[slice]) -> np.ndarray:
         start_frame = selection[0].start
         end_frame = selection[0].stop
         frames = np.empty(shape=[end_frame - start_frame, *self._maxshape[1:]])
