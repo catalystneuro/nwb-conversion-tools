@@ -155,7 +155,7 @@ class TestMovieInterface(unittest.TestCase):
             print(self.nwbfile_path)
         with NWBHDF5IO(path=self.nwbfile_path, mode="r") as io:
             nwbfile = io.read()
-            assert nwbfile.acquisition["imageseries"].data.chunks==(1,)+self.frame_shape
+            assert nwbfile.acquisition["imageseries"].data.chunks == (1,) + self.frame_shape
 
     def test_iterator_stub(self):
         movie_file = self.create_movie(self.fps, self.frame_shape, self.number_of_frames)
@@ -183,9 +183,9 @@ class TestMovieInterface(unittest.TestCase):
         with NWBHDF5IO(path=self.nwbfile_path, mode="r") as io:
             nwbfile = io.read()
             assert nwbfile.acquisition["imageseries"].data.chunks == custom_frame_shape
-            
+
     def test_small_framesize(self):
-        custom_frame_shape = (100,100,3)
+        custom_frame_shape = (100, 100, 3)
         movie_file = self.create_movie(self.fps, custom_frame_shape, self.number_of_frames)
         it = H5DataIO(MovieDataChunkIterator(movie_file), compression="gzip")
         img_srs = ImageSeries(name="imageseries", data=it, unit="na", starting_time=None, rate=1.0)
@@ -195,4 +195,7 @@ class TestMovieInterface(unittest.TestCase):
             print(self.nwbfile_path)
         with NWBHDF5IO(path=self.nwbfile_path, mode="r") as io:
             nwbfile = io.read()
-            assert nwbfile.acquisition["imageseries"].data.chunks == (int(1e6//np.prod(custom_frame_shape)),) + custom_frame_shape
+            assert (
+                nwbfile.acquisition["imageseries"].data.chunks
+                == (int(1e6 // np.prod(custom_frame_shape)),) + custom_frame_shape
+            )
