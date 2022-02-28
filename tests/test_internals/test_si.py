@@ -494,18 +494,14 @@ class TestWriteElectrodes(unittest.TestCase):
         self.nwbfile2 = NWBFile("sess desc2", "file id2", datetime.now())
         self.nwbfile3 = NWBFile("sess desc3", "file id3", datetime.now())
         self.metadata_list = [dict(Ecephys={i: dict(name=i, description="desc")}) for i in ["es1", "es2"]]
+        
         # change channel_ids
         id_offset = np.max(self.RX.get_channel_ids())
         self.RX2 = se.subrecordingextractor.SubRecordingExtractor(
             self.RX2, renamed_channel_ids=np.array(self.RX2.get_channel_ids()) + id_offset + 1
         )
-
-        # # Make channels string
-        # self.RX3 = se.subrecordingextractor.SubRecordingExtractor(
-        #     self.RX3, renamed_channel_ids=[str(id) for id in self.RX3.get_channel_ids()]
-        # )
-
         self.RX2.set_channel_groups([2 * i for i in self.RX.get_channel_groups()])
+        
         # add common properties:
         for no, (chan_id1, chan_id2) in enumerate(zip(self.RX.get_channel_ids(), self.RX2.get_channel_ids())):
             self.RX2.set_channel_property(chan_id2, "prop1", "10Hz")
