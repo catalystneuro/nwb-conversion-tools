@@ -199,3 +199,12 @@ class TestMovieInterface(unittest.TestCase):
                 nwbfile.acquisition["imageseries"].data.chunks
                 == (int(1e6 // np.prod(custom_frame_shape)),) + custom_frame_shape
             )
+
+            assert nwbfile.acquisition["imageseries"].data.chunks == (int(1e6//np.prod(custom_frame_shape)),) + custom_frame_shape
+
+    def test_small_buffer_shape(self):
+        frame_size_mb = np.prod(self.frame_shape)/1e6
+        buffer_size = frame_size_mb/1e3/2
+        movie_file = self.create_movie(self.fps, self.frame_shape, self.number_of_frames)
+        with self.assertRaises(AssertionError):
+            it = H5DataIO(MovieDataChunkIterator(movie_file, buffer_gb=buffer_size), compression="gzip")
