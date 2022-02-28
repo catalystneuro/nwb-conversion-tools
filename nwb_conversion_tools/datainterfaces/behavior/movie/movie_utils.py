@@ -191,8 +191,8 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
         start_frame = selection[0].start
         end_frame = selection[0].stop
         frames = np.empty(shape=[end_frame - start_frame, *self._maxshape[1:]])
-        for frame_no in range(end_frame - start_frame):
-            frames[frame_no] = next(self.video_capture_ob)
+        for frame_number in range(end_frame - start_frame):
+            frames[frame_number] = next(self.video_capture_ob)
         return frames
 
     def _get_dtype(self):
