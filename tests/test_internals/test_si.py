@@ -13,6 +13,8 @@ from spikeextractors.testing import (
     check_recording_return_types,
     get_default_nwbfile_metadata,
 )
+from spikeinterface.full import BaseRecording
+
 from pynwb import NWBHDF5IO, NWBFile
 
 from nwb_conversion_tools.utils.spike_interface import get_nwb_metadata, write_recording, write_sorting
@@ -585,22 +587,20 @@ class TestWriteElectrodes(unittest.TestCase):
                     assert nwb.electrodes["group"][i].description == "M1 description"
 
     def test_non_ints_as_channel_ids(self):
+        
         channel_ids = self.RX.get_channel_ids()
-        renamed_channel_ids = [str(id) for id in channel_ids]
-        self.RX3 = se.subrecordingextractor.SubRecordingExtractor(
-            parent_recording=self.RX,
-            channel_ids=channel_ids,
-            renamed_channel_ids=renamed_channel_ids,
-        )
-
+        non_int_channel_ids = [str(id) for id in channel_ids]
+        
+        self.RX3 = BaseRecording(channels_ids=non_int_channel_ids)
         write_recording(recording=self.RX3, nwbfile=self.nwbfile3)
+        
         with NWBHDF5IO(str(self.path3), "w") as io:
             io.write(self.nwbfile3)
         with NWBHDF5IO(str(self.path3), "r") as io:
             nwb = io.read()
 
         for i in channel_ids:
-            assert nwb.electrodes["channel_ids"][i] == str(i)
+            assert nwb.electrodes["channel_names"][i] == str(i)
 
 
 if __name__ == "__main__":
