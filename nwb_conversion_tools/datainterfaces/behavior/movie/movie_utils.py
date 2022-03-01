@@ -145,14 +145,20 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
     """DataChunkIterator specifically for use on RecordingExtractor objects."""
 
     def __init__(
-        self, movie_file: FilePathType, buffer_gb: float = None, chunk_shape: tuple = None, stub_test: bool = False,
+        self,
+        movie_file: FilePathType,
+        buffer_gb: float = None,
+        chunk_shape: tuple = None,
+        stub_test: bool = False,
     ):
         self.video_capture_ob = VideoCaptureContext(movie_file)
         self._full_frame_size_mb, self._full_frame_shape = self._get_frame_details()
         if stub_test:
             self.video_capture_ob.frame_count = 10
         super().__init__(
-            buffer_gb=buffer_gb, chunk_shape=chunk_shape, display_progress=True,
+            buffer_gb=buffer_gb,
+            chunk_shape=chunk_shape,
+            display_progress=True,
         )
 
     def _get_default_chunk_shape(self, chunk_mb):
