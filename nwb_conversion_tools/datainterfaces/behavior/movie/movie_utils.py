@@ -145,38 +145,37 @@ class MovieDataChunkIterator(GenericDataChunkIterator):
     """DataChunkIterator specifically for use on RecordingExtractor objects."""
 
     def __init__(
-        self,
-        movie_file: FilePathType,
-        buffer_gb: float = None,
-        chunk_shape: tuple = None,
-        stub_test: bool = False,
+        self, movie_file: FilePathType, buffer_gb: float = None, chunk_shape: tuple = None, stub_test: bool = False,
     ):
         self.video_capture_ob = VideoCaptureContext(movie_file)
         self._full_frame_size_mb, self._full_frame_shape = self._get_frame_details()
         if stub_test:
             self.video_capture_ob.frame_count = 10
         super().__init__(
-            buffer_gb=buffer_gb,
-            chunk_shape=chunk_shape,
-            display_progress=True,
+            buffer_gb=buffer_gb, chunk_shape=chunk_shape, display_progress=True,
         )
 
     def _get_default_chunk_shape(self, chunk_mb):
         """Shape is either one frame or a subset: scaled frame size but with all pixel colors"""
-        num_frames = int(chunk_mb // self._full_frame_size_mb)
-        num_frames = 1 if num_frames is 0 else num_frames
-        return (num_frames,) + self._full_frame_shape[1:]
+        return self._fit_frames_to_size(chunk_mb)
 
     def _get_default_buffer_shape(self, buffer_gb):
         """Buffer shape is a multiple of frame shape along the frame dimension."""
         assert buffer_gb >= self._full_frame_size_mb / 1e3, f"provide buffer size >= {self._full_frame_size_mb/1e3} GB"
-        frames_count = self._get_default_shape_movie(
-            buffer_gb * 1e3, self._full_frame_shape[:1], self._full_frame_size_mb, self._maxshape[:1]
+        return self._fit_frames_to_size(buffer_gb * 1e3)
+
+    def _fit_frames_to_size(self, size_mb):
+        """Finds the number of frames which fit size_mb and returns the full frame shape."""
+        frames_count = self._scale_shape_to_size(
+            size_mb=size_mb,
+            shape=self._full_frame_shape[:1],
+            size=self._full_frame_size_mb,
+            max_shape=self._maxshape[:1],
         )
-        return tuple([frames_count[0], *self._maxshape[1:]])
+        return frames_count + tuple(self._maxshape[1:])
 
     @staticmethod
-    def _get_default_shape_movie(size_mb, shape, size, max_shape):
+    def _scale_shape_to_size(size_mb, shape, size, max_shape):
         """Given the shape and size of array, return shape that will fit size_mb."""
         k = np.floor((size_mb / size) ** (1 / len(shape)))
         return tuple([min(max(int(x), shape[j]), max_shape[j]) for j, x in enumerate(k * np.array(shape))])
