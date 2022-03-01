@@ -9,7 +9,6 @@ from pynwb.image import ImageSeries
 from pynwb import NWBHDF5IO
 from datetime import datetime
 from hdmf.backends.hdf5.h5_utils import H5DataIO
-from parameterized import parameterized
 
 try:
     import cv2
@@ -157,9 +156,26 @@ class TestMovieInterface(unittest.TestCase):
             nwbfile = io.read()
             assert nwbfile.acquisition["imageseries"].data.shape[0] == 10
 
-    @parameterized.expand([((800, 600, 3), 500), ((400, 300, 3), 500)])
-    def test_frame_shape(self, frame_shape, number_of_frames):
-        movie_file = self.create_movie(self.fps, frame_shape, number_of_frames)
+    def test_frame_shape_big(self):
+        frame_shape = (800, 600, 3)
+        movie_file = self.create_movie(self.fps, frame_shape, self.number_of_frames)
+        num_frames_chunk = int(1e6 // np.prod(frame_shape))
+        num_frames_chunk = 1 if num_frames_chunk == 0 else num_frames_chunk
+        it = H5DataIO(MovieDataChunkIterator(movie_file), compression="gzip")
+        img_srs = ImageSeries(name="imageseries", data=it, unit="na", starting_time=None, rate=1.0)
+        self.nwbfile.add_acquisition(img_srs)
+        with NWBHDF5IO(path=self.nwbfile_path, mode="w") as io:
+            io.write(self.nwbfile)
+        with NWBHDF5IO(path=self.nwbfile_path, mode="r") as io:
+            nwbfile = io.read()
+            expected_chunk_shape = (num_frames_chunk,) + frame_shape
+            assert all(
+                [nwbfile.acquisition["imageseries"].data.chunks[i] == j for i, j in enumerate(expected_chunk_shape)]
+            )
+
+    def test_frame_shape_small(self):
+        frame_shape = (400, 300, 3)
+        movie_file = self.create_movie(self.fps, frame_shape, self.number_of_frames)
         num_frames_chunk = int(1e6 // np.prod(frame_shape))
         num_frames_chunk = 1 if num_frames_chunk == 0 else num_frames_chunk
         it = H5DataIO(MovieDataChunkIterator(movie_file), compression="gzip")
