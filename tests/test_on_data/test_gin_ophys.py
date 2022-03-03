@@ -1,7 +1,8 @@
 import tempfile
 import unittest
-from pathlib import Path
 import os
+from pathlib import Path
+from datetime import datetime
 
 import pytest
 from roiextractors import NwbImagingExtractor, NwbSegmentationExtractor
@@ -17,6 +18,7 @@ from nwb_conversion_tools import (
     ExtractSegmentationInterface,
     Suite2pSegmentationInterface,
 )
+from nwb_conversion_tools.utils.json_schema import load_dict_from_file
 
 try:
     from parameterized import parameterized, param
@@ -25,21 +27,28 @@ try:
 except ImportError:
     HAVE_PARAMETERIZED = False
 
-# Path to GIN datasets
-#   ophys: https://gin.g-node.org/CatalystNeuro/ophys_testing_data
+# Load the configuration for the data tests
+test_config_dict = load_dict_from_file(Path(__file__).parent / "gin_test_config.json")
+
+#  GIN dataset: https://gin.g-node.org/CatalystNeuro/ophys_testing_data
 if os.getenv("CI"):
     LOCAL_PATH = Path(".")  # Must be set to "." for CI
     print("Running GIN tests on Github CI!")
 else:
-    LOCAL_PATH = Path("/home/jovyan/")  # Override this on personal device for local testing
+    # Override the LOCAL_PATH in the `gin_test_config.json` file to a point on your local system that contains the dataset folder
+    # Use DANDIHub at hub.dandiarchive.org for open, free use of data found in the /shared/catalystneuro/ directory
+    LOCAL_PATH = Path(test_config_dict["LOCAL_PATH"])
     print("Running GIN tests locally!")
-
 OPHYS_DATA_PATH = LOCAL_PATH / "ophys_testing_data"
 HAVE_OPHYS_DATA = OPHYS_DATA_PATH.exists()
 
+if test_config_dict["SAVE_OUTPUTS"]:
+    OUTPUT_PATH = LOCAL_PATH / "example_nwb_output"
+    OUTPUT_PATH.mkdir(exist_ok=True)
+else:
+    OUTPUT_PATH = Path(tempfile.mkdtemp())
 if not HAVE_PARAMETERIZED:
     pytest.fail("parameterized module is not installed! Please install (`pip install parameterized`).")
-
 if not OPHYS_DATA_PATH:
     pytest.fail(f"No oephys_testing_data folder found in location: {OPHYS_DATA_PATH}!")
 
@@ -52,7 +61,7 @@ def custom_name_func(testcase_func, param_num, param):
 
 
 class TestOphysNwbConversions(unittest.TestCase):
-    savedir = Path(tempfile.mkdtemp())
+    savedir = OUTPUT_PATH
 
     imaging_interface_list = [
         param(
@@ -79,7 +88,14 @@ class TestOphysNwbConversions(unittest.TestCase):
 
     @parameterized.expand(imaging_interface_list, name_func=custom_name_func)
     def test_convert_imaging_extractor_to_nwb(self, data_interface, interface_kwargs):
-        nwbfile_path = str(self.savedir / f"{data_interface.__name__}.nwb")
+        nwbfile_path = self.savedir / f"{data_interface.__name__}.nwb"
+
+        # TODO: Temporary hack around a strange issue where if the first SBX file fails due to an error
+        # during check_imaging_equal, it leaves the NWBFile open and second test fails because of that.
+        # Try to determine true source of error; is context failing to close through pynwb or is it the
+        # NWBImagingExtractor that fails to close?
+        if nwbfile_path.exists():
+            nwbfile_path = self.savedir / f"{data_interface.__name__}_2.nwb"
 
         class TestConverter(NWBConverter):
             data_interface_classes = dict(TestImaging=data_interface)
@@ -94,11 +110,12 @@ class TestOphysNwbConversions(unittest.TestCase):
                 plane_name = metadata["Ophys"]["ImagingPlane"][0]["name"]
                 if "imaging_plane" not in metadata["Ophys"]["TwoPhotonSeries"][0].keys():
                     metadata["Ophys"]["TwoPhotonSeries"][0]["imaging_plane"] = plane_name
-
                 return metadata
 
         converter = TestConverter(source_data=dict(TestImaging=dict(interface_kwargs)))
-        converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True)
+        metadata = converter.get_metadata()
+        metadata["NWBFile"].update(session_start_time=datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S"))
+        converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True, metadata=metadata)
         imaging = converter.data_interface_objects["TestImaging"].imaging_extractor
         nwb_imaging = NwbImagingExtractor(file_path=nwbfile_path)
         check_imaging_equal(img1=imaging, img2=nwb_imaging)
@@ -150,7 +167,9 @@ class TestOphysNwbConversions(unittest.TestCase):
             data_interface_classes = dict(TestSegmentation=data_interface)
 
         converter = TestConverter(source_data=dict(TestSegmentation=dict(interface_kwargs)))
-        converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True)
+        metadata = converter.get_metadata()
+        metadata["NWBFile"].update(session_start_time=datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S"))
+        converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True, metadata=metadata)
         segmentation = converter.data_interface_objects["TestSegmentation"].segmentation_extractor
         nwb_segmentation = NwbSegmentationExtractor(file_path=nwbfile_path)
         check_segmentations_equal(seg1=segmentation, seg2=nwb_segmentation)

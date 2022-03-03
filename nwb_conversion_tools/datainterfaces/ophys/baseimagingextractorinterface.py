@@ -1,15 +1,15 @@
 """Author: Ben Dichter."""
-import roiextractors as re
 from pynwb import NWBFile
 from pynwb.device import Device
 from pynwb.ophys import ImagingPlane, TwoPhotonSeries
 
 from ...basedatainterface import BaseDataInterface
+from ...tools.roiextractors import write_imaging, get_nwb_imaging_metadata
 from ...utils.json_schema import (
     get_schema_from_hdmf_class,
-    get_schema_from_method_signature,
     fill_defaults,
     get_base_schema,
+    OptionalFilePathType,
 )
 
 
@@ -21,7 +21,6 @@ class BaseImagingExtractorInterface(BaseDataInterface):
         self.imaging_extractor = self.IX(**source_data)
 
     def get_metadata_schema(self):
-        """Compile metadata schema for the ImageExtractor."""
         metadata_schema = super().get_metadata_schema()
         self.imaging_extractor._sampling_frequency = float(self.imaging_extractor._sampling_frequency)
 
@@ -51,9 +50,8 @@ class BaseImagingExtractorInterface(BaseDataInterface):
         return metadata_schema
 
     def get_metadata(self):
-        """Auto-fill metadata with values found from the corresponding imageextractor."""
         metadata = super().get_metadata()
-        metadata.update(re.NwbImagingExtractor.get_nwb_metadata(self.imaging_extractor))
+        metadata.update(get_nwb_imaging_metadata(self.imaging_extractor))
         _ = metadata.pop("NWBFile")
 
         # fix troublesome data types
@@ -65,7 +63,13 @@ class BaseImagingExtractorInterface(BaseDataInterface):
                     two_photon_series["rate"] = float(two_photon_series["rate"])
         return metadata
 
-    def run_conversion(self, nwbfile: NWBFile, metadata: dict, overwrite: bool = False):
-        re.NwbImagingExtractor.write_imaging(
-            self.imaging_extractor, nwbfile=nwbfile, metadata=metadata, overwrite=overwrite
+    def run_conversion(
+        self,
+        nwbfile: NWBFile,
+        metadata: dict,
+        overwrite: bool = False,
+        save_path: OptionalFilePathType = None,
+    ):
+        write_imaging(
+            imaging=self.imaging_extractor, nwbfile=nwbfile, metadata=metadata, overwrite=overwrite, save_path=save_path
         )

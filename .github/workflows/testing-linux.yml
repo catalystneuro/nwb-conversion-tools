@@ -7,7 +7,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-          python-version: [3.7, 3.8]
+          python-version: [3.7, 3.8, 3.9]
     steps:
       - uses: s-weigand/setup-conda@v1
       - uses: actions/checkout@v2
@@ -18,21 +18,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install pytest
         run: |
+          pip install --upgrade pip
           pip install pytest
           pip install pytest-cov
 
       - name: Install nwb-conversion-tools with minimal requirements
         run: pip install -e .
       - name: Run minimal pytest with coverage
-        run: pytest tests/test_internals --cov=./ --cov-report xml:/home/runner/work/nwb-conversion-tools/nwb-conversion-tools/minimal-coverage.xml
-      - name: Upload minimal coverage to Codecov
-        uses: codecov/codecov-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/minimal-coverage.xml
-          flags: unittests
-          name: codecov-umbrella 
-          yml: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/codecov.yml
+        run: pytest tests/test_internals
 
       - name: Install full requirements
         run: pip install -r requirements-full.txt
@@ -44,8 +37,8 @@ jobs:
         id: cache-ecephys-datasets
         with:
           path: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/ephy_testing_data
-          key: ecephys-datasets-8-${{ steps.ecephys.outputs.HASH_EPHY_DATASET }}
-          restore-keys: ecephys-datasets-8-${{ steps.ecephys.outputs.HASH_EPHY_DATASET }}
+          key: ecephys-datasets-9-${{ steps.ecephys.outputs.HASH_EPHY_DATASET }}
+          restore-keys: ecephys-datasets-9-${{ steps.ecephys.outputs.HASH_EPHY_DATASET }}
       - name: Force GIN ecephys download
         if: steps.cache-ecephys-datasets.outputs.cache-hit == false
         run: |
@@ -63,6 +56,7 @@ jobs:
           datalad get -r ./spikeglx/Noise4Sam_g0/Noise4Sam_g0_imec0/
           datalad get -r ./phy/phy_example_0/
           datalad get -r ./axona/
+          datalad get -r ./cellexplorer/
           cd ..
       - name: Get ophys_testing_data current head hash
         id: ophys
@@ -88,7 +82,8 @@ jobs:
 
       - name: Run full pytest with coverage
         run: pytest --cov=./ --cov-report xml:/home/runner/work/nwb-conversion-tools/nwb-conversion-tools/coverage.xml
-      - name: Upload full coverage to Codecov
+      - if: ${{ matrix.python-version == '3.9' }}
+        name: Upload full coverage to Codecov
         uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

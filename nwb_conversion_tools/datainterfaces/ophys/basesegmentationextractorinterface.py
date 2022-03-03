@@ -1,15 +1,14 @@
 """Authors: Cody Baker and Ben Dichter."""
 from abc import ABC
 
-import roiextractors as re
 from pynwb import NWBFile
 from pynwb.device import Device
 from pynwb.ophys import Fluorescence, ImageSegmentation, ImagingPlane, TwoPhotonSeries
 
 from ...basedatainterface import BaseDataInterface
+from ...tools.roiextractors import write_segmentation, get_nwb_segmentation_metadata
 from ...utils.json_schema import (
     get_schema_from_hdmf_class,
-    get_schema_from_method_signature,
     fill_defaults,
     get_base_schema,
 )
@@ -51,11 +50,9 @@ class BaseSegmentationExtractorInterface(BaseDataInterface, ABC):
 
     def get_metadata(self):
         metadata = super().get_metadata()
-        metadata.update(re.NwbSegmentationExtractor.get_nwb_metadata(self.segmentation_extractor))
+        metadata.update(get_nwb_segmentation_metadata(self.segmentation_extractor))
         _ = metadata.pop("NWBFile")
         return metadata
 
     def run_conversion(self, nwbfile: NWBFile, metadata: dict, overwrite: bool = False):
-        re.NwbSegmentationExtractor.write_segmentation(
-            self.segmentation_extractor, nwbfile=nwbfile, metadata=metadata, overwrite=overwrite
-        )
+        write_segmentation(self.segmentation_extractor, nwbfile=nwbfile, metadata=metadata, overwrite=overwrite)
