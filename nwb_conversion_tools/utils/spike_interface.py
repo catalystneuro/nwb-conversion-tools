@@ -274,8 +274,8 @@ def add_electrodes(
     else:
         checked_recording = recording
     if nwbfile.electrodes is not None:
-        ids_absent = [id not in nwbfile.electrodes.id for id in checked_recording.get_channel_ids()]
-        if not all(ids_absent):
+        ids_already_in_electrode_table = [id in nwbfile.electrodes.id for id in checked_recording.get_channel_ids()]
+        if all(ids_already_in_electrode_table):
             warnings.warn("cannot create electrodes for this recording as ids already exist")
             return
 
@@ -329,6 +329,7 @@ def add_electrodes(
     # 1. Build column details from RX properties: dict(name: dict(description='',data=data, index=False))
     elec_columns = defaultdict(dict)
     property_names = checked_recording.get_property_keys()
+
     exclude_names = list(exclude) + ["contact_vector"]
     for prop in property_names:
         if prop not in exclude_names:
@@ -363,6 +364,7 @@ def add_electrodes(
         if channel_id not in nwb_elec_ids:
             electrode_kwargs = dict(defaults)
             electrode_kwargs.update(id=channel_id)
+
             for name, desc in elec_columns.items():
                 if name == "group_name":
                     # this should always be present as an electrode column, electrode_groups with that group name

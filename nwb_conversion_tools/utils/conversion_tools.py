@@ -1,5 +1,4 @@
 """Authors: Cody Baker, Alessio Buccino."""
-import numpy as np
 import uuid
 from datetime import datetime
 from warnings import warn
