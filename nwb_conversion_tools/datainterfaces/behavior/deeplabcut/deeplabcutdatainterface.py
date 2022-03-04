@@ -74,9 +74,6 @@ class DeepLabCutInterface(BaseDataInterface):
             Name of the subject (whose pose is predicted) for single-animal DLC project.
             For multi-animal projects, the names from the DLC project will be used directly.
 
-        Returns
-        -------
-        nwbfile: pynwb.NWBFile
         """
         video = None
         df = _ensure_individuals_in_header(pd.read_hdf(self.source_data["dlc_file_path"]), individual_name)
