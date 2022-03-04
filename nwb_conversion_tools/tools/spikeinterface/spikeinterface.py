@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Union, Optional, List
 from warnings import warn
 from collections import defaultdict
+from numbers import Real
 
 import pynwb
 from spikeinterface import BaseRecording, BaseSorting
@@ -21,6 +22,66 @@ from ...utils import dict_deep_update, OptionalFilePathType
 
 SpikeInterfaceRecording = Union[BaseRecording, RecordingExtractor]
 SpikeInterfaceSorting = Union[BaseSorting, SortingExtractor]
+
+DynamicTableSupportedDtypes = {list: [], np.ndarray: np.array(np.nan), str: "", Real: np.nan}
+
+
+def reshape_dynamictable(dt, prop_dict, defaults):
+    """
+    Prepare an already existing dynamic table to take custom properties using the add_functions.
+    Parameters
+    ----------
+    dt: DynamicTable
+    prop_dict: dict
+        dict(name=dict(description='',data='', index=bool)
+    defaults: dict
+        default row values for dt columns
+    Returns
+    -------
+    default_updated: dict
+    """
+    defaults_updated = defaults
+    if dt is None:
+        return
+    property_default_data = DynamicTableSupportedDtypes
+    for colname in dt.colnames:
+        if colname not in defaults:
+            samp_data = dt[colname].data[0]
+            default_datatype = [proptype for proptype in property_default_data if isinstance(samp_data, proptype)][0]
+            defaults_updated.update({colname: property_default_data[default_datatype]})
+    # for all columns that are new for the given RX, they will
+    for name, des_dict in prop_dict.items():
+        des_args = dict(des_dict)
+        if name not in defaults_updated:
+            # build default junk values for data and add that as column directly later:
+            default_datatype_list = [
+                proptype for proptype in property_default_data if isinstance(des_dict["data"][0], proptype)
+            ][0]
+            des_args["data"] = [property_default_data[default_datatype_list]] * len(dt.id)
+            dt.add_column(name, **des_args)
+
+
+def add_properties_to_dynamictable(nwbfile, dt_name, prop_dict, defaults, table=None):
+    if dt_name == "electrodes":
+        add_method = nwbfile.add_electrode_column
+        if table is None:
+            dt = nwbfile.electrodes
+        else:
+            dt = table
+    else:
+        add_method = nwbfile.add_unit_column
+        if table is None:
+            dt = nwbfile.units
+        else:
+            dt = table
+    if dt is None:
+        for prop_name, prop_args in prop_dict.items():
+            if prop_name not in defaults:
+                add_dict = dict(prop_args)
+                _ = add_dict.pop("data")
+                add_method(prop_name, **add_dict)
+    else:
+        reshape_dynamictable(dt, prop_dict, defaults)
 
 
 def set_dynamic_table_property(
@@ -332,7 +393,7 @@ def add_electrodes(
             raise ValueError(f'"{x["name"]}" not a property of se object, set it first and rerun')
         elec_columns[x["name"]]["description"] = x["description"]
     # 3. For existing electrodes table, add the additional columns and fill with default data:
-    # add_properties_to_dynamictable(nwbfile, "electrodes", elec_columns, defaults)
+    add_properties_to_dynamictable(nwbfile, "electrodes", elec_columns, defaults)
 
     # 4. add info to electrodes table:
     for j, channel_id in enumerate(recording.get_channel_ids()):
