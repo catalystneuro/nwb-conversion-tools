@@ -1,8 +1,4 @@
 """Authors: Cody Baker, Alessio Buccino."""
-import uuid
-from datetime import datetime
-from warnings import warn
-from numbers import Real
 from pathlib import Path
 from importlib import import_module
 from itertools import chain
@@ -11,77 +7,8 @@ from jsonschema import validate, RefResolver
 from dandi.organize import create_unique_filenames_from_metadata
 from dandi.metadata import _get_pynwb_metadata
 
-from .json_schema import dict_deep_update, load_dict_from_file, FilePathType, OptionalFolderPathType
-from ..nwbconverter import NWBConverter
-
-DynamicTableSupportedDtypes = {list: [], np.ndarray: np.array(np.nan), str: "", Real: np.nan}
-
-
-def reshape_dynamictable(dt, prop_dict, defaults):
-    """
-    Prepare an already existing dynamic table to take custom properties using the add_functions.
-
-    Parameters
-    ----------
-    dt: DynamicTable
-    prop_dict: dict
-        dict(name=dict(description='',data='', index=bool)
-    defaults: dict
-        default row values for dt columns
-    Returns
-    -------
-    default_updated: dict
-    """
-    defaults_updated = defaults
-    if dt is None:
-        return
-    property_default_data = DynamicTableSupportedDtypes
-    for colname in dt.colnames:
-        if colname not in defaults:
-            samp_data = dt[colname].data[0]
-            default_datatype = [proptype for proptype in property_default_data if isinstance(samp_data, proptype)][0]
-            defaults_updated.update({colname: property_default_data[default_datatype]})
-    # for all columns that are new for the given RX, they will
-    for name, des_dict in prop_dict.items():
-        des_args = dict(des_dict)
-        if name not in defaults_updated:
-            # build default junk values for data and add that as column directly later:
-            default_datatype_list = [
-                proptype for proptype in property_default_data if isinstance(des_dict["data"][0], proptype)
-            ][0]
-            des_args["data"] = [property_default_data[default_datatype_list]] * len(dt.id)
-            dt.add_column(name, **des_args)
-
-
-def add_properties_to_dynamictable(nwbfile, dt_name, prop_dict, defaults, table=None):
-    if dt_name == "electrodes":
-        add_method = nwbfile.add_electrode_column
-        if table is None:
-            dt = nwbfile.electrodes
-        else:
-            dt = table
-    else:
-        add_method = nwbfile.add_unit_column
-        if table is None:
-            dt = nwbfile.units
-        else:
-            dt = table
-
-    if dt is None:
-        for prop_name, prop_args in prop_dict.items():
-            if prop_name not in defaults:
-                add_dict = dict(prop_args)
-                _ = add_dict.pop("data")
-                add_method(prop_name, **add_dict)
-    else:
-        reshape_dynamictable(dt, prop_dict, defaults)
-
-
-def check_regular_timestamps(ts):
-    """Check whether rate should be used instead of timestamps."""
-    time_tol_decimals = 9
-    uniq_diff_ts = np.unique(np.diff(ts).round(decimals=time_tol_decimals))
-    return len(uniq_diff_ts) == 1
+from ...nwbconverter import NWBConverter
+from ...utils import dict_deep_update, load_dict_from_file, FilePathType, OptionalFolderPathType
 
 
 def run_conversion_from_yaml(
@@ -114,9 +41,8 @@ def run_conversion_from_yaml(
         output_folder = Path(specification_file_path).parent
     else:
         output_folder = Path(output_folder)
-
     specification = load_dict_from_file(file_path=specification_file_path)
-    schema_folder = Path(__file__).parent.parent / "schemas"
+    schema_folder = Path(__file__).parent.parent.parent / "schemas"
     specification_schema = load_dict_from_file(file_path=schema_folder / "yaml_conversion_specification_schema.json")
     validate(
         instance=specification,
@@ -147,7 +73,6 @@ def run_conversion_from_yaml(
             )
             for data_interface_name in data_interfaces_names_chain:
                 data_interface_classes.update({data_interface_name: getattr(nwb_conversion_tools, data_interface_name)})
-
             CustomNWBConverter = type(
                 "CustomNWBConverter", (NWBConverter,), dict(data_interface_classes=data_interface_classes)
             )
@@ -156,12 +81,10 @@ def run_conversion_from_yaml(
             for interface_name, interface_source_data in session["source_data"].items():
                 for key, value in interface_source_data.items():
                     source_data[interface_name].update({key: str(Path(data_folder) / value)})
-
             converter = CustomNWBConverter(source_data=source_data)
             metadata = converter.get_metadata()
             for metadata_source in [global_metadata, experiment_metadata, session.get("metadata", dict())]:
                 metadata = dict_deep_update(metadata, metadata_source)
-
             nwbfile_name = session.get("nwbfile_name", f"temp_nwbfile_name_{file_counter}").strip(".nwb")
             converter.run_conversion(
                 nwbfile_path=output_folder / f"{nwbfile_name}.nwb",
@@ -169,7 +92,6 @@ def run_conversion_from_yaml(
                 overwrite=overwrite,
                 conversion_options=session.get("conversion_options", dict()),
             )
-
     # To properly mimic a true dandi organization, the full directory must be populated with NWBFiles.
     all_nwbfile_paths = [nwbfile_path for nwbfile_path in output_folder.iterdir() if nwbfile_path.suffix == ".nwb"]
     if any(["temp_nwbfile_name_" in nwbfile_path.stem for nwbfile_path in all_nwbfile_paths]):
