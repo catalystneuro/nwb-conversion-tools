@@ -52,8 +52,6 @@ class DeepLabCutInterface(BaseDataInterface):
         ----------
         nwbfile: pynwb.NWBFile
         metadata: dict
-        individual_name : str
-            Name of the subject (whose pose is predicted) for single-animal DLC project.
 
         """
         self._config_file["Task"] = metadata["NWBFile"]["session_description"]
