@@ -59,7 +59,6 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
         super().__init__(folrder_path=str(folder_path))
         if stub_test:
             self.subset_channels = [0, 1]
-
         # Set electrodes properties
         for ch in self.recording_extractor.get_channel_ids():
             self.recording_extractor.set_channel_property(
@@ -107,7 +106,6 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
         super().__init__(folder_path=str(folder_path))
         if stub_test:
             self.subset_channels = [0, 1]
-
         # Set electrodes properties
         for ch in self.recording_extractor.get_channel_ids():
             self.recording_extractor.set_channel_property(
