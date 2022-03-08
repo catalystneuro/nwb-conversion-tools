@@ -24,4 +24,4 @@ pyopenephys==1.1.2
 sonpy>=1.7.1
 tiffile==2018.10.18
 nwbinspector==0.2.3
-git+https://github.com/catalystneuro/DLC2NWB@add_to_existing_nwb
+dlc2nwb @ git+https://github.com/catalystneuro/DLC2NWB@add_to_existing_nwb
