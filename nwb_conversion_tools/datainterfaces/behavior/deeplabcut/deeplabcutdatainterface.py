@@ -1,7 +1,7 @@
 """Authors: Saksham Sharda, Cody Baker, Ben Dichter."""
-import datetime
 
 from ....basedatainterface import BaseDataInterface
+from ....utils import FilePathType
 
 try:
     from dlc2nwb.utils import write_subject_to_nwb, auxiliaryfunctions
@@ -14,7 +14,7 @@ except ImportError:
 class DeepLabCutInterface(BaseDataInterface):
     """Data interface for DeepLabCut datasets"""
 
-    def __init__(self, dlc_file_path, config_file_path):
+    def __init__(self, dlc_file_path: FilePathType, config_file_path: FilePathType):
         """
         Interface for writing DLC's h5 files to nwb using dlc2nwb.
 
@@ -33,11 +33,8 @@ class DeepLabCutInterface(BaseDataInterface):
 
     def get_metadata(self):
         metadata = dict(
-            NWBFile=dict(
-                session_description=self._config_file["Task"],
-                experimenter=self._config_file["scorer"],
-            ),
-            Subject=dict(name="indi1"),
+            NWBFile=dict(session_description=self._config_file["Task"], experimenter=[self._config_file["scorer"]]),
+            Subject=dict(subject_id="ind1"),
         )
         return metadata
 
@@ -53,5 +50,5 @@ class DeepLabCutInterface(BaseDataInterface):
         """
         self._config_file["Task"] = metadata["NWBFile"]["session_description"]
         self._config_file["scorer"] = metadata["NWBFile"]["experimenter"]
-        subject_name = metadata["Subject"]["name"]
+        subject_name = metadata["Subject"]["subject_id"]
         write_subject_to_nwb(nwbfile, self.source_data["dlc_file_path"], subject_name, config_dict=self._config_file)

@@ -89,7 +89,7 @@ class TestBehaviorNwbConversions(unittest.TestCase):
 
         with NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True) as io:
             nwbfile = io.read()
-            assert "indi1" == nwbfile.subject.name
+            assert "ind1" == nwbfile.subject.subject_id
             assert "behavior" in nwbfile.processing
             assert "PoseEstimation" in nwbfile.processing["behavior"].data_interfaces
             assert all(
