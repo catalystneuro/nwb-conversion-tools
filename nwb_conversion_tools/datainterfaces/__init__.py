@@ -43,6 +43,7 @@ from .ophys.tiff.tiffdatainterface import TiffImagingInterface
 from .ophys.hdf5.hdf5datainterface import Hdf5ImagingInterface
 
 from .behavior.movie.moviedatainterface import MovieInterface
+from .behavior.deeplabcut.deeplabcutdatainterface import DeepLabCutInterface
 
 
 interface_list = [
