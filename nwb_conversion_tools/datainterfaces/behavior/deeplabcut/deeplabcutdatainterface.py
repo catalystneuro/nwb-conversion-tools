@@ -4,10 +4,7 @@ import datetime
 from ....basedatainterface import BaseDataInterface
 
 try:
-    from dlc2nwb.utils import (
-        write_subject_to_nwb,
-        auxiliaryfunctions
-    )
+    from dlc2nwb.utils import write_subject_to_nwb, auxiliaryfunctions
 
     HAVE_DLC2NWB = True
 except ImportError:
@@ -40,7 +37,7 @@ class DeepLabCutInterface(BaseDataInterface):
                 session_description=self._config_file["Task"],
                 experimenter=self._config_file["scorer"],
             ),
-            Subject=dict(name="indi1")
+            Subject=dict(name="indi1"),
         )
         return metadata
 
@@ -57,5 +54,4 @@ class DeepLabCutInterface(BaseDataInterface):
         self._config_file["Task"] = metadata["NWBFile"]["session_description"]
         self._config_file["scorer"] = metadata["NWBFile"]["experimenter"]
         subject_name = metadata["Subject"]["name"]
-        write_subject_to_nwb(nwbfile, self.source_data["dlc_file_path"],
-                             subject_name, config_dict=self._config_file)
+        write_subject_to_nwb(nwbfile, self.source_data["dlc_file_path"], subject_name, config_dict=self._config_file)
