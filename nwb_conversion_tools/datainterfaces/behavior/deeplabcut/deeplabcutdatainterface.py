@@ -14,7 +14,7 @@ except ImportError:
 class DeepLabCutInterface(BaseDataInterface):
     """Data interface for DeepLabCut datasets"""
 
-    def __init__(self, dlc_file_path: FilePathType, config_file_path: FilePathType, subject_name: str):
+    def __init__(self, dlc_file_path: FilePathType, config_file_path: FilePathType, subject_name: str = None):
         """
         Interface for writing DLC's h5 files to nwb using dlc2nwb.
 
@@ -29,13 +29,17 @@ class DeepLabCutInterface(BaseDataInterface):
             raise IOError("The file passed in is not a DeepLabCut h5 data file.")
         assert HAVE_DLC2NWB, "to use this datainterface: 'pip install dlc2nwb'"
         self._config_file = auxiliaryfunctions.read_config(config_file_path)
-        self.subject_name = subject_name
+        self._vid_name = os.path.splitext(os.path.split(dlc_file_path)[-1])[0].split("DLC")[0]
+        if subject_name is None:
+            self.subject_name = "subject_" + self._vid_name
+        else:
+            self.subject_name = subject_name
         super().__init__(dlc_file_path=dlc_file_path, config_file_path=config_file_path)
 
     def get_metadata(self):
         metadata = dict(
             NWBFile=dict(session_description=self._config_file["Task"], experimenter=[self._config_file["scorer"]]),
-            Subject=dict(subject_id=self.subject_name),
+            Subject=dict(subject_id=self.subject_name, description=f"subject in video {self._vid_name}"),
         )
         return metadata
 
