@@ -69,7 +69,6 @@ class TestBehaviorNwbConversions(unittest.TestCase):
                         BEHAVIOR_DATA_PATH / "DLC" / "m3v1mp4DLC_resnet50_openfieldAug20shuffle1_30000.h5"
                     ),
                     config_file_path=str(BEHAVIOR_DATA_PATH / "DLC" / "config.yaml"),
-                    subject_name="subject_name",
                 ),
             )
         ]
