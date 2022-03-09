@@ -49,8 +49,6 @@ class DeepLabCutInterface(BaseDataInterface):
         metadata: dict
 
         """
-        self._config_file["Task"] = metadata["NWBFile"]["session_description"]
-        self._config_file["scorer"] = metadata["NWBFile"]["experimenter"]
         write_subject_to_nwb(
-            nwbfile, self.source_data["dlc_file_path"], self.subject_name, config_dict=self._config_file
+            nwbfile, self.source_data["dlc_file_path"], self.subject_name, self.source_data["config_file_path"]
         )
