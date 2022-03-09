@@ -1,4 +1,5 @@
 """Authors: Saksham Sharda, Cody Baker, Ben Dichter."""
+import os
 
 from ....basedatainterface import BaseDataInterface
 from ....utils import FilePathType
