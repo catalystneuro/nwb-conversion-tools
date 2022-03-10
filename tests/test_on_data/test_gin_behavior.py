@@ -89,7 +89,6 @@ class TestBehaviorNwbConversions(unittest.TestCase):
 
         with NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True) as io:
             nwbfile = io.read()
-            assert "subject_m3v1mp4" == nwbfile.subject.subject_id
             assert "behavior" in nwbfile.processing
             assert "PoseEstimation" in nwbfile.processing["behavior"].data_interfaces
             assert all(
