@@ -1,0 +1,23 @@
+name: Internal Discussion
+description: General internal discussion for developers
+title: "[Discussion]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: Discussion
+    attributes:
+      label: Statement of the point to discuss
+      description: |
+      Description
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/catalystneuro/nwb-conversion-tools/blob/main/.github/CODE_OF_CONDUCT.rst)
+      options:
+        - label: I agree to follow this project's [Code of Conduct](https://github.com/catalystneuro/nwb-conversion-tools/blob/main/.github/CODE_OF_CONDUCT.rst)
+          required: true
+        - label: Have you ensured this bug was not already [reported](https://github.com/catalystneuro/nwb-conversion-tools/issues)?
+          required: true
