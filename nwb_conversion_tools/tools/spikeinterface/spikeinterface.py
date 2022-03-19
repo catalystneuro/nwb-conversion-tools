@@ -25,6 +25,18 @@ SpikeInterfaceRecording = Union[BaseRecording, RecordingExtractor]
 SpikeInterfaceSorting = Union[BaseSorting, SortingExtractor]
 
 
+def set_recording_channel_property(
+    recording: SpikeInterfaceRecording, property_name: str, value, channel_ids: list = None, missing_value=None
+):
+    if channel_ids is None:
+        channel_ids = recording.get_channel_ids()
+    if isinstance(recording, RecordingExtractor):
+        for ch in channel_ids:
+            recording.set_channel_property(channel_id=ch, property_name=property_name, value=ch)
+    else:
+        recording.set_property(property_name, value, ids=channel_ids, missing_values=missing_value)
+
+
 def set_dynamic_table_property(
     dynamic_table,
     row_ids,
@@ -624,10 +636,7 @@ def add_electrical_series(
             eseries_kwargs.update(channel_conversion=channel_conversion)
     if iterator_type is None or iterator_type == "v2":
         ephys_data = SpikeInterfaceRecordingDataChunkIterator(
-            recording=checked_recording,
-            segment_index=segment_index,
-            return_scaled=write_scaled,
-            **iterator_opts,
+            recording=checked_recording, segment_index=segment_index, return_scaled=write_scaled, **iterator_opts,
         )
     elif iterator_type == "v1":
         if isinstance(checked_recording.get_traces(end_frame=5, return_scaled=write_scaled), np.memmap) and np.all(
