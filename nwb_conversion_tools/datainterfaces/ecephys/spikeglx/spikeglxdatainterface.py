@@ -63,23 +63,27 @@ def _init_recording_version(version, file_path, folder_path, **kwargs):
         rx_kwargs = dict(file_path=str(file_path), **kwargs)
         source_data = file_path
     elif version == "v2":
-        assert folder_path is not None and Path(
-            folder_path).is_dir(), f"{folder_path} should be a folder for version='v1'"
+        assert (
+            folder_path is not None and Path(folder_path).is_dir()
+        ), f"{folder_path} should be a folder for version='v1'"
         RX = si.SpikeGLXRecordingExtractor
         rx_kwargs = dict(folder_path=str(folder_path), **kwargs)
         source_data = folder_path
     else:
-        raise ValueError("specify version='v1' for spikeextractors "
-                         "version='v2' for spikeinterface")
+        raise ValueError("specify version='v1' for spikeextractors " "version='v2' for spikeinterface")
     return RX, rx_kwargs, source_data
 
 
 def _get_source_schema(cls):
-    source_schema = get_schema_from_method_signature(class_method=cls.__init__, exclude=["x_pitch", "y_pitch", "stream_id"])
-    source_schema["properties"]["folder_path"]["description"] = "Path to folder containing SpikeGLX files " \
-                                                                "(using spikeinterface)."
+    source_schema = get_schema_from_method_signature(
+        class_method=cls.__init__, exclude=["x_pitch", "y_pitch", "stream_id"]
+    )
+    source_schema["properties"]["folder_path"]["description"] = (
+        "Path to folder containing SpikeGLX files " "(using spikeinterface)."
+    )
     source_schema["properties"]["file_path"]["description"] = "Path to SpikeGLX file (using spikeextractors)."
     return source_schema
+
 
 class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
     """Primary data interface class for converting the high-pass (ap) SpikeGLX format."""
@@ -88,27 +92,26 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
     def get_source_schema(cls):
         return _get_source_schema(cls)
 
-    def __init__(self,
-                 folder_path: FilePathType = None,
-                 file_path: FilePathType = None,
-                 recording_version="v2",
-                 stub_test: Optional[bool] = False,
-                 **kwargs):
+    def __init__(
+        self,
+        folder_path: FilePathType = None,
+        file_path: FilePathType = None,
+        recording_version="v2",
+        stub_test: Optional[bool] = False,
+        **kwargs,
+    ):
 
-        self.RX, rx_kwargs, self.source_data = _init_recording_version(version=recording_version,
-                                                                       file_path=file_path,
-                                                                       folder_path=folder_path,
-                                                                       **kwargs)
+        self.RX, rx_kwargs, self.source_data = _init_recording_version(
+            version=recording_version, file_path=file_path, folder_path=folder_path, **kwargs
+        )
         super().__init__(**rx_kwargs)
         if stub_test:
             self.subset_channels = [0, 1]
         # Set electrodes properties
-        set_recording_channel_property(self.recording_extractor,
-                                       "shank_electrode_number",
-                                       self.recording_extractor.get_channel_ids())
-        set_recording_channel_property(self.recording_extractor,
-                                       "shank_group_name",
-                                       "Shank1")
+        set_recording_channel_property(
+            self.recording_extractor, "shank_electrode_number", self.recording_extractor.get_channel_ids()
+        )
+        set_recording_channel_property(self.recording_extractor, "shank_group_name", "Shank1")
 
     def get_metadata_schema(self):
         metadata_schema = super().get_metadata_schema()
@@ -119,9 +122,7 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
 
     def get_metadata(self):
         metadata = super().get_metadata()
-        fetch_spikeglx_metadata(
-            folder_path=self.source_path, recording=self.recording_extractor, metadata=metadata
-        )
+        fetch_spikeglx_metadata(folder_path=self.source_path, recording=self.recording_extractor, metadata=metadata)
         metadata["Ecephys"]["ElectricalSeries_raw"] = dict(
             name="ElectricalSeries_raw", description="Raw acquisition traces for the high-pass (ap) SpikeGLX data."
         )
@@ -139,27 +140,25 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
     def get_source_schema(cls):
         return _get_source_schema(cls)
 
-    def __init__(self,
-                 folder_path: FilePathType = None,
-                 file_path: FilePathType = None,
-                 recording_version="v2",
-                 stub_test: Optional[bool] = False,
-                 **kwargs
-                 ):
-        self.RX, rx_kwargs, self.source_data = _init_recording_version(version=recording_version,
-                                                                       file_path=file_path,
-                                                                       folder_path=folder_path,
-                                                                       **kwargs)
+    def __init__(
+        self,
+        folder_path: FilePathType = None,
+        file_path: FilePathType = None,
+        recording_version="v2",
+        stub_test: Optional[bool] = False,
+        **kwargs,
+    ):
+        self.RX, rx_kwargs, self.source_data = _init_recording_version(
+            version=recording_version, file_path=file_path, folder_path=folder_path, **kwargs
+        )
         super().__init__(**rx_kwargs)
         if stub_test:
             self.subset_channels = [0, 1]
         # Set electrodes properties
-        set_recording_channel_property(self.recording_extractor,
-                                       "shank_electrode_number",
-                                       self.recording_extractor.get_channel_ids())
-        set_recording_channel_property(self.recording_extractor,
-                                       "shank_group_name",
-                                       "Shank1")
+        set_recording_channel_property(
+            self.recording_extractor, "shank_electrode_number", self.recording_extractor.get_channel_ids()
+        )
+        set_recording_channel_property(self.recording_extractor, "shank_group_name", "Shank1")
 
     def get_metadata_schema(self):
         metadata_schema = super().get_metadata_schema()
@@ -170,9 +169,7 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
 
     def get_metadata(self):
         metadata = super().get_metadata()
-        fetch_spikeglx_metadata(
-            folder_path=self.source_data, recording=self.recording_extractor, metadata=metadata
-        )
+        fetch_spikeglx_metadata(folder_path=self.source_data, recording=self.recording_extractor, metadata=metadata)
         metadata["Ecephys"]["ElectricalSeries_lfp"].update(
             description="LFP traces for the processed (lf) SpikeGLX data."
         )
