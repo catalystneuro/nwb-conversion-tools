@@ -1,4 +1,4 @@
-"""Authors: Cody Baker and Ben Dichter."""
+"""Authors: Cody Baker, Ben Dichter, Saksham Sharda."""
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Union
