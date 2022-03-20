@@ -56,7 +56,7 @@ def fetch_spikeglx_metadata(source_path: FilePathType, recording: RECORDING_TYPE
     )
 
 
-def _init_recording_version(version, file_path, folder_path, **kwargs):
+def _init_recording(version, file_path, folder_path, **kwargs):
     if version == "v1":
         assert file_path is not None and Path(file_path).is_file(), f"{file_path} should be a file for version='v1'"
         RX = se.SpikeGLXRecordingExtractor
