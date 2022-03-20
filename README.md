@@ -3,7 +3,7 @@
 ![Full Tests](https://github.com/catalystneuro/nwb-conversion-tools/actions/workflows/full-tests-linux.yml/badge.svg)
 ![Auto-release](https://github.com/catalystneuro/nwb-conversion-tools/actions/workflows/auto-publish.yml/badge.svg)
 [![codecov](https://codecov.io/github/catalystneuro/nwb-conversion-tools/coverage.svg?branch=main)](https://codecov.io/github/catalystneuro/nwb-conversion-tools?branch=master)
-[![documentation](https://readthedocs.org/projects/nwb-conversion-tools/badge/?version=master)](https://nwb-conversion-tools.readthedocs.io/en/master/)
+[![documentation](https://readthedocs.org/projects/nwb-conversion-tools/badge/?version=main)](https://nwb-conversion-tools.readthedocs.io/en/main/)
 [![License](https://img.shields.io/pypi/l/pynwb.svg)](https://github.com/catalystneuro/nwb-conversion-tools/license.txt)
 
 # NWB conversion tools
@@ -133,6 +133,3 @@ for `ophys` data.
 Once the data is downloaded to your system, you must manually modify the [config file](https://github.com/catalystneuro/nwb-conversion-tools/blob/main/tests/test_on_data/gin_test_config.json) located in `./tests/test_on_data/gin_test_config.json` so its corresponding `LOCAL_PATH` key points to the correct folder on your system that contains the dataset folder (e.g., `ephy_testing_data` for testing `ecephys`). The code will automatically detect that the tests are being run locally, so all you need to do ensure the path is correct to your specific system.
 
 The output of these tests is, by default, stored in a temporary directory that is then cleaned after the tests finish running. To examine these files for quality assessment purposes, set the flag `SAVE_OUTPUTS=true` in the same `gin_test_config.json` file mentioned in the last paragraph and modify the variable `OUTPUT_PATH` in the respective test if necessary.
-
-## Rebuilding on Read the Docs
-As a maintainer, once the changes to the documentation are on the master branch, go to [https://readthedocs.org/projects/nwb-conversion-tools/](https://readthedocs.org/projects/nwb-conversion-tools/) and click "Build version". Check the console output and its log for any errors.
