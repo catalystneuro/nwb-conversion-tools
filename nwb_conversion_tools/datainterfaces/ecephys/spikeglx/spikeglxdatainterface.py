@@ -101,7 +101,7 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
         **kwargs,
     ):
 
-        self.RX, rx_kwargs, self.source_data = _init_recording_version(
+        self.RX, rx_kwargs, self.source_data = _init_recording(
             version=recording_version, file_path=file_path, folder_path=folder_path, **kwargs
         )
         super().__init__(**rx_kwargs)
