@@ -89,11 +89,9 @@ class TestEcephysNwbConversionsv1(unittest.TestCase):
         param(
             data_interface=SpikeGLXLFPInterface,
             interface_kwargs=dict(
-                file_path=str(
-                    DATA_PATH/"spikeglx"/"Noise4Sam_g0"/"Noise4Sam_g0_imec0"
-                ),
+                file_path=str(DATA_PATH / "spikeglx" / "Noise4Sam_g0" / "Noise4Sam_g0_imec0"),
                 recording_version="v2",
-                stream_id="imec0.lf"
+                stream_id="imec0.lf",
             ),
         ),
     ]
@@ -159,7 +157,10 @@ class TestEcephysNwbConversionsv1(unittest.TestCase):
             if gains is not None:
                 interface_kwargs.update(gains=gains)
             parameterized_recording_list.append(
-                param(data_interface=SpikeGadgetsRecordingInterface, interface_kwargs=interface_kwargs,)
+                param(
+                    data_interface=SpikeGadgetsRecordingInterface,
+                    interface_kwargs=interface_kwargs,
+                )
             )
     for suffix in ["ap", "lf"]:
         sub_path = Path("spikeglx") / "Noise4Sam_g0" / "Noise4Sam_g0_imec0"
@@ -174,9 +175,7 @@ class TestEcephysNwbConversionsv1(unittest.TestCase):
                 param(
                     data_interface=SpikeGLXRecordingInterface,
                     interface_kwargs=dict(
-                        file_path=str(DATA_PATH / sub_path),
-                        recording_version="v2",
-                        stream_id=f"imec0.{suffix}"
+                        file_path=str(DATA_PATH / sub_path), recording_version="v2", stream_id=f"imec0.{suffix}"
                     ),
                 )
             ),
@@ -290,7 +289,10 @@ class TestEcephysNwbConversionsv1(unittest.TestCase):
 
     @parameterized.expand(
         input=[
-            param(name="complete", conversion_options=None,),
+            param(
+                name="complete",
+                conversion_options=None,
+            ),
             param(name="stub", conversion_options=dict(TestRecording=dict(stub_test=True))),
         ]
     )
@@ -322,7 +324,10 @@ class TestEcephysNwbConversionsv1(unittest.TestCase):
 
     @parameterized.expand(
         input=[
-            param(name="complete", conversion_options=None,),
+            param(
+                name="complete",
+                conversion_options=None,
+            ),
             param(name="stub", conversion_options=dict(TestRecording=dict(stub_test=True))),
         ]
     )
