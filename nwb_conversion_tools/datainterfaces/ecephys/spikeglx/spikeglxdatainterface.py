@@ -96,7 +96,7 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
         self,
         folder_path: FilePathType = None,
         file_path: FilePathType = None,
-        recording_version="v2",
+        recording_version: str = "v2",
         stub_test: Optional[bool] = False,
         **kwargs,
     ):
