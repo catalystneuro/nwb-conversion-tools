@@ -411,14 +411,14 @@ class TestEcephysNwbConversionsv2(unittest.TestCase):
                 data_interface=SpikeGLXRecordingInterface,
                 nwbname=f"SpikeGLXRecordingInterface_{suffix}.nwb",
                 interface_kwargs=dict(
-                    folder_path=str(DATA_PATH/sub_path), recording_version="v2", stream_id=f"imec0.{suffix}"
+                    folder_path=str(DATA_PATH / sub_path), recording_version="v2", stream_id=f"imec0.{suffix}"
                 ),
             )
         )
 
     @parameterized.expand(input=parameterized_recording_list, name_func=custom_name_func)
     def test_convert_recording_extractor_to_nwb(self, data_interface, nwbname, interface_kwargs):
-        nwbfile_path = str(self.savedir/nwbname)
+        nwbfile_path = str(self.savedir / nwbname)
 
         class TestConverter(NWBConverter):
             data_interface_classes = dict(TestRecording=data_interface)
@@ -436,9 +436,7 @@ class TestEcephysNwbConversionsv2(unittest.TestCase):
         nwb_recording = si.NwbRecordingExtractor(file_path=nwbfile_path)
 
         if "offset_to_uV" in nwb_recording.get_property_keys():
-            nwb_recording.set_channel_offsets(
-                offsets=nwb_recording.get_property("offset_to_uV")
-            )
+            nwb_recording.set_channel_offsets(offsets=nwb_recording.get_property("offset_to_uV"))
         check_recordings_equal_si(RX1=recording, RX2=nwb_recording, return_scaled=False)
         # This can only be tested if both gain and offest are present
         if recording.has_scaled_traces() and nwb_recording.has_scaled_traces():
