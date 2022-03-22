@@ -61,17 +61,17 @@ def _init_recording(version, file_path, folder_path, **kwargs):
         assert file_path is not None and Path(file_path).is_file(), f"{file_path} should be a file for version='v1'"
         RX = se.SpikeGLXRecordingExtractor
         rx_kwargs = dict(file_path=str(file_path), **kwargs)
-        source_data = file_path
+        source_path = file_path
     elif version == "v2":
         assert (
             folder_path is not None and Path(folder_path).is_dir()
         ), f"{folder_path} should be a folder for version='v1'"
         RX = si.SpikeGLXRecordingExtractor
         rx_kwargs = dict(folder_path=str(folder_path), **kwargs)
-        source_data = folder_path
+        source_path = folder_path
     else:
         raise ValueError("specify version='v1' for spikeextractors " "version='v2' for spikeinterface")
-    return RX, rx_kwargs, source_data
+    return RX, rx_kwargs, source_path
 
 
 def _get_source_schema(cls):
@@ -101,7 +101,7 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
         **kwargs,
     ):
 
-        self.RX, rx_kwargs, self.source_data = _init_recording(
+        self.RX, rx_kwargs, self.source_path = _init_recording(
             version=recording_version, file_path=file_path, folder_path=folder_path, **kwargs
         )
         super().__init__(**rx_kwargs)
@@ -122,7 +122,7 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
 
     def get_metadata(self):
         metadata = super().get_metadata()
-        fetch_spikeglx_metadata(folder_path=self.source_path, recording=self.recording_extractor, metadata=metadata)
+        fetch_spikeglx_metadata(source_path=self.source_path, recording=self.recording_extractor, metadata=metadata)
         metadata["Ecephys"]["ElectricalSeries_raw"] = dict(
             name="ElectricalSeries_raw", description="Raw acquisition traces for the high-pass (ap) SpikeGLX data."
         )
