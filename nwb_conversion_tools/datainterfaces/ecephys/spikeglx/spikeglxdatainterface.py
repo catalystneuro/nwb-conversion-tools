@@ -27,20 +27,9 @@ def fetch_spikeglx_metadata(source_path: FilePathType, recording: RECORDING_TYPE
         session_id = source_path.parent.stem
     else:
         session_id = source_path.stem
-    if isinstance(recording, se.SpikeGLXRecordingExtractor) and isinstance(recording, se.SubRecordingExtractor):
-        current_recording = recording._parent_recording
-    else:
-        current_recording = recording
-    n_shanks = int(current_recording._meta.get("snsShankMap", [1, 1])[1])
-    if n_shanks > 1:
-        raise NotImplementedError("SpikeGLX metadata for more than a single shank is not yet supported.")
-    session_start_time = datetime.fromisoformat(current_recording._meta["fileCreateTime"]).astimezone()
 
-    return dict_deep_update(
-        metadata,
-        dict(
+    metadata_update = dict(
             NWBFile=dict(
-                session_start_time=session_start_time.strftime("%Y-%m-%dT%H:%M:%S"),
                 session_id=session_id,
             ),
             Ecephys=dict(
@@ -52,8 +41,20 @@ def fetch_spikeglx_metadata(source_path: FilePathType, recording: RECORDING_TYPE
                     ),
                 ]
             ),
-        ),
-    )
+        )
+
+    if isinstance(recording, se.SpikeGLXRecordingExtractor):
+        if isinstance(recording, se.SubRecordingExtractor):
+            current_recording = recording._parent_recording
+        else:
+            current_recording = recording
+        n_shanks = int(current_recording._meta.get("snsShankMap", [1, 1])[1])
+        if n_shanks > 1:
+            raise NotImplementedError("SpikeGLX metadata for more than a single shank is not yet supported.")
+        session_start_time = datetime.fromisoformat(current_recording._meta["fileCreateTime"]).astimezone()
+        metadata_update["NWBFile"]["session_start_time"]=session_start_time.strftime("%Y-%m-%dT%H:%M:%S"),
+
+    return dict_deep_update(metadata, metadata_update)
 
 
 def _init_recording(version, file_path, folder_path, **kwargs):

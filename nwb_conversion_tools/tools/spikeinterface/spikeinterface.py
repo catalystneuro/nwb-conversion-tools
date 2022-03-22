@@ -34,7 +34,7 @@ def set_recording_channel_property(
             recording.set_channel_property(ch, property_name, value)
     else:
         for ch, value in zip(channel_ids, values):
-            recording.set_property(property_name, value, ids=ch, missing_value=missing_value)
+            recording.set_property(property_name, value, ids=[ch], missing_value=missing_value)
 
 
 def set_dynamic_table_property(
