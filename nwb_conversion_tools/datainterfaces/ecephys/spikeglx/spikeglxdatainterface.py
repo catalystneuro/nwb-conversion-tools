@@ -29,19 +29,19 @@ def fetch_spikeglx_metadata(source_path: FilePathType, recording: RECORDING_TYPE
         session_id = source_path.stem
 
     metadata_update = dict(
-            NWBFile=dict(
-                session_id=session_id,
-            ),
-            Ecephys=dict(
-                Electrodes=[
-                    dict(name="shank_electrode_number", description="0-indexed channel within a shank."),
-                    dict(
-                        name="shank_group_name",
-                        description="The name of the ElectrodeGroup this electrode is a part of.",
-                    ),
-                ]
-            ),
-        )
+        NWBFile=dict(
+            session_id=session_id,
+        ),
+        Ecephys=dict(
+            Electrodes=[
+                dict(name="shank_electrode_number", description="0-indexed channel within a shank."),
+                dict(
+                    name="shank_group_name",
+                    description="The name of the ElectrodeGroup this electrode is a part of.",
+                ),
+            ]
+        ),
+    )
 
     if isinstance(recording, se.SpikeGLXRecordingExtractor):
         if isinstance(recording, se.SubRecordingExtractor):
@@ -52,7 +52,7 @@ def fetch_spikeglx_metadata(source_path: FilePathType, recording: RECORDING_TYPE
         if n_shanks > 1:
             raise NotImplementedError("SpikeGLX metadata for more than a single shank is not yet supported.")
         session_start_time = datetime.fromisoformat(current_recording._meta["fileCreateTime"]).astimezone()
-        metadata_update["NWBFile"]["session_start_time"]=session_start_time.strftime("%Y-%m-%dT%H:%M:%S"),
+        metadata_update["NWBFile"]["session_start_time"] = (session_start_time.strftime("%Y-%m-%dT%H:%M:%S"),)
 
     return dict_deep_update(metadata, metadata_update)
 
