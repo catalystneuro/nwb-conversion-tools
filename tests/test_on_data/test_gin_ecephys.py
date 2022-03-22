@@ -87,7 +87,7 @@ class TestEcephysNwbConversionsv1(unittest.TestCase):
                 ),
                 recording_version="v1",
             ),
-        )
+        ),
     ]
 
     @parameterized.expand(input=parameterized_lfp_list, name_func=custom_name_func)
