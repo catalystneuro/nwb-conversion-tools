@@ -66,7 +66,7 @@ def _init_recording(version, file_path, folder_path, **kwargs):
     elif version == "v2":
         assert (
             folder_path is not None and Path(folder_path).is_dir()
-        ), f"{folder_path} should be a folder for version='v1'"
+        ), f"{folder_path} should be a folder for version='v2'"
         RX = si.SpikeGLXRecordingExtractor
         rx_kwargs = dict(folder_path=str(folder_path), **kwargs)
         source_path = folder_path

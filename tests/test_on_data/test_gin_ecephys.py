@@ -87,15 +87,7 @@ class TestEcephysNwbConversionsv1(unittest.TestCase):
                 ),
                 recording_version="v1",
             ),
-        ),
-        param(
-            data_interface=SpikeGLXLFPInterface,
-            interface_kwargs=dict(
-                folder_path=str(DATA_PATH / "spikeglx" / "Noise4Sam_g0" / "Noise4Sam_g0_imec0"),
-                recording_version="v2",
-                stream_id="imec0.lf",
-            ),
-        ),
+        )
     ]
 
     @parameterized.expand(input=parameterized_lfp_list, name_func=custom_name_func)
@@ -171,14 +163,6 @@ class TestEcephysNwbConversionsv1(unittest.TestCase):
                 data_interface=SpikeGLXRecordingInterface,
                 interface_kwargs=dict(
                     file_path=str(DATA_PATH / sub_path / f"Noise4Sam_g0_t0.imec0.{suffix}.bin"), recording_version="v1"
-                ),
-            )
-        ),
-        parameterized_recording_list.append(
-            param(
-                data_interface=SpikeGLXRecordingInterface,
-                interface_kwargs=dict(
-                    folder_path=str(DATA_PATH / sub_path), recording_version="v2", stream_id=f"imec0.{suffix}"
                 ),
             )
         )
