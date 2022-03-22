@@ -26,15 +26,15 @@ SpikeInterfaceSorting = Union[BaseSorting, SortingExtractor]
 
 
 def set_recording_channel_property(
-    recording: SpikeInterfaceRecording, property_name: str, value, channel_ids: list = None, missing_value=None
+    recording: SpikeInterfaceRecording, property_name: str, values: list, channel_ids: list, missing_value=None
 ):
-    if channel_ids is None:
-        channel_ids = recording.get_channel_ids()
+    assert len(values) == len(channel_ids)
     if isinstance(recording, RecordingExtractor):
-        for ch in channel_ids:
-            recording.set_channel_property(channel_id=ch, property_name=property_name, value=ch)
+        for ch, value in zip(channel_ids, values):
+            recording.set_channel_property(ch, property_name, value)
     else:
-        recording.set_property(property_name, value, ids=channel_ids, missing_value=missing_value)
+        for ch, value in zip(channel_ids, values):
+            recording.set_property(property_name, value, ids=ch, missing_value=missing_value)
 
 
 def set_dynamic_table_property(

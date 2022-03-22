@@ -69,7 +69,7 @@ def custom_name_func(testcase_func, param_num, param):
     )
 
 
-class TestEcephysNwbConversionsv1(unittest.TestCase):
+class TestEcephysNwbConversions(unittest.TestCase):
     savedir = OUTPUT_PATH
 
     parameterized_lfp_list = [
