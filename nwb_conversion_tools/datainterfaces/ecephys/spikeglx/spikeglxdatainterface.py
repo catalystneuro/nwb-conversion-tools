@@ -113,7 +113,8 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
                 self.recording_extractor, "shank_electrode_number", [chan_id], channel_ids=[chan_id]
             )
             set_recording_channel_property(
-                self.recording_extractor, "shank_group_name", ["Shank1"], channel_ids=[chan_id])
+                self.recording_extractor, "shank_group_name", ["Shank1"], channel_ids=[chan_id]
+            )
 
     def get_metadata_schema(self):
         metadata_schema = super().get_metadata_schema()
@@ -124,7 +125,9 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
 
     def get_metadata(self):
         metadata = super().get_metadata()
-        fetch_spikeglx_metadata(source_path=self.sglx_source_path, recording=self.recording_extractor, metadata=metadata)
+        fetch_spikeglx_metadata(
+            source_path=self.sglx_source_path, recording=self.recording_extractor, metadata=metadata
+        )
         metadata["Ecephys"]["ElectricalSeries_raw"] = dict(
             name="ElectricalSeries_raw", description="Raw acquisition traces for the high-pass (ap) SpikeGLX data."
         )
@@ -162,7 +165,8 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
                 self.recording_extractor, "shank_electrode_number", [chan_id], channel_ids=[chan_id]
             )
             set_recording_channel_property(
-                self.recording_extractor, "shank_group_name", ["Shank1"], channel_ids=[chan_id])
+                self.recording_extractor, "shank_group_name", ["Shank1"], channel_ids=[chan_id]
+            )
 
     def get_metadata_schema(self):
         metadata_schema = super().get_metadata_schema()
@@ -173,7 +177,9 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
 
     def get_metadata(self):
         metadata = super().get_metadata()
-        fetch_spikeglx_metadata(source_path=self.sglx_source_path, recording=self.recording_extractor, metadata=metadata)
+        fetch_spikeglx_metadata(
+            source_path=self.sglx_source_path, recording=self.recording_extractor, metadata=metadata
+        )
         metadata["Ecephys"]["ElectricalSeries_lfp"].update(
             description="LFP traces for the processed (lf) SpikeGLX data."
         )
