@@ -52,7 +52,7 @@ def fetch_spikeglx_metadata(source_path: FilePathType, recording: RECORDING_TYPE
         if n_shanks > 1:
             raise NotImplementedError("SpikeGLX metadata for more than a single shank is not yet supported.")
         session_start_time = datetime.fromisoformat(current_recording._meta["fileCreateTime"]).astimezone()
-        metadata_update["NWBFile"]["session_start_time"] = (session_start_time.strftime("%Y-%m-%dT%H:%M:%S"),)
+        metadata_update["NWBFile"]["session_start_time"] = str(session_start_time)
 
     return dict_deep_update(metadata, metadata_update)
 
