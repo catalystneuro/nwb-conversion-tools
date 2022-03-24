@@ -23,12 +23,15 @@ def fetch_spikeglx_metadata(source_path: FilePathType, recording: BaseRecording,
     session_id = Path(source_path).stem
 
     metadata_update = dict(
-        NWBFile=dict(session_id=session_id,),
+        NWBFile=dict(
+            session_id=session_id,
+        ),
         Ecephys=dict(
             Electrodes=[
                 dict(name="shank_electrode_number", description="0-indexed channel within a shank."),
                 dict(
-                    name="shank_group_name", description="The name of the ElectrodeGroup this electrode is a part of.",
+                    name="shank_group_name",
+                    description="The name of the ElectrodeGroup this electrode is a part of.",
                 ),
             ]
         ),
@@ -92,8 +95,9 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
             additional args depending on usage of spikeextractors or spikeinterface
         """
         if spikeextractors_backend:
-            assert file_path is not None and Path(file_path).is_file(), \
-                f"{file_path} should be a file if using spikeextractors_backend"
+            assert (
+                file_path is not None and Path(file_path).is_file()
+            ), f"{file_path} should be a file if using spikeextractors_backend"
             self.RX = se.SpikeGLXRecordingExtractor
             super().__init__(file_path=str(file_path), **kwargs)
             self.recording_extractor = OldToNewRecording(oldapi_recording_extractor=self.recording_extractor)
