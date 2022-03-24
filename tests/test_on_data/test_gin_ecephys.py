@@ -11,7 +11,6 @@ import pytest
 from parameterized import parameterized, param
 
 from spikeinterface.core.old_api_utils import OldToNewRecording, BaseRecording
-import spikeinterface.extractors as si
 from spikeextractors import NwbRecordingExtractor, NwbSortingExtractor, RecordingExtractor
 from spikeextractors.testing import check_recordings_equal, check_sortings_equal
 from spikeinterface.core.testing import check_recordings_equal as check_recordings_equal_si
@@ -71,8 +70,7 @@ def custom_name_func(testcase_func, param_num, param):
 
 
 class TestEcephysNwbConversions(unittest.TestCase):
-    savedir = OUTPUT_PATH / "v1"
-    savedir.mkdir(exist_ok=True)
+    savedir = OUTPUT_PATH
 
     parameterized_lfp_list = [
         param(
@@ -148,7 +146,10 @@ class TestEcephysNwbConversions(unittest.TestCase):
             if gains is not None:
                 interface_kwargs.update(gains=gains)
             parameterized_recording_list.append(
-                param(data_interface=SpikeGadgetsRecordingInterface, interface_kwargs=interface_kwargs,)
+                param(
+                    data_interface=SpikeGadgetsRecordingInterface,
+                    interface_kwargs=interface_kwargs,
+                )
             )
     for suffix in ["ap", "lf"]:
         sub_path = Path("spikeglx") / "Noise4Sam_g0" / "Noise4Sam_g0_imec0"
@@ -267,7 +268,10 @@ class TestEcephysNwbConversions(unittest.TestCase):
 
     @parameterized.expand(
         input=[
-            param(name="complete", conversion_options=None,),
+            param(
+                name="complete",
+                conversion_options=None,
+            ),
             param(name="stub", conversion_options=dict(TestRecording=dict(stub_test=True))),
         ]
     )
@@ -299,7 +303,10 @@ class TestEcephysNwbConversions(unittest.TestCase):
 
     @parameterized.expand(
         input=[
-            param(name="complete", conversion_options=None,),
+            param(
+                name="complete",
+                conversion_options=None,
+            ),
             param(name="stub", conversion_options=dict(TestRecording=dict(stub_test=True))),
         ]
     )
