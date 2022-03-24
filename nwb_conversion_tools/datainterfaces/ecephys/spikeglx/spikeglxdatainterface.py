@@ -3,8 +3,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional, Union
 
+from spikeinterface import BaseRecording
+from spikeinterface.core.old_api_utils import OldToNewRecording
 import spikeextractors as se
-import spikeinterface.extractors as si
+from spikeinterface.extractors import SpikeGLXRecordingExtractor as SpikeGLXRecordingExtractorSI
 from pynwb.ecephys import ElectricalSeries
 
 from ..baselfpextractorinterface import BaseLFPExtractorInterface
@@ -15,64 +17,34 @@ from ....utils.json_schema import (
     FilePathType,
     dict_deep_update,
 )
-from ....tools.spikeinterface.spikeinterface import set_recording_channel_property
 
 
-RECORDING_TYPE = Union[si.SpikeGLXRecordingExtractor, se.SpikeGLXRecordingExtractor]
-
-
-def fetch_spikeglx_metadata(source_path: FilePathType, recording: RECORDING_TYPE, metadata: dict):
-    source_path = Path(source_path)
-    if source_path.is_file():
-        session_id = source_path.parent.stem
-    else:
-        session_id = source_path.stem
+def fetch_spikeglx_metadata(source_path: FilePathType, recording: BaseRecording, metadata: dict):
+    session_id = Path(source_path).stem
 
     metadata_update = dict(
-        NWBFile=dict(
-            session_id=session_id,
-        ),
+        NWBFile=dict(session_id=session_id,),
         Ecephys=dict(
             Electrodes=[
                 dict(name="shank_electrode_number", description="0-indexed channel within a shank."),
                 dict(
-                    name="shank_group_name",
-                    description="The name of the ElectrodeGroup this electrode is a part of.",
+                    name="shank_group_name", description="The name of the ElectrodeGroup this electrode is a part of.",
                 ),
             ]
         ),
     )
 
-    if isinstance(recording, se.SpikeGLXRecordingExtractor):
-        if isinstance(recording, se.SubRecordingExtractor):
-            current_recording = recording._parent_recording
-        else:
-            current_recording = recording
-        n_shanks = int(current_recording._meta.get("snsShankMap", [1, 1])[1])
-        if n_shanks > 1:
-            raise NotImplementedError("SpikeGLX metadata for more than a single shank is not yet supported.")
-        session_start_time = datetime.fromisoformat(current_recording._meta["fileCreateTime"]).astimezone()
-        metadata_update["NWBFile"]["session_start_time"] = str(session_start_time)
+    if isinstance(recording, se.SubRecordingExtractor):
+        current_recording = recording._parent_recording
+    else:
+        current_recording = recording
+    n_shanks = int(current_recording._meta.get("snsShankMap", [1, 1])[1])
+    if n_shanks > 1:
+        raise NotImplementedError("SpikeGLX metadata for more than a single shank is not yet supported.")
+    session_start_time = datetime.fromisoformat(current_recording._meta["fileCreateTime"]).astimezone()
+    metadata_update["NWBFile"]["session_start_time"] = str(session_start_time)
 
     return dict_deep_update(metadata, metadata_update)
-
-
-def _init_recording(version, file_path, folder_path, **kwargs):
-    if version == "v1":
-        assert file_path is not None and Path(file_path).is_file(), f"{file_path} should be a file for version='v1'"
-        RX = se.SpikeGLXRecordingExtractor
-        rx_kwargs = dict(file_path=str(file_path), **kwargs)
-        source_path = file_path
-    elif version == "v2":
-        assert (
-            folder_path is not None and Path(folder_path).is_dir()
-        ), f"{folder_path} should be a folder for version='v2'"
-        RX = si.SpikeGLXRecordingExtractor
-        rx_kwargs = dict(folder_path=str(folder_path), **kwargs)
-        source_path = folder_path
-    else:
-        raise ValueError("specify version='v1' for spikeextractors " "version='v2' for spikeinterface")
-    return RX, rx_kwargs, source_path
 
 
 def _get_source_schema(cls):
@@ -89,6 +61,8 @@ def _get_source_schema(cls):
 class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
     """Primary data interface class for converting the high-pass (ap) SpikeGLX format."""
 
+    RX = SpikeGLXRecordingExtractorSI
+
     @classmethod
     def get_source_schema(cls):
         return _get_source_schema(cls)
@@ -97,25 +71,45 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
         self,
         folder_path: FilePathType = None,
         file_path: FilePathType = None,
-        recording_version: str = "v2",
+        spikeextractors_backend: Optional[bool] = False,
         stub_test: Optional[bool] = False,
         **kwargs,
     ):
+        """
+        Load and prepare raw acquisition data and corresponding metadata from the Neuropixels format.
 
-        self.RX, rx_kwargs, self.sglx_source_path = _init_recording(
-            version=recording_version, file_path=file_path, folder_path=folder_path, **kwargs
-        )
-        super().__init__(**rx_kwargs)
+        Parameters
+        ----------
+        folder_path: PathType
+            folder containing pair of .ap/.meta or .lf/.meta file
+        file_path: PathType
+            path to .ap/.lf file if using spikeextractors_backend
+        spikeextractors_backend : Optional[bool], optional
+            False by default. When True the interface uses the old extractor from the spikextractors library instead
+            of a new spikeinterface object.
+        stub_test: bool
+        kwargs
+            additional args depending on usage of spikeextractors or spikeinterface
+        """
+        if spikeextractors_backend:
+            assert file_path is not None and Path(file_path).is_file(), f"{file_path} should be a file for version='v1'"
+            self.RX = se.SpikeGLXRecordingExtractor
+            super().__init__(file_path=str(file_path), **kwargs)
+            self.recording_extractor = OldToNewRecording(oldapi_recording_extractor=self.recording_extractor)
+            self.folder_path = file_path.parent
+        else:
+            assert (
+                folder_path is not None and Path(folder_path).is_dir()
+            ), f"{folder_path} should be a folder for version='v2'"
+            super().__init__(folder_path=str(folder_path), **kwargs)
+            self.folder_path = folder_path
+
         if stub_test:
             self.subset_channels = [0, 1]
         # Set electrodes properties
         for chan_id in self.recording_extractor.get_channel_ids():
-            set_recording_channel_property(
-                self.recording_extractor, "shank_electrode_number", [chan_id], channel_ids=[chan_id]
-            )
-            set_recording_channel_property(
-                self.recording_extractor, "shank_group_name", ["Shank1"], channel_ids=[chan_id]
-            )
+            self.recording_extractor.set_property("shank_electrode_number", [chan_id], ids=[chan_id])
+            self.recording_extractor.set_property("shank_group_name", ["Shank1"], ids=[chan_id])
 
     def get_metadata_schema(self):
         metadata_schema = super().get_metadata_schema()
@@ -126,9 +120,7 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
 
     def get_metadata(self):
         metadata = super().get_metadata()
-        fetch_spikeglx_metadata(
-            source_path=self.sglx_source_path, recording=self.recording_extractor, metadata=metadata
-        )
+        fetch_spikeglx_metadata(source_path=self.folder_path, recording=self.recording_extractor, metadata=metadata)
         metadata["Ecephys"]["ElectricalSeries_raw"] = dict(
             name="ElectricalSeries_raw", description="Raw acquisition traces for the high-pass (ap) SpikeGLX data."
         )
@@ -150,24 +142,29 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
         self,
         folder_path: FilePathType = None,
         file_path: FilePathType = None,
-        recording_version: str = "v2",
+        spikeextractors_backend: Optional[bool] = False,
         stub_test: Optional[bool] = False,
         **kwargs,
     ):
-        self.RX, rx_kwargs, self.sglx_source_path = _init_recording(
-            version=recording_version, file_path=file_path, folder_path=folder_path, **kwargs
-        )
-        super().__init__(**rx_kwargs)
+        if spikeextractors_backend:
+            assert file_path is not None and Path(file_path).is_file(), f"{file_path} should be a file for version='v1'"
+            self.RX = se.SpikeGLXRecordingExtractor
+            super().__init__(file_path=str(file_path), **kwargs)
+            self.recording_extractor = OldToNewRecording(oldapi_recording_extractor=self.recording_extractor)
+            self.folder_path = file_path.parent
+        else:
+            assert (
+                folder_path is not None and Path(folder_path).is_dir()
+            ), f"{folder_path} should be a folder for version='v2'"
+            super().__init__(folder_path=str(folder_path), **kwargs)
+            self.folder_path = folder_path
+
         if stub_test:
             self.subset_channels = [0, 1]
         # Set electrodes properties
         for chan_id in self.recording_extractor.get_channel_ids():
-            set_recording_channel_property(
-                self.recording_extractor, "shank_electrode_number", [chan_id], channel_ids=[chan_id]
-            )
-            set_recording_channel_property(
-                self.recording_extractor, "shank_group_name", ["Shank1"], channel_ids=[chan_id]
-            )
+            self.recording_extractor.set_property("shank_electrode_number", [chan_id], ids=[chan_id])
+            self.recording_extractor.set_property("shank_group_name", ["Shank1"], ids=[chan_id])
 
     def get_metadata_schema(self):
         metadata_schema = super().get_metadata_schema()

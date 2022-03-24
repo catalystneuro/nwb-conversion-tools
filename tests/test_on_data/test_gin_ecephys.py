@@ -82,10 +82,7 @@ class TestEcephysNwbConversionsv1(unittest.TestCase):
         param(
             data_interface=SpikeGLXLFPInterface,
             interface_kwargs=dict(
-                file_path=str(
-                    DATA_PATH / "spikeglx" / "Noise4Sam_g0" / "Noise4Sam_g0_imec0" / "Noise4Sam_g0_t0.imec0.lf.bin"
-                ),
-                recording_version="v1",
+                folder_path=str(DATA_PATH / "spikeglx" / "Noise4Sam_g0" / "Noise4Sam_g0_imec0"), stream_id="imec0.lf"
             ),
         ),
     ]
@@ -151,19 +148,14 @@ class TestEcephysNwbConversionsv1(unittest.TestCase):
             if gains is not None:
                 interface_kwargs.update(gains=gains)
             parameterized_recording_list.append(
-                param(
-                    data_interface=SpikeGadgetsRecordingInterface,
-                    interface_kwargs=interface_kwargs,
-                )
+                param(data_interface=SpikeGadgetsRecordingInterface, interface_kwargs=interface_kwargs,)
             )
     for suffix in ["ap", "lf"]:
         sub_path = Path("spikeglx") / "Noise4Sam_g0" / "Noise4Sam_g0_imec0"
         parameterized_recording_list.append(
             param(
                 data_interface=SpikeGLXRecordingInterface,
-                interface_kwargs=dict(
-                    file_path=str(DATA_PATH / sub_path / f"Noise4Sam_g0_t0.imec0.{suffix}.bin"), recording_version="v1"
-                ),
+                interface_kwargs=dict(folder_path=str(DATA_PATH / sub_path), stream_id=f"imec0.{suffix}"),
             )
         )
 
@@ -275,10 +267,7 @@ class TestEcephysNwbConversionsv1(unittest.TestCase):
 
     @parameterized.expand(
         input=[
-            param(
-                name="complete",
-                conversion_options=None,
-            ),
+            param(name="complete", conversion_options=None,),
             param(name="stub", conversion_options=dict(TestRecording=dict(stub_test=True))),
         ]
     )
@@ -310,10 +299,7 @@ class TestEcephysNwbConversionsv1(unittest.TestCase):
 
     @parameterized.expand(
         input=[
-            param(
-                name="complete",
-                conversion_options=None,
-            ),
+            param(name="complete", conversion_options=None,),
             param(name="stub", conversion_options=dict(TestRecording=dict(stub_test=True))),
         ]
     )
@@ -359,83 +345,6 @@ class TestEcephysNwbConversionsv1(unittest.TestCase):
         with NWBHDF5IO(path=nwbfile_path, mode="r") as io:
             nwbfile = io.read()
             self.assertEqual(first=starting_time, second=nwbfile.acquisition["ElectricalSeries_raw"].starting_time)
-
-
-class TestEcephysNwbConversionsv2(unittest.TestCase):
-    savedir = OUTPUT_PATH / "v2"
-    savedir.mkdir(exist_ok=True)
-
-    parameterized_lfp_list = [
-        param(
-            data_interface=SpikeGLXLFPInterface,
-            interface_kwargs=dict(
-                folder_path=str(DATA_PATH / "spikeglx" / "Noise4Sam_g0" / "Noise4Sam_g0_imec0"),
-                recording_version="v2",
-                stream_id="imec0.lf",
-            ),
-        ),
-    ]
-
-    @parameterized.expand(input=parameterized_lfp_list, name_func=custom_name_func)
-    def test_convert_lfp_to_nwb(self, data_interface, interface_kwargs):
-        nwbfile_path = str(self.savedir / f"{data_interface.__name__}.nwb")
-
-        class TestConverter(NWBConverter):
-            data_interface_classes = dict(TestLFP=data_interface)
-
-        converter = TestConverter(source_data=dict(TestLFP=interface_kwargs))
-        for interface_kwarg in interface_kwargs:
-            if interface_kwarg in ["file_path", "folder_path"]:
-                self.assertIn(member=interface_kwarg, container=converter.data_interface_objects["TestLFP"].source_data)
-        metadata = converter.get_metadata()
-        metadata["NWBFile"].update(session_start_time=datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S"))
-        converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True, metadata=metadata)
-        recording = converter.data_interface_objects["TestLFP"].recording_extractor
-        with NWBHDF5IO(path=nwbfile_path, mode="r") as io:
-            nwbfile = io.read()
-            nwb_lfp_unscaled = nwbfile.processing["ecephys"]["LFP"]["ElectricalSeries_lfp"].data
-            npt.assert_array_equal(x=recording.get_traces(), y=nwb_lfp_unscaled)
-
-    parameterized_recording_list = []
-    for suffix in ["ap", "lf"]:
-        sub_path = Path("spikeglx") / "Noise4Sam_g0" / "Noise4Sam_g0_imec0"
-        parameterized_recording_list.append(
-            param(
-                data_interface=SpikeGLXRecordingInterface,
-                nwbname=f"SpikeGLXRecordingInterface_{suffix}.nwb",
-                interface_kwargs=dict(
-                    folder_path=str(DATA_PATH / sub_path), recording_version="v2", stream_id=f"imec0.{suffix}"
-                ),
-            )
-        )
-
-    @parameterized.expand(input=parameterized_recording_list, name_func=custom_name_func)
-    def test_convert_recording_extractor_to_nwb(self, data_interface, nwbname, interface_kwargs):
-        nwbfile_path = str(self.savedir / nwbname)
-
-        class TestConverter(NWBConverter):
-            data_interface_classes = dict(TestRecording=data_interface)
-
-        converter = TestConverter(source_data=dict(TestRecording=interface_kwargs))
-        for interface_kwarg in interface_kwargs:
-            if interface_kwarg in ["file_path", "folder_path"]:
-                self.assertIn(
-                    member=interface_kwarg, container=converter.data_interface_objects["TestRecording"].source_data
-                )
-        metadata = converter.get_metadata()
-        metadata["NWBFile"].update(session_start_time=datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S"))
-        converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True, metadata=metadata)
-        recording = converter.data_interface_objects["TestRecording"].recording_extractor
-        nwb_recording = si.NwbRecordingExtractor(file_path=nwbfile_path)
-
-        if "offset_to_uV" in nwb_recording.get_property_keys():
-            nwb_recording.set_channel_offsets(offsets=nwb_recording.get_property("offset_to_uV"))
-        check_recordings_equal_si(RX1=recording, RX2=nwb_recording, return_scaled=False)
-        # This can only be tested if both gain and offest are present
-        if recording.has_scaled_traces() and nwb_recording.has_scaled_traces():
-            check_recordings_equal_si(RX1=recording, RX2=nwb_recording, return_scaled=True)
-
-        del nwb_recording
 
 
 if __name__ == "__main__":
