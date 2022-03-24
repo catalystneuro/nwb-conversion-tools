@@ -17,10 +17,10 @@ def get_metadata(folder_path):
     with open(fpath, "r", encoding="latin1") as file:
         header = file.read(1024)
     index = header.find("TimeCreated") + 12
-    session_start_time = parser.parse(header[index:index+19])
+    session_start_time = parser.parse(header[index : index + 19])
 
     index = header.find("SessionUUID") + 12
-    session_id = header[index:index + 36]
+    session_id = header[index : index + 36]
 
     return dict(
         session_start_time=session_start_time,
@@ -45,8 +45,4 @@ class NeuralynxRecordingInterface(BaseRecordingExtractorInterface):
         self.recording_extractor.set_channel_gains(gains=gains)
 
     def get_metadata(self):
-        return dict_deep_update(
-            super().get_metadata(),
-            dict(NWBFile=get_metadata(self.source_data["folder_path"]))
-        )
-
+        return dict_deep_update(super().get_metadata(), dict(NWBFile=get_metadata(self.source_data["folder_path"])))
