@@ -42,6 +42,7 @@ def get_metadata(folder_path):
         identifier=session_id,
     )
 
+
 def get_filtering(channel_path):
     """Get the filtering metadata from an .nsc file.
 
@@ -61,8 +62,8 @@ def get_filtering(channel_path):
         header = file.read(1024)
     out = {}
     for line in text.split("\n\n")[-1].split("\n"):
-        if line[0] == '-':
-            key, val = line.split(' ')
+        if line[0] == "-":
+            key, val = line.split(" ")
             out[key[1:]] = val
 
     return json.dumps(out, ensure_ascii=False)
