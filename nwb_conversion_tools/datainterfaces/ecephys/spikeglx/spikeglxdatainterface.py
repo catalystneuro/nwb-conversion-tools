@@ -92,7 +92,8 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
             additional args depending on usage of spikeextractors or spikeinterface
         """
         if spikeextractors_backend:
-            assert file_path is not None and Path(file_path).is_file(), f"{file_path} should be a file for version='v1'"
+            assert file_path is not None and Path(file_path).is_file(), \
+                f"{file_path} should be a file if using spikeextractors_backend"
             self.RX = se.SpikeGLXRecordingExtractor
             super().__init__(file_path=str(file_path), **kwargs)
             self.recording_extractor = OldToNewRecording(oldapi_recording_extractor=self.recording_extractor)
@@ -100,7 +101,7 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
         else:
             assert (
                 folder_path is not None and Path(folder_path).is_dir()
-            ), f"{folder_path} should be a folder for version='v2'"
+            ), f"{folder_path} should be a folder for using spikeinterface for extraction"
             super().__init__(folder_path=str(folder_path), **kwargs)
             self.folder_path = folder_path
 
