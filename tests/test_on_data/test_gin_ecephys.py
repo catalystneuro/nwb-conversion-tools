@@ -134,8 +134,7 @@ class TestEcephysNwbConversions(unittest.TestCase):
         ),
         param(
             data_interface=BlackrockRecordingExtractorInterface,
-            interface_kwargs=dict(file_path=str(DATA_PATH / "blackrock" / "FileSpec2.3001"),
-                                  nsx_to_load=5),
+            interface_kwargs=dict(file_path=str(DATA_PATH / "blackrock" / "FileSpec2.3001"), nsx_to_load=5),
         ),
         param(
             data_interface=AxonaRecordingExtractorInterface,
