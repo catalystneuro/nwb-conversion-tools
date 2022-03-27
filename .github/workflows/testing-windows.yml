@@ -41,6 +41,7 @@ jobs:
         if: steps.cache-ecephys-datasets.outputs.cache-hit == false
         run: |
           conda install -c conda-forge datalad==0.14.5
+          conda list | findstr datalad
           git config --global user.email "CI@example.com"
           git config --global user.name "CI Almighty"
           datalad install https://gin.g-node.org/NeuralEnsemble/ephy_testing_data
