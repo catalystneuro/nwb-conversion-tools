@@ -20,6 +20,7 @@ jobs:
         run: |
           pip install --user --upgrade pip
           pip install pytest
+          pip install parameterized
 
       - name: Install full requirements
         run: pip install .[full]
