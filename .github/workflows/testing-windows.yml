@@ -86,7 +86,7 @@ jobs:
         with:
           path: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/behavior_testing_data
           key: behavior-datasets-8-${{ steps.behavior.outputs.HASH_behavior_DATASET }}
-          restore-keys: behavior-datasets-8-${{ steps.behavior.outputs.HASH_behavior_DATASET }}
+          restore-keys: behavior-datasets-
       - name: Force GIN behavior download
         if: steps.cache-behavior-datasets.outputs.cache-hit == false
         run: |
@@ -97,7 +97,7 @@ jobs:
         id: cache-behavior-datasets-again
         with:
           path: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools/behavior_testing_data
-          key: behavior-datasets-8-${{ steps.behavior.outputs.HASH_behavior_DATASET }}
+          key: behavior-datasets-9-${{ steps.behavior.outputs.HASH_behavior_DATASET }}
       - name: Run pytest with GIN data
         run: |
 #          echo "behavior cache {{ steps.cache-behavior-datasets.outputs.cache-hit }}"
