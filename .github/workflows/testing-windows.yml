@@ -22,8 +22,8 @@ jobs:
           pip install pytest
           pip install parameterized
 
-      - name: Install full requirements
-        run: pip install .[full]
+#      - name: Install full requirements
+#        run: pip install .[full]
 
       - name: Install datalad
         run: |
