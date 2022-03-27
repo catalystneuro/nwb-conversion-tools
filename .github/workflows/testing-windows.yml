@@ -17,7 +17,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install pytest
-        run: pip install --user --upgrade pip
+        run: |
+          pip install --user --upgrade pip
+          pip install pytest
 
       - name: Install full requirements
         run: pip install .[full]
