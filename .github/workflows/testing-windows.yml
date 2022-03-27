@@ -34,13 +34,7 @@ jobs:
 #        run: pip install .[full]
 
       - name: Install datalad
-        run: |
-#          pip install datalad-installer
-#          git config --global user.email "CI@example.com"
-#          git config --global user.name "CI Almighty"
-#          datalad-installer git-annex -m datalad/packages
-#          git config --global filter.annex.process "git-annex filter-process"
-          pip install datalad
+        run: pip install datalad
 
 #      - name: Get ephy_testing_data current head hash
 #        id: ecephys
