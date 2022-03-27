@@ -107,5 +107,6 @@ jobs:
           restore-keys: behavior-datasets-
       - name: Run pytest with GIN data
         run: |
+          dir
           echo "{{ steps.cache-behavior-datasets-again.outputs.cache-hit }}"
-          pytest tests/test_on_data/test_gin_behavior.py
+#          pytest tests/test_on_data/test_gin_behavior.py
