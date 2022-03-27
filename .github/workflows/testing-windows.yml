@@ -108,4 +108,4 @@ jobs:
       - name: Run pytest with GIN data
         run: |
           echo "{{ steps.cache-behavior-datasets-again.outputs.cache-hit }}"
-          pytest .
+          pytest tests/test_on_data/test_gin_behavior.py
