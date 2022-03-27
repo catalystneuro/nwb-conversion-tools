@@ -93,7 +93,7 @@ jobs:
       - name: Force GIN behavior download
 #        if: steps.cache-behavior-datasets.outputs.cache-hit == false
         run: |
-          datalad install https://gin.g-node.org/CatalystNeuro/behavior_testing_data
+          git clone https://gin.g-node.org/CatalystNeuro/behavior_testing_data
           cd behavior_testing_data
           git annex get
           cd ..
