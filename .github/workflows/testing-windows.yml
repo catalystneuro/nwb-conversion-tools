@@ -35,10 +35,14 @@ jobs:
 
       - name: Install datalad
         run: |
-          conda install -c conda-forge datalad
+          pip install datalad-installer
           git config --global user.email "CI@example.com"
           git config --global user.name "CI Almighty"
-          conda list | findstr datalad
+          datalad-installer git-annex -m datalad/packages
+          git config --global filter.annex.process "git-annex filter-process"
+          pip install datalad
+          pip list|findstr datalad
+
 
       - name: Force GIN ecephys download
         if: steps.cache-ecephys-datasets.outputs.cache-hit == false
