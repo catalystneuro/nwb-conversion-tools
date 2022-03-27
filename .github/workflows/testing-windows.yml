@@ -24,6 +24,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install pytest
         run: |
+          git config --global user.email "CI@example.com"
+          git config --global user.name "CI Almighty"
           pip install --user --upgrade pip
           pip install pytest
           pip install parameterized
