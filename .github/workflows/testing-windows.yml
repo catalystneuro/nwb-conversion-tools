@@ -15,7 +15,7 @@ jobs:
         with:
           args: -h
       - name: install git annex
-        run: choco install git-annex
+        run: choco install git-annex --ignore-checksums
       - uses: actions/checkout@v2
       - run: git fetch --prune --unshallow --tags
       - name: Setup Python ${{ matrix.python-version }}
