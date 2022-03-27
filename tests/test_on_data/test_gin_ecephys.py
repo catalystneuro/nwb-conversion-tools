@@ -68,7 +68,7 @@ def custom_name_func(testcase_func, param_num, param):
         f"{parameterized.to_safe_name(param.kwargs['data_interface'].__name__)}"
     )
 
-
+@pytest.mark.skip("skip ecephys")
 class TestEcephysNwbConversions(unittest.TestCase):
     savedir = OUTPUT_PATH
 
