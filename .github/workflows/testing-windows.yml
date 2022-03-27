@@ -93,9 +93,9 @@ jobs:
       - name: Force GIN behavior download
         if: steps.cache-behavior-datasets.outputs.cache-hit == false
         run: |
-          gin get https://gin.g-node.org/CatalystNeuro/behavior_testing_data
+          gin get "https://gin.g-node.org/CatalystNeuro/behavior_testing_data"
           cd behavior_testing_data
-          datalad get .
+          git annex get
           cd ..
       - name: Cache behavior dataset2 - ${{ steps.behavior.outputs.HASH_BEHAVIOR_DATASET }}
         uses: actions/cache@v2
