@@ -33,15 +33,14 @@ jobs:
 #      - name: Install full requirements
 #        run: pip install .[full]
 
-#      - name: Install datalad
-#        run: |
+      - name: Install datalad
+        run: |
 #          pip install datalad-installer
 #          git config --global user.email "CI@example.com"
 #          git config --global user.name "CI Almighty"
 #          datalad-installer git-annex -m datalad/packages
 #          git config --global filter.annex.process "git-annex filter-process"
-#          pip install datalad
-#          pip list|findstr datalad
+          pip install datalad
 
 #      - name: Get ephy_testing_data current head hash
 #        id: ecephys
@@ -70,7 +69,8 @@ jobs:
       - name: Force GIN behavior download
         if: steps.cache-behavior-datasets.outputs.cache-hit == false
         run: |
-          gh repo clone https://gin.g-node.org/CatalystNeuro/behavior_testing_data.git
+          datalad install https://gin.g-node.org/CatalystNeuro/behavior_testing_data
+#          gh repo clone https://gin.g-node.org/CatalystNeuro/behavior_testing_data.git
           cd behavior_testing_data
           git annex get
           cd ..
