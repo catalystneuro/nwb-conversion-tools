@@ -35,7 +35,7 @@ jobs:
 
       - name: Install datalad
         run: |
-          conda install -c conda-forge datalad==0.14.5
+          conda install -c conda-forge datalad
           git config --global user.email "CI@example.com"
           git config --global user.name "CI Almighty"
           conda list | findstr datalad
