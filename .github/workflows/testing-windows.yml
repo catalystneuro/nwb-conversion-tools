@@ -12,6 +12,8 @@ jobs:
       - uses: s-weigand/setup-conda@v1
       - name: Chocolatey Action
         uses: crazy-max/ghaction-chocolatey@v1.6.0
+        with:
+          args: -h
       - name: install git annex
         run: choco install git-annex
       - uses: actions/checkout@v2
