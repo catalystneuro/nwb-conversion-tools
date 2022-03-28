@@ -27,6 +27,13 @@ jobs:
       - name: install datalad
         run: conda install -c conda-forge datalad
 
+      - name: Chocolatey Action
+        uses: crazy-max/ghaction-chocolatey@v1.6.0
+        with:
+          args: -h
+      - name: install git annex
+        run: choco install git-annex --ignore-checksums
+
       - name: Get behavior_testing_data current head hash
         id: behavior
         run: echo "::set-output name=HASH_BEHAVIOR_DATASET::$(git ls-remote https://gin.g-node.org/CatalystNeuro/behavior_testing_data.git HEAD | cut -f1)"
