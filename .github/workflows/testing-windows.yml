@@ -35,12 +35,12 @@ jobs:
 
       - name: Get behavior_testing_data current head hash
         id: behavior
-        run: echo "::set-output name=HASH_BEHAVIOR_DATASET::$(git ls-remote https://gin.g-node.org/CatalystNeuro/behavior_testing_data.git HEAD | cut -f1)"
+        run: echo "::set-output name=HASH_BEHAVIOR_DATASET::$(git ls-remote https://gin.g-node.org/SakshamSharda/behavior_testing_data_test.git HEAD | cut -f1)"
       - name: Force GIN behavior download
         if: steps.cache-behavior-datasets.outputs.cache-hit == false
         run: |
-          datalad install https://gin.g-node.org/CatalystNeuro/behavior_testing_data
-          cd behavior_testing_data
+          git clone https://gin.g-node.org/SakshamSharda/behavior_testing_data_test
+          cd behavior_testing_data_test
           git annex get
           cd ..
 
