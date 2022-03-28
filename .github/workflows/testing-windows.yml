@@ -39,7 +39,7 @@ jobs:
       - name: Force GIN behavior download
         if: steps.cache-behavior-datasets.outputs.cache-hit == false
         run: |
-          git clone https://gin.g-node.org/SakshamSharda/behavior_testing_data_test
+          datalad install https://gin.g-node.org/SakshamSharda/behavior_testing_data_test
           cd behavior_testing_data_test
           git annex get
           cd ..
