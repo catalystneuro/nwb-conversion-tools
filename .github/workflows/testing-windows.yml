@@ -42,7 +42,7 @@ jobs:
         run: |
           datalad install https://gin.g-node.org/CatalystNeuro/behavior_testing_data
           cd behavior_testing_data
-          datalad get -rg .
+          datalad get .
           cd ..
 
       - name: Run pytest with GIN data
