@@ -43,6 +43,7 @@ jobs:
         with:
           args: -h
       - name: install git annex
+        if: steps.cache-behavior-datasets-check.outputs.cache-hit == false
         run: choco install git-annex --ignore-checksums
 
       - name: Get behavior_testing_data current head hash
