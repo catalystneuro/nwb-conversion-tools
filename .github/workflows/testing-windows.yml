@@ -60,16 +60,16 @@ jobs:
         id: compress
         with:
           command: c
-          files: home/runner/work/nwb-conversion-tools/nwb-conversion-tools/behavior_testing_data
+          files: ./behavior_testing_data
           outPath: ./behavior.tar.gz
 
-      - name: Compress action step
+      - name: Compress action step extract
         if: steps.cache-behavior-datasets.outputs.cache-hit == true
         uses: a7ul/tar-action@v1.1.0
         id: extract
         with:
           command: x
-          files: home/runner/work/nwb-conversion-tools/nwb-conversion-tools/behavior.tar.gz
+          files: ./behavior.tar.gz
           outPath: ./behavior_testing_data
 
       - name: Run pytest with GIN data
