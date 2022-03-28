@@ -34,7 +34,16 @@ jobs:
       - name: install git annex
         run: choco install git-annex --ignore-checksums
 
+      - name: Cache behavior dataset - ${{ steps.behavior.outputs.HASH_BEHAVIOR_DATASET }}
+        uses: actions/cache@v2
+        id: cache-behavior-datasets
+        with:
+          path: /home/runner/work/nwb-conversion-tools/nwb-conversion-tools//behavior.tar.gz
+          key: behavior-datasets-8-${{ steps.behavior.outputs.HASH_behavior_DATASET }}
+          restore-keys: behavior-datasets-8-${{ steps.behavior.outputs.HASH_behavior_DATASET }}
+
       - name: Get behavior_testing_data current head hash
+        if: steps.cache-behavior-datasets.outputs.cache-hit == false
         id: behavior
         run: echo "::set-output name=HASH_BEHAVIOR_DATASET::$(git ls-remote https://gin.g-node.org/CatalystNeuro/behavior_testing_data.git HEAD | cut -f1)"
       - name: Force GIN behavior download
@@ -45,6 +54,25 @@ jobs:
           datalad get .
           cd ..
 
+      - name: Compress action step
+        if: steps.cache-behavior-datasets.outputs.cache-hit == false
+        uses: a7ul/tar-action@v1.1.0
+        id: compress
+        with:
+          command: c
+          files: home/runner/work/nwb-conversion-tools/nwb-conversion-tools/behavior_testing_data
+          outPath: ./behavior.tar.gz
+
+      - name: Compress action step
+        if: steps.cache-behavior-datasets.outputs.cache-hit == true
+        uses: a7ul/tar-action@v1.1.0
+        id: extract
+        with:
+          command: x
+          files: home/runner/work/nwb-conversion-tools/nwb-conversion-tools/behavior.tar.gz
+          outPath: ./behavior_testing_data
+
       - name: Run pytest with GIN data
         run: |
+          echo "{{ steps.cache-behavior-datasets.outputs.cache-hit }}"
           dir
