@@ -54,15 +54,6 @@ jobs:
           datalad get .
           cd ..
 
-#      - name: Compress action step
-#        if: steps.cache-behavior-datasets-check.outputs.cache-hit == false
-#        uses: a7ul/tar-action@v1.1.0
-#        id: compress
-#        with:
-#          command: c
-#          files: ./behavior_testing_data
-#          outPath: ./behavior.tar.gz
-
       - name: Cache behavior dataset - ${{ steps.behavior.outputs.HASH_BEHAVIOR_DATASET }}
         if: steps.cache-behavior-datasets-check.outputs.cache-hit == false
         uses: actions/cache@v2
@@ -71,15 +62,6 @@ jobs:
           path: ./behavior_testing_data
           key: behavior-datasets-80-${{ steps.behavior.outputs.HASH_behavior_DATASET }}
           restore-keys: behavior-datasets-80-${{ steps.behavior.outputs.HASH_behavior_DATASET }}
-
-#      - name: Compress action step extract
-#        if: steps.cache-behavior-datasets-check.outputs.cache-hit == true
-#        uses: a7ul/tar-action@v1.1.0
-#        id: extract
-#        with:
-#          command: x
-#          files: ./behavior.tar.gz
-#          outPath: ./behavior_testing_data
 
       - name: Run pytest with GIN data
         run: |
