@@ -23,16 +23,14 @@ jobs:
           pip install pytest
           pip install parameterized
 
-      - name: install conda
-        uses: s-weigand/setup-conda@v1
-      - name: install datalad
-        run: conda install -c conda-forge datalad
-      - name: Chocolatey install
-        uses: crazy-max/ghaction-chocolatey@v1.6.0
-        with:
-          args: -h
-      - name: install git annex
-        run: choco install git-annex --ignore-checksums
+      - name: Install datalad
+        run: |
+          pip install datalad-installer
+          git config --global user.email "CI@example.com"
+          git config --global user.name "CI Almighty"
+          datalad-installer git-annex -m datalad/packages
+          git config --global filter.annex.process "git-annex filter-process"
+          pip install datalad
 
       - name: Cache behavior dataset - ${{ steps.behavior.outputs.HASH_BEHAVIOR_DATASET }}
         uses: actions/cache@v2
