@@ -60,7 +60,7 @@ jobs:
         run: pytest tests/test_on_data/test_gin_${{ steps.split.outputs._1 }}.py
 
       - name: Run pytest on YAML conversion
-        if: ${{ steps.split.outputs._1 }} == ephy
+        if: steps.split.outputs._1 == ephy
         run: pytest tests/test_on_data/test_YAML_conversion_specification.py
 
   run2:
