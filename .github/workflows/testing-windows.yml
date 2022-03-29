@@ -10,11 +10,11 @@ jobs:
         python-version: [3.7, 3.8, 3.9]
         data-modality: [NeuralEnsemble/ephy, CatalystNeuro/ophys, CatalystNeuro/behavior]
     steps:
-      - uses: jungwinter/split@v2
+      - uses: rishabhgupta/split-by@v1
         id: split
         with:
-          msg: ${{ matrix.data-modality }}
-          separator: '/'
+          string: ${{ matrix.data-modality }}
+          split-by: '/'
       - uses: actions/checkout@v2
       - run: git fetch --prune --unshallow --tags
       - name: Setup Python ${{ matrix.python-version }}
