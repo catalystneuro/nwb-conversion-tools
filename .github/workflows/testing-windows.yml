@@ -31,12 +31,14 @@ jobs:
           pip install pytest
           pip install parameterized
 
+      - name: Chocolatey Action
+        uses: crazy-max/ghaction-chocolatey@v1.6.0
+        with:
+          args: -h
+      - name: install git annex
+        run: choco install git-annex --ignore-checksums
       - name: Install datalad
-        run: |
-          pip install datalad-installer
-          datalad-installer git-annex -m datalad/packages
-          git config --global filter.annex.process "git-annex filter-process"
-          pip install datalad
+        run: pip install datalad
 
       - name: Get current head hash
         id: get_hash
