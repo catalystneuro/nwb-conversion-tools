@@ -2,14 +2,19 @@ name: Minimal and full tests on Windows
 on: pull_request
 jobs:
   run:
-    name: Minimal and full tests on Windows with Python ${{ matrix.python-version }}
+    name: Minimal and full tests on Windows with Python ${{ matrix.python-version }}, ${{ matrix.data-modality }} modality
     runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
         python-version: [3.7, 3.8, 3.9]
-        data-modality: [ephy, ophys, behavior]
+        data-modality: [NeuralEnsemble/ephy, CatalystNeuro/ophys, CatalystNeuro/behavior]
     steps:
+      - uses: jungwinter/split@v2
+        id: split
+        with:
+          msg: ${{ matrix.data-modality }}
+          separator: '/'
       - uses: actions/checkout@v2
       - run: git fetch --prune --unshallow --tags
       - name: Setup Python ${{ matrix.python-version }}
@@ -35,30 +40,27 @@ jobs:
 
       - name: Get current head hash
         id: get_hash
-        run: echo "{{ format('::set-output name=HASH_DATASET::$(git ls-remote https://gin.g-node.org/CatalystNeuro/{1}_testing_data.git HEAD | cut -f1)',matrix.data-modality) }}"
+        run: echo "{{ format('::set-output name=HASH_DATASET::$(git ls-remote https://gin.g-node.org/{1}_testing_data.git HEAD | cut -f1)',matrix.data-modality) }}"
 
       - name: Cache dataset
         uses: actions/cache@v2
         id: cache-datasets-check
         with:
-          path: ./${{ matrix.data-modality }}_testing_data
-          key: ${{ matrix.data-modality }}-datasets-80-${{ steps.get_hash.outputs.HASH_DATASET }}
+          path: ./${{ steps.split.outputs._1 }}_testing_data
+          key: ${{ steps.split.outputs._1 }}-datasets-80-${{ steps.get_hash.outputs.HASH_DATASET }}
 
       - name: Force GIN download
         if: steps.cache-datasets-check.outputs.cache-hit == false
         run: |
-          datalad install https://gin.g-node.org/CatalystNeuro/${{ matrix.data-modality }}_testing_data
-          cd ${{ matrix.data-modality }}_testing_data
-          datalad get .
-          cd ..
+          datalad install -rg https://gin.g-node.org/${{ matrix.data-modality }}_testing_data
 
       - name: Cache dataset
         if: steps.cache-datasets-check.outputs.cache-hit == false
         uses: actions/cache@v2
         id: cache-datasets-create
         with:
-          path: ./${{ matrix.data-modality }}_testing_data
-          key: ${{ matrix.data-modality }}-datasets-80-${{ steps.get_hash.outputs.HASH_DATASET }}
+          path: ./${{ steps.split.outputs._1 }}_testing_data
+          key: ${{ steps.split.outputs._1 }}-datasets-80-${{ steps.get_hash.outputs.HASH_DATASET }}
 
       - name: Run pytest with GIN data
         run: |
