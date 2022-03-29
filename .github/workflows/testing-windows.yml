@@ -32,8 +32,6 @@ jobs:
       - name: Install datalad
         run: |
           pip install datalad-installer
-          git config --global user.email "CI@example.com"
-          git config --global user.name "CI Almighty"
           datalad-installer git-annex -m datalad/packages
           git config --global filter.annex.process "git-annex filter-process"
           pip install datalad
@@ -63,5 +61,4 @@ jobs:
           key: ${{ steps.split.outputs._1 }}-datasets-80-${{ steps.get_hash.outputs.HASH_DATASET }}
 
       - name: Run pytest with GIN data
-        run: |
-          dir
+        run: pytest .
