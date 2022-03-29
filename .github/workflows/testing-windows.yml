@@ -8,6 +8,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [3.7, 3.8, 3.9]
+        data-modality: [ephy, ophys, behavior]
     steps:
       - uses: actions/checkout@v2
       - run: git fetch --prune --unshallow --tags
@@ -32,94 +33,32 @@ jobs:
           git config --global filter.annex.process "git-annex filter-process"
           pip install datalad
 
-      - name: Cache behavior dataset - ${{ steps.behavior.outputs.HASH_BEHAVIOR_DATASET }}
-        uses: actions/cache@v2
-        id: cache-behavior-datasets-check
-        with:
-          path: ./behavior_testing_data
-          key: behavior-datasets-80-${{ steps.behavior.outputs.HASH_behavior_DATASET }}
-          restore-keys: behavior-datasets-80-${{ steps.behavior.outputs.HASH_behavior_DATASET }}
+      - name: Get current head hash
+        id: get_hash
+        run: echo "{{ format('::set-output name=HASH_DATASET::$(git ls-remote https://gin.g-node.org/CatalystNeuro/{1}_testing_data.git HEAD | cut -f1)',matrix.data-modality) }}"
 
-      - name: Get behavior_testing_data current head hash
-        if: steps.cache-behavior-datasets-check.outputs.cache-hit == false
-        id: behavior
-        run: echo "::set-output name=HASH_BEHAVIOR_DATASET::$(git ls-remote https://gin.g-node.org/CatalystNeuro/behavior_testing_data.git HEAD | cut -f1)"
-      - name: Force GIN behavior download
-        if: steps.cache-behavior-datasets-check.outputs.cache-hit == false
+      - name: Cache dataset
+        uses: actions/cache@v2
+        id: cache-datasets-check
+        with:
+          path: ./${{ matrix.data-modality }}_testing_data
+          key: ${{ matrix.data-modality }}-datasets-80-${{ steps.get_hash.outputs.HASH_DATASET }}
+
+      - name: Force GIN download
+        if: steps.cache-datasets-check.outputs.cache-hit == false
         run: |
-          datalad install https://gin.g-node.org/CatalystNeuro/behavior_testing_data
-          cd behavior_testing_data
+          datalad install https://gin.g-node.org/CatalystNeuro/${{ matrix.data-modality }}_testing_data
+          cd ${{ matrix.data-modality }}_testing_data
           datalad get .
           cd ..
 
-      - name: Cache behavior dataset - ${{ steps.behavior.outputs.HASH_BEHAVIOR_DATASET }}
-        if: steps.cache-behavior-datasets-check.outputs.cache-hit == false
+      - name: Cache dataset
+        if: steps.cache-datasets-check.outputs.cache-hit == false
         uses: actions/cache@v2
-        id: cache-behavior-datasets-create
+        id: cache-datasets-create
         with:
-          path: ./behavior_testing_data
-          key: behavior-datasets-80-${{ steps.behavior.outputs.HASH_behavior_DATASET }}
-          restore-keys: behavior-datasets-80-${{ steps.behavior.outputs.HASH_behavior_DATASET }}
-
-
-      - name: Cache ophys dataset - ${{ steps.ophys.outputs.HASH_OPHYS_DATASET }}
-        uses: actions/cache@v2
-        id: cache-ophys-datasets-check
-        with:
-          path: ./ophys_testing_data
-          key: ophys-datasets-80-${{ steps.ophys.outputs.HASH_OPHYS_DATASET }}
-          restore-keys: ophys-datasets-80-${{ steps.ophys.outputs.HASH_OPHYS_DATASET }}
-
-      - name: Get ophys_testing_data current head hash
-        if: steps.cache-ophys-datasets-check.outputs.cache-hit == false
-        id: ophys
-        run: echo "::set-output name=HASH_OPHYS_DATASET::$(git ls-remote https://gin.g-node.org/CatalystNeuro/ophys_testing_data.git HEAD | cut -f1)"
-      - name: Force GIN ophys download
-        if: steps.cache-ophys-datasets-check.outputs.cache-hit == false
-        run: |
-          datalad install https://gin.g-node.org/CatalystNeuro/ophys_testing_data
-          cd ophys_testing_data
-          datalad get .
-          cd ..
-
-      - name: Cache ophys dataset - ${{ steps.ophys.outputs.HASH_OPHYS_DATASET }}
-        if: steps.cache-ophys-datasets-check.outputs.cache-hit == false
-        uses: actions/cache@v2
-        id: cache-ophys-datasets-create
-        with:
-          path: ./ophys_testing_data
-          key: ophys-datasets-80-${{ steps.ophys.outputs.HASH_OPHYS_DATASET }}
-          restore-keys: ophys-datasets-80-${{ steps.ophys.outputs.HASH_OPHYS_DATASET }}
-
-
-      - name: Cache ecephys dataset - ${{ steps.ecephys.outputs.HASH_ECEPHYS_DATASET }}
-        uses: actions/cache@v2
-        id: cache-ecephys-datasets-check
-        with:
-          path: ./ecephys_testing_data
-          key: ecephys-datasets-80-${{ steps.ecephys.outputs.HASH_ECEPHYS_DATASET }}
-          restore-keys: ecephys-datasets-80-${{ steps.ecephys.outputs.HASH_ECEPHYS_DATASET }}
-
-      - name: Get ecephys_testing_data current head hash
-        if: steps.cache-ecephys-datasets-check.outputs.cache-hit == false
-        id: ecephys
-        run: echo "::set-output name=HASH_ECEPHYS_DATASET::$(git ls-remote https://gin.g-node.org/CatalystNeuro/ephy_testing_data.git HEAD | cut -f1)"
-      - name: Force GIN ecephys download
-        if: steps.cache-ecephys-datasets-check.outputs.cache-hit == false
-        run: |
-          datalad install https://gin.g-node.org/CatalystNeuro/ephy_testing_data
-          cd ecephys_testing_data
-          datalad get .
-          cd ..
-
-      - name: Cache ecephys dataset - ${{ steps.ecephys.outputs.HASH_ECEPHYS_DATASET }}
-        if: steps.cache-ecephys-datasets-check.outputs.cache-hit == false
-        uses: actions/cache@v2
-        id: cache-ecephys-datasets-create
-        with:
-          path: ./ecephys_testing_data
-          key: ecephys-datasets-80-${{ steps.ecephys.outputs.HASH_ECEPHYS_DATASET }}
-          restore-keys: ecephys-datasets-80-${{ steps.ecephys.outputs.HASH_ECEPHYS_DATASET }}
+          path: ./${{ matrix.data-modality }}_testing_data
+          key: ${{ matrix.data-modality }}-datasets-80-${{ steps.get_hash.outputs.HASH_DATASET }}
 
       - name: Run pytest with GIN data
         run: |
