@@ -1,7 +1,7 @@
 name: Minimal and full tests on Windows
 on: pull_request
 jobs:
-  run:
+  run1:
     name: Minimal and full tests on Windows with Python ${{ matrix.python-version }}, ${{ matrix.data-modality }} modality
     runs-on: windows-latest
     strategy:
@@ -56,15 +56,35 @@ jobs:
         run: |
           datalad install -rg https://gin.g-node.org/${{ matrix.data-modality }}_testing_data
 
-      - name: Cache dataset
-        if: steps.cache-datasets-check.outputs.cache-hit == false
-        uses: actions/cache@v2
-        id: cache-datasets-create
-        with:
-          path: ./${{ steps.split.outputs._1 }}_testing_data
-          key: ${{ steps.split.outputs._1 }}-datasets-0-${{ steps.get_hash.outputs.HASH_DATASET }}
-
       - name: Run pytest with GIN data
+        run: pytest tests/test_on_data/test_gin_${{ steps.split.outputs._1 }}.py
+
+      - name: Run pytest on YAML conversion
+        if: ${{ steps.split.outputs._1 }} == ephy
+        run: pytest tests/test_on_data/test_YAML_conversion_specification.py
+
+  run2:
+    name: Minimal tests on Windows
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+    steps:
+      - uses: actions/checkout@v2
+      - run: git fetch --prune --unshallow --tags
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install minimal requirements
+        run: pip install -e .[test]
+      - name: Install dependencies
         run: |
-          dir
-          pytest .
+          git config --global user.email "CI@example.com"
+          git config --global user.name "CI Almighty"
+          pip install --user --upgrade pip
+          pip install pytest
+          pip install parameterized
+      - name: Run minimal pytest
+        run: pytest tests/test_internals
