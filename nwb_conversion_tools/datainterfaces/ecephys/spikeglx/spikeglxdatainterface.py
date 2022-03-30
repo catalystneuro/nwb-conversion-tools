@@ -19,7 +19,7 @@ from ....utils.json_schema import (
 )
 
 
-def fetch_spikeglx_metadata(source_path: FilePathType, recording: BaseRecording, metadata: dict, stream_id:str):
+def fetch_spikeglx_metadata(source_path: FilePathType, recording: BaseRecording, metadata: dict, stream_id: str):
     session_id = Path(source_path).stem
 
     metadata_update = dict(
@@ -128,10 +128,12 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
 
     def get_metadata(self):
         metadata = super().get_metadata()
-        fetch_spikeglx_metadata(source_path=self.folder_path,
-                                recording=self.recording_extractor,
-                                metadata=metadata,
-                                stream_id=self.stream_id)
+        fetch_spikeglx_metadata(
+            source_path=self.folder_path,
+            recording=self.recording_extractor,
+            metadata=metadata,
+            stream_id=self.stream_id,
+        )
         metadata["Ecephys"]["ElectricalSeries_raw"] = dict(
             name="ElectricalSeries_raw", description="Raw acquisition traces for the high-pass (ap) SpikeGLX data."
         )
