@@ -198,7 +198,7 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
             source_path=self.folder_path,
             recording=self.recording_extractor,
             metadata=metadata,
-            stream_id=self.stream_id
+            stream_id=self.stream_id,
         )
         metadata["Ecephys"]["ElectricalSeries_lfp"].update(
             description="LFP traces for the processed (lf) SpikeGLX data."
