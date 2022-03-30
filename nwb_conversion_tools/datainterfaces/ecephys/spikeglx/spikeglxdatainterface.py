@@ -42,11 +42,13 @@ def fetch_spikeglx_metadata(source_path: FilePathType, recording: BaseRecording,
     else:
         current_recording = recording
     spikeglx_meta_dict = current_recording.neo_reader.signals_info_dict[(0, stream_id)]
-    n_shanks = int(spikeglx_meta_dict.get("snsShankMap", [1, 1])[1])
-    if n_shanks > 1:
-        raise NotImplementedError("SpikeGLX metadata for more than a single shank is not yet supported.")
-    session_start_time = datetime.fromisoformat(spikeglx_meta_dict["fileCreateTime"]).astimezone()
-    metadata_update["NWBFile"]["session_start_time"] = str(session_start_time)
+    if "snsShankMap" in spikeglx_meta_dict:
+        n_shanks = int(spikeglx_meta_dict.get("snsShankMap", [1, 1])[1])
+        if n_shanks > 1:
+            raise NotImplementedError("SpikeGLX metadata for more than a single shank is not yet supported.")
+    if "fileCreateTime" in spikeglx_meta_dict:
+        session_start_time = datetime.fromisoformat(spikeglx_meta_dict["fileCreateTime"]).astimezone()
+        metadata_update["NWBFile"]["session_start_time"] = str(session_start_time)
 
     return dict_deep_update(metadata, metadata_update)
 
@@ -167,12 +169,14 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
             super().__init__(file_path=str(file_path), **kwargs)
             self.recording_extractor = OldToNewRecording(oldapi_recording_extractor=self.recording_extractor)
             self.folder_path = file_path.parent
+            self.stream_id = "".join(file_path.suffixes[:-1])[1:]
         else:
             assert (
                 folder_path is not None and Path(folder_path).is_dir()
             ), f"{folder_path} should be a folder for version='v2'"
             super().__init__(folder_path=str(folder_path), **kwargs)
             self.folder_path = folder_path
+            self.stream_id = kwargs.get("stream_id")
 
         if stub_test:
             self.subset_channels = [0, 1]
@@ -191,7 +195,10 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
     def get_metadata(self):
         metadata = super().get_metadata()
         fetch_spikeglx_metadata(
-            source_path=self.sglx_source_path, recording=self.recording_extractor, metadata=metadata
+            source_path=self.folder_path,
+            recording=self.recording_extractor,
+            metadata=metadata,
+            stream_id=self.stream_id
         )
         metadata["Ecephys"]["ElectricalSeries_lfp"].update(
             description="LFP traces for the processed (lf) SpikeGLX data."
