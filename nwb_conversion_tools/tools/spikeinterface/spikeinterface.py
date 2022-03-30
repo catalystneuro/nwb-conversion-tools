@@ -624,7 +624,10 @@ def add_electrical_series(
             eseries_kwargs.update(channel_conversion=channel_conversion)
     if iterator_type is None or iterator_type == "v2":
         ephys_data = SpikeInterfaceRecordingDataChunkIterator(
-            recording=checked_recording, segment_index=segment_index, return_scaled=write_scaled, **iterator_opts,
+            recording=checked_recording,
+            segment_index=segment_index,
+            return_scaled=write_scaled,
+            **iterator_opts,
         )
     elif iterator_type == "v1":
         if isinstance(checked_recording.get_traces(end_frame=5, return_scaled=write_scaled), np.memmap) and np.all(
