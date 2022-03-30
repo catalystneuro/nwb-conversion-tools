@@ -139,6 +139,8 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
 class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
     """Primary data interface class for converting the low-pass (ap) SpikeGLX format."""
 
+    RX = SpikeGLXRecordingExtractorSI
+
     @classmethod
     def get_source_schema(cls):
         return _get_source_schema(cls)
