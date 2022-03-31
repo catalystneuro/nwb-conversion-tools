@@ -32,21 +32,21 @@ class BlackrockRecordingExtractorInterface(BaseRecordingExtractorInterface):
     def __init__(
         self,
         file_path: FilePathType,
-        nsx_override: OptionalFilePathType = None,
+        nsx_override_path: OptionalFilePathType = None,
     ):
         file_path = Path(file_path)
         if file_path.suffix == "":
-            assert nsx_override is not None, (
-                "if file_path is empty " 'provide a nsx file to load with "nsx_override" arg'
+            assert nsx_override_path is not None, (
+                "if file_path is empty " 'provide a nsx file to load with "nsx_override_path" arg'
             )
             nsx_to_load = None
-            self.file_path = Path(nsx_override)
+            self.file_path = Path(nsx_override_path)
         else:
             assert "ns" in file_path.suffix, "file_path should be an nsx file"
             nsx_to_load = int(file_path.suffix[-1])
             self.file_path = file_path
-        super().__init__(filename=file_path, nsx_override=nsx_override, nsx_to_load=nsx_to_load)
-        self.source_data = dict(file_path=file_path, nsx_override=nsx_override, nsx_to_load=nsx_to_load)
+        super().__init__(filename=file_path, nsx_override=nsx_override_path, nsx_to_load=nsx_to_load)
+        self.source_data = dict(file_path=file_path, nsx_override=nsx_override_path, nsx_to_load=nsx_to_load)
 
     def get_metadata_schema(self):
         metadata_schema = super().get_metadata_schema()
