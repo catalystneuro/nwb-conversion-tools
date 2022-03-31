@@ -82,7 +82,8 @@ class TestEcephysNwbConversions(unittest.TestCase):
             interface_kwargs=dict(
                 file_path=str(
                     DATA_PATH / "spikeglx" / "Noise4Sam_g0" / "Noise4Sam_g0_imec0" / "Noise4Sam_g0_t0.imec0.lf.bin"
-                )
+                ),
+                spikeextractors_backend=True,
             ),
         ),
     ]
@@ -164,7 +165,7 @@ class TestEcephysNwbConversions(unittest.TestCase):
         parameterized_recording_list.append(
             param(
                 data_interface=SpikeGLXRecordingInterface,
-                interface_kwargs=dict(file_path=str(DATA_PATH / sub_path / f"Noise4Sam_g0_t0.imec0.{suffix}.bin")),
+                interface_kwargs=dict(folder_path=str(DATA_PATH / sub_path), stream_id=f"imec0.{suffix}"),
             )
         )
 
