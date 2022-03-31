@@ -95,7 +95,7 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
         """
         assert Path(file_path).is_file(), f"{file_path} does not exist"
         self.file_path = Path(file_path)
-        self.stream_id = "".join(file_path.suffixes[:-1])[1:]
+        self.stream_id = "".join(self.file_path.suffixes[:-1])[1:]
         if spikeextractors_backend:
             self.RX = se.SpikeGLXRecordingExtractor
             super().__init__(file_path=str(file_path), **kwargs)
