@@ -19,8 +19,8 @@ from ....utils.json_schema import (
 )
 
 
-def fetch_spikeglx_metadata(source_path: FilePathType, recording: BaseRecording, metadata: dict, stream_id: str):
-    session_id = Path(source_path).stem
+def fetch_spikeglx_metadata(file_path: FilePathType, recording: BaseRecording, metadata: dict, stream_id: str):
+    session_id = Path(file_path).parent.stem
 
     metadata_update = dict(
         NWBFile=dict(
@@ -75,8 +75,7 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
 
     def __init__(
         self,
-        folder_path: FilePathType = None,
-        file_path: FilePathType = None,
+        file_path: FilePathType,
         spikeextractors_backend: Optional[bool] = False,
         stub_test: Optional[bool] = False,
         **kwargs,
@@ -97,22 +96,16 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
         kwargs
             additional args depending on usage of spikeextractors or spikeinterface
         """
+        assert Path(file_path).is_file(), f"{file_path} does not exist"
+        self.file_path = Path(file_path)
+        self.stream_id = "".join(file_path.suffixes[:-1])[1:]
         if spikeextractors_backend:
-            assert (
-                file_path is not None and Path(file_path).is_file()
-            ), f"{file_path} should be a file if using spikeextractors_backend"
             self.RX = se.SpikeGLXRecordingExtractor
             super().__init__(file_path=str(file_path), **kwargs)
             self.recording_extractor = OldToNewRecording(oldapi_recording_extractor=self.recording_extractor)
-            self.folder_path = file_path.parent
-            self.stream_id = "".join(file_path.suffixes[:-1])[1:]
         else:
-            assert (
-                folder_path is not None and Path(folder_path).is_dir()
-            ), f"{folder_path} should be a folder for using spikeinterface for extraction"
-            super().__init__(folder_path=str(folder_path), **kwargs)
-            self.folder_path = folder_path
-            self.stream_id = kwargs.get("stream_id")
+            folder_path = self.file_path.parent
+            super().__init__(folder_path=str(folder_path), stream_id=self.stream_id)
 
         if stub_test:
             self.subset_channels = [0, 1]
@@ -131,7 +124,7 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
     def get_metadata(self):
         metadata = super().get_metadata()
         fetch_spikeglx_metadata(
-            source_path=self.folder_path,
+            file_path=self.file_path,
             recording=self.recording_extractor,
             metadata=metadata,
             stream_id=self.stream_id,
@@ -157,26 +150,21 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
 
     def __init__(
         self,
-        folder_path: FilePathType = None,
-        file_path: FilePathType = None,
+        file_path: FilePathType,
         spikeextractors_backend: Optional[bool] = False,
         stub_test: Optional[bool] = False,
         **kwargs,
     ):
+        assert Path(file_path).is_file(), f"{file_path} does not exist"
+        self.file_path = Path(file_path)
+        self.stream_id = "".join(file_path.suffixes[:-1])[1:]
         if spikeextractors_backend:
-            assert file_path is not None and Path(file_path).is_file(), f"{file_path} should be a file for version='v1'"
             self.RX = se.SpikeGLXRecordingExtractor
             super().__init__(file_path=str(file_path), **kwargs)
             self.recording_extractor = OldToNewRecording(oldapi_recording_extractor=self.recording_extractor)
-            self.folder_path = file_path.parent
-            self.stream_id = "".join(file_path.suffixes[:-1])[1:]
         else:
-            assert (
-                folder_path is not None and Path(folder_path).is_dir()
-            ), f"{folder_path} should be a folder for version='v2'"
-            super().__init__(folder_path=str(folder_path), **kwargs)
-            self.folder_path = folder_path
-            self.stream_id = kwargs.get("stream_id")
+            folder_path = self.file_path.parent
+            super().__init__(folder_path=str(folder_path), stream_id=self.stream_id)
 
         if stub_test:
             self.subset_channels = [0, 1]
@@ -195,7 +183,7 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
     def get_metadata(self):
         metadata = super().get_metadata()
         fetch_spikeglx_metadata(
-            source_path=self.folder_path,
+            file_path=self.file_path,
             recording=self.recording_extractor,
             metadata=metadata,
             stream_id=self.stream_id,
