@@ -27,7 +27,6 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
     def __init__(self, **source_data):
         super().__init__(**source_data)
         self.recording_extractor = self.RX(**source_data)
-        self.subset_channels = None
 
     def get_metadata_schema(self):
         """Compile metadata schema for the RecordingExtractor."""
@@ -73,7 +72,7 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         )
         return metadata
 
-    def subset_recording(self, stub_test: bool = False):
+    def subset_recording(self):
         """
         Subset a recording extractor according to stub and channel subset options.
 
@@ -82,13 +81,9 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
         stub_test : bool, optional (default False)
         """
         kwargs = dict()
-
-        if stub_test:
-            num_frames = 100
-            end_frame = min([num_frames, self.recording_extractor.get_num_frames()])
-            kwargs.update(end_frame=end_frame)
-        if self.subset_channels is not None:
-            kwargs.update(channel_ids=self.subset_channels)
+        num_frames = 100
+        end_frame = min([num_frames, self.recording_extractor.get_num_frames()])
+        kwargs.update(end_frame=end_frame)
         if isinstance(self.recording_extractor, se.RecordingExtractor):
             recording_extractor = se.SubRecordingExtractor(self.recording_extractor, **kwargs)
         elif isinstance(self.recording_extractor, si.BaseRecording):
@@ -165,8 +160,8 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
                     Should be below 1 MB. Automatically calculates suitable chunk shape.
             If manual specification of buffer_shape and chunk_shape are desired, these may be specified as well.
         """
-        if stub_test or self.subset_channels is not None:
-            recording = self.subset_recording(stub_test=stub_test)
+        if stub_test:
+            recording = self.subset_recording()
         else:
             recording = self.recording_extractor
         write_recording(

@@ -43,10 +43,8 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
         source_schema["properties"]["file_path"]["description"] = "Path to SpikeGLX file."
         return source_schema
 
-    def __init__(self, file_path: FilePathType, stub_test: Optional[bool] = False):
+    def __init__(self, file_path: FilePathType):
         super().__init__(file_path=str(file_path))
-        if stub_test:
-            self.subset_channels = [0, 1]
         # Set electrodes properties
         for ch in self.recording_extractor.get_channel_ids():
             self.recording_extractor.set_channel_property(
@@ -90,10 +88,8 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
         source_schema["properties"]["file_path"]["description"] = "Path to SpikeGLX file."
         return source_schema
 
-    def __init__(self, file_path: FilePathType, stub_test: Optional[bool] = False):
+    def __init__(self, file_path: FilePathType):
         super().__init__(file_path=str(file_path))
-        if stub_test:
-            self.subset_channels = [0, 1]
         # Set electrodes properties
         for ch in self.recording_extractor.get_channel_ids():
             self.recording_extractor.set_channel_property(

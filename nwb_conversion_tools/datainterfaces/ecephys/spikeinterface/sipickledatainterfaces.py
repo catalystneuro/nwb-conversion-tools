@@ -13,7 +13,6 @@ class SIPickleRecordingExtractorInterface(BaseRecordingExtractorInterface):
 
     def __init__(self, file_path: FilePathType):
         self.recording_extractor = load_extractor_from_pickle(pkl_file=file_path)
-        self.subset_channels = None
         self.source_data = dict(file_path=file_path)
 
 

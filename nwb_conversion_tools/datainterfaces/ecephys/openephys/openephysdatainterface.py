@@ -27,11 +27,8 @@ class OpenEphysRecordingExtractorInterface(BaseRecordingExtractorInterface):
         folder_path: FolderPathType,
         experiment_id: Optional[int] = 0,
         recording_id: Optional[int] = 0,
-        stub_test: Optional[bool] = False,
     ):
         super().__init__(folder_path=folder_path, experiment_id=experiment_id, recording_id=recording_id)
-        if stub_test:
-            self.subset_channels = [0, 1]
 
     def get_metadata(self):
         """Auto-fill as much of the metadata as possible. Must comply with metadata schema."""

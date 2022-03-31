@@ -86,8 +86,8 @@ class BaseLFPExtractorInterface(BaseRecordingExtractorInterface):
                     Should be below 1 MB. Automatically calculates suitable chunk shape.
             If manual specification of buffer_shape and chunk_shape are desired, these may be specified as well.
         """
-        if stub_test or self.subset_channels is not None:
-            recording = self.subset_recording(stub_test=stub_test)
+        if stub_test:
+            recording = self.subset_recording()
         else:
             recording = self.recording_extractor
         write_recording(
