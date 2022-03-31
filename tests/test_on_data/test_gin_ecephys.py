@@ -81,7 +81,7 @@ class TestEcephysNwbConversions(unittest.TestCase):
             data_interface=SpikeGLXLFPInterface,
             interface_kwargs=dict(
                 file_path=str(
-                    DATA_PATH/"spikeglx"/"Noise4Sam_g0"/"Noise4Sam_g0_imec0"/"Noise4Sam_g0_t0.imec0.lf.bin"
+                    DATA_PATH / "spikeglx" / "Noise4Sam_g0" / "Noise4Sam_g0_imec0" / "Noise4Sam_g0_t0.imec0.lf.bin"
                 ),
                 spikeextractors_backend=True,
             ),
