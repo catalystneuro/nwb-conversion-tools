@@ -75,10 +75,6 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
     def subset_recording(self):
         """
         Subset a recording extractor according to stub and channel subset options.
-
-        Parameters
-        ----------
-        stub_test : bool, optional (default False)
         """
         kwargs = dict()
         num_frames = 100
