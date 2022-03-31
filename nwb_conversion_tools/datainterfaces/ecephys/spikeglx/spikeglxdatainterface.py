@@ -57,9 +57,6 @@ def _get_source_schema(cls):
     source_schema = get_schema_from_method_signature(
         class_method=cls.__init__, exclude=["x_pitch", "y_pitch", "stream_id"]
     )
-    source_schema["properties"]["folder_path"]["description"] = (
-        "Path to folder containing SpikeGLX files " "(using spikeinterface)."
-    )
     source_schema["properties"]["file_path"]["description"] = "Path to SpikeGLX file (using spikeextractors)."
     return source_schema
 
