@@ -108,7 +108,7 @@ class SpikeGLXRecordingInterface(BaseRecordingExtractorInterface):
             self.subset_channels = [0, 1]
         # Set electrodes properties
         for chan_id in self.recording_extractor.get_channel_ids():
-            self.recording_extractor.set_property("shank_electrode_number", [chan_id], ids=[chan_id])
+            self.recording_extractor.set_property("shank_electrode_number", [float(chan_id)], ids=[chan_id])
             self.recording_extractor.set_property("shank_group_name", ["Shank1"], ids=[chan_id])
 
     def get_metadata_schema(self):
@@ -154,7 +154,7 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
     ):
         assert Path(file_path).is_file(), f"{file_path} does not exist"
         self.file_path = Path(file_path)
-        self.stream_id = "".join(file_path.suffixes[:-1])[1:]
+        self.stream_id = "".join(self.file_path.suffixes[:-1])[1:]
         if spikeextractors_backend:
             self.RX = se.SpikeGLXRecordingExtractor
             super().__init__(file_path=str(file_path), **kwargs)
@@ -167,7 +167,7 @@ class SpikeGLXLFPInterface(BaseLFPExtractorInterface):
             self.subset_channels = [0, 1]
         # Set electrodes properties
         for chan_id in self.recording_extractor.get_channel_ids():
-            self.recording_extractor.set_property("shank_electrode_number", [chan_id], ids=[chan_id])
+            self.recording_extractor.set_property("shank_electrode_number", [float(chan_id)], ids=[chan_id])
             self.recording_extractor.set_property("shank_group_name", ["Shank1"], ids=[chan_id])
 
     def get_metadata_schema(self):

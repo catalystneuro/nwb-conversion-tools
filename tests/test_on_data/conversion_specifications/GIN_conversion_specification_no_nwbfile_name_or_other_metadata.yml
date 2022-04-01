@@ -13,3 +13,4 @@ experiments:
         metadata:
           NWBFile:
             session_description: Testing assertions.
+            session_start_time: "2020-10-09T21:19:09+00:00"
