@@ -39,7 +39,6 @@ def get_metadata(folder_path):
     return dict(
         session_start_time=session_start_time,
         session_id=session_id,
-        identifier=session_id,
     )
 
 
