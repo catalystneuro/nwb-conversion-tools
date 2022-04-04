@@ -800,10 +800,10 @@ class TestAddUnitsTable(TestCase):
     def test_string_unit_names(self):
         """Ensure unit names merge correctly after appending when channel names are strings."""
         add_units(sorting=self.sorting_1, nwbfile=self.nwbfile)
-        add_electrodes(sorting=self.sorting_2, nwbfile=self.nwbfile)
+        add_units(sorting=self.sorting_2, nwbfile=self.nwbfile)
 
         expected_unit_names_in_units_table = ["a", "b", "c", "d", "e", "f"]
-        unit_names_in_units_table = list(self.nwbfile.units["units_name"].data)
+        unit_names_in_units_table = list(self.nwbfile.units["unit_name"].data)
         self.assertListEqual(unit_names_in_units_table, expected_unit_names_in_units_table)
 
     def test_common_property_extension(self):
@@ -814,7 +814,7 @@ class TestAddUnitsTable(TestCase):
         add_units(sorting=self.sorting_1, nwbfile=self.nwbfile)
         add_units(sorting=self.sorting_2, nwbfile=self.nwbfile)
 
-        properties_in_units_table = list(self.nwbfile.electrodes["common_property"].data)
+        properties_in_units_table = list(self.nwbfile.units["common_property"].data)
         expected_properties_in_units_table = ["value_1", "value_1", "value_1", "value_1", "value_2", "value_2"]
         self.assertListEqual(properties_in_units_table, expected_properties_in_units_table)
 
@@ -825,7 +825,7 @@ class TestAddUnitsTable(TestCase):
         add_units(sorting=self.sorting_1, nwbfile=self.nwbfile)
         add_units(sorting=self.sorting_2, nwbfile=self.nwbfile)
 
-        properties_in_units_table = list(self.nwbfile.electrodes["added_property"].data)
+        properties_in_units_table = list(self.nwbfile.units["added_property"].data)
         expected_properties_in_units_table = ["", "", "added_value", "added_value", "added_value", "added_value"]
         self.assertListEqual(properties_in_units_table, expected_properties_in_units_table)
 
