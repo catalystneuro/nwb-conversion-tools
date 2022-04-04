@@ -48,8 +48,7 @@ class TestEcephysNwbConversions(unittest.TestCase):
     parameterized_lfp_list = [
         param(
             data_interface=AxonaLFPDataInterface,
-            interface_kwargs=dict(file_path=str(DATA_PATH / "axona" / "dataset_unit_spikes" /
-                                                "20140815-180secs.eeg")),
+            interface_kwargs=dict(file_path=str(DATA_PATH / "axona" / "dataset_unit_spikes" / "20140815-180secs.eeg")),
         ),
         param(
             data_interface=SpikeGLXLFPInterface,
