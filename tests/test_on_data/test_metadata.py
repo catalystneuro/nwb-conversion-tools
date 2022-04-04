@@ -31,9 +31,19 @@ def test_neuralynx_cheetah_v540():
 
 
 def test_neuralynx_filtering():
-    assert get_filtering(
-        str(NLX_PATH / "Cheetah_v5.7.4" / "original_data" / "CSC1.ncs")
-    ) == '{"DSPLowCutFilterEnabled": "True", ' '"DspLowCutFrequency": "10", ' '"DspLowCutNumTaps": "0", ' '"DspLowCutFilterType": "DCO", ' '"DSPHighCutFilterEnabled": "True", ' '"DspHighCutFrequency": "9000", ' '"DspHighCutNumTaps": "64", ' '"DspHighCutFilterType": "FIR", ' '"DspDelayCompensation": "Enabled", ' '"DspFilterDelay_µs": "984"}'
+    assert (
+        get_filtering(str(NLX_PATH / "Cheetah_v5.7.4" / "original_data" / "CSC1.ncs"))
+        == '{"DSPLowCutFilterEnabled": "True", '
+        '"DspLowCutFrequency": "10", '
+        '"DspLowCutNumTaps": "0", '
+        '"DspLowCutFilterType": "DCO", '
+        '"DSPHighCutFilterEnabled": "True", '
+        '"DspHighCutFrequency": "9000", '
+        '"DspHighCutNumTaps": "64", '
+        '"DspHighCutFilterType": "FIR", '
+        '"DspDelayCompensation": "Enabled", '
+        '"DspFilterDelay_µs": "984"}'
+    )
 
 
 def test_neuralynx_filtering_recording_extractor():
@@ -52,4 +62,3 @@ def test_neuralynx_filtering_recording_extractor():
         '"DspDelayCompensation": "Enabled", '
         '"DspFilterDelay_µs": "984"}'
     )
-

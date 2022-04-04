@@ -73,10 +73,8 @@ def get_filtering(channel_path):
     header = parse_header(raw_header)
 
     return json.dumps(
-        {key: val.strip(" ") for key, val in header.items() if key.lower().startswith("dsp")},
-        ensure_ascii=False
+        {key: val.strip(" ") for key, val in header.items() if key.lower().startswith("dsp")}, ensure_ascii=False
     )
-
 
 
 class NeuralynxRecordingInterface(BaseRecordingExtractorInterface):
