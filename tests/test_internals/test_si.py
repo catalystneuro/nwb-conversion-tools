@@ -762,6 +762,7 @@ class TestAddElectrodes(TestCase):
         with self.assertRaisesWith(exc_type=ValueError, exc_msg="id 0 already in the table"):
             add_electrodes(recording=self.base_recording, nwbfile=self.nwbfile)
 
+
 class TestAddUnitsTable(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -775,12 +776,8 @@ class TestAddUnitsTable(TestCase):
             session_description="session_description1", identifier="file_id1", session_start_time=datetime.now()
         )
         unit_ids = self.base_sorting.get_unit_ids()
-        self.sorting_1 = self.base_sorting.select_units(
-            unit_ids=unit_ids, renamed_unit_ids=["a", "b", "c", "d"]
-        )
-        self.sorting_2 = self.base_sorting.select_units(
-            unit_ids=unit_ids, renamed_unit_ids=["c", "d", "e", "f"]
-        )
+        self.sorting_1 = self.base_sorting.select_units(unit_ids=unit_ids, renamed_unit_ids=["a", "b", "c", "d"])
+        self.sorting_2 = self.base_sorting.select_units(unit_ids=unit_ids, renamed_unit_ids=["c", "d", "e", "f"])
 
     def test_integer_unit_names(self):
         """Ensure unit names merge correctly after appending when unit names are integers."""
@@ -821,7 +818,7 @@ class TestAddUnitsTable(TestCase):
     def test_new_property_addition(self):
         """Add a property only available in a second sorting."""
         self.sorting_2.set_property(key="added_property", values=["added_value"] * self.num_units)
-        
+
         add_units(sorting=self.sorting_1, nwbfile=self.nwbfile)
         add_units(sorting=self.sorting_2, nwbfile=self.nwbfile)
 
@@ -832,7 +829,7 @@ class TestAddUnitsTable(TestCase):
     def test_manual_units_adition_before_add_units_function(self):
         """Add some rows to the units tables before using the add_electrodes function"""
         values_dic = defaultdict(dict)
-        
+
         values_dic.update(id=123)
         self.nwbfile.add_unit(**values_dic)
 
@@ -875,7 +872,7 @@ class TestAddUnitsTable(TestCase):
         """
 
         values_dic = defaultdict(dict)
-        
+
         self.nwbfile.add_unit_column(name="unit_name", description="a string reference for the unit")
         self.nwbfile.add_unit_column(name="property1", description="property_added_before")
 
@@ -909,7 +906,7 @@ class TestAddUnitsTable(TestCase):
     def test_manually_added_before_recording_id_collision(self):
         """
         Add some units to the unit table before using the add_units function.
-        In this case there is are some common ids between the manually added units and the sorting which causes 
+        In this case there is are some common ids between the manually added units and the sorting which causes
         collisions.
         """
 
@@ -923,6 +920,7 @@ class TestAddUnitsTable(TestCase):
         # The self.base_sorting unit_ids are [0, 1, 2, 3]
         with self.assertRaisesWith(exc_type=ValueError, exc_msg="id 0 already in the table"):
             add_units(sorting=self.base_sorting, nwbfile=self.nwbfile)
+
 
 if __name__ == "__main__":
     unittest.main()
