@@ -69,14 +69,14 @@ def get_filtering(channel_path):
     """
 
     with open(channel_path, "r", encoding="latin1") as file:
-        header = file.read(1024)
-    out = {}
-    for line in header.split("\n\n")[-1].split("\n"):
-        if line[0] == "-":
-            key, val = line.split(" ")
-            out[key[1:]] = val
+        raw_header = file.read(1024)
+    header = parse_header(raw_header)
 
-    return json.dumps(out, ensure_ascii=False)
+    return json.dumps(
+        {key: val.strip(" ") for key, val in header.items() if key.lower().startswith("dsp")},
+        ensure_ascii=False
+    )
+
 
 
 class NeuralynxRecordingInterface(BaseRecordingExtractorInterface):
