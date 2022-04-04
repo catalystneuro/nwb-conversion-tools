@@ -55,6 +55,8 @@ jobs:
           datalad install https://gin.g-node.org/NeuralEnsemble/ephy_testing_data
           cd ephy_testing_data
           datalad get -r ./neuralynx/Cheetah_v5.7.4/original_data/
+          datalad get -r ./neuralynx/Cheetah_v5.6.3/original_data/
+          datalad get -r ./neuralynx/Cheetah_v5.4.0/original_data/
           datalad get -r ./neuroscope/test1/
           datalad get -r ./openephysbinary/v0.4.4.1_with_video_tracking/
           datalad get -r ./blackrock/
