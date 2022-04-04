@@ -7,9 +7,10 @@ from nwb_conversion_tools.datainterfaces.ecephys.neuralynx.neuralynxdatainterfac
     NeuralynxRecordingInterface,
 )
 
-DATA_PATH = Path("/Users/bendichter/dev/ephy_testing_data")
+from nwb_conversion_tools.testing.setup_paths import ECEPHY_DATA_PATH
 
-NLX_PATH = DATA_PATH / "neuralynx"
+
+NLX_PATH = ECEPHY_DATA_PATH / "neuralynx"
 
 
 def test_neuralynx_cheetah_v574_metadata():
