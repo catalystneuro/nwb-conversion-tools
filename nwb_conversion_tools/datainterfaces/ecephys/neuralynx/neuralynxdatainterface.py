@@ -4,13 +4,23 @@ from pathlib import Path
 from natsort import natsorted
 from glob import glob
 from dateutil import parser
-
+import json
 
 from spikeextractors import MultiRecordingChannelExtractor, NeuralynxRecordingExtractor
 
 from ..baserecordingextractorinterface import BaseRecordingExtractorInterface
 from ....utils import FolderPathType
 from ....utils.json_schema import dict_deep_update
+
+
+def parse_header(header):
+    header_dict = dict()
+    for line in header.split('\n')[1:]:
+        if line:
+            if line[0] == "-":
+                key, val = line[1:].split(" ", 1)
+                header_dict[key] = val
+    return header_dict
 
 
 def get_metadata(folder_path):
@@ -27,19 +37,20 @@ def get_metadata(folder_path):
     dict
 
     """
-    fpath = glob(folder_path + "/*.ncs")[0]
+    csc_files = glob(folder_path + "/*.ncs") or glob(folder_path + "/*.Ncs")
+    fpath = csc_files[0]
     with open(fpath, "r", encoding="latin1") as file:
-        header = file.read(1024)
-    index = header.find("TimeCreated") + 12
-    session_start_time = parser.parse(header[index : index + 19])
-
-    index = header.find("SessionUUID") + 12
-    session_id = header[index : index + 36]
-
-    return dict(
-        session_start_time=session_start_time,
-        session_id=session_id,
-    )
+        raw_header = file.read(1024)
+    header = parse_header(raw_header)
+    if header.get("FileVersion") == "3.4":
+        return dict(
+            session_start_time = parser.parse(header["TimeCreated"]),
+            session_id=header["SessionUUID"],
+        )
+    if header.get("FileVersion", "").startswith("3.3") or header["CheetahRev"].startswith("5.4"):
+        open_line = raw_header.split("\n")[2]
+        spliced_line = open_line[24:35] + open_line[-13:]
+        return dict(session_start_time=parser.parse(spliced_line, dayfirst=False))
 
 
 def get_filtering(channel_path):
@@ -60,7 +71,7 @@ def get_filtering(channel_path):
     with open(channel_path, "r", encoding="latin1") as file:
         header = file.read(1024)
     out = {}
-    for line in text.split("\n\n")[-1].split("\n"):
+    for line in header.split("\n\n")[-1].split("\n"):
         if line[0] == "-":
             key, val = line.split(" ")
             out[key[1:]] = val
@@ -94,4 +105,5 @@ class NeuralynxRecordingInterface(BaseRecordingExtractorInterface):
             warnings.warn("filtering could not be extracted.")
 
     def get_metadata(self):
-        return dict_deep_update(super().get_metadata(), dict(NWBFile=get_metadata(self.source_data["folder_path"])))
+        new_metadata = dict(NWBFile=get_metadata(self.source_data["folder_path"]))
+        return dict_deep_update(super().get_metadata(), new_metadata)
