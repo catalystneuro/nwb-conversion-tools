@@ -10,18 +10,17 @@ NLX_PATH = DATA_PATH / "neuralynx"
 
 def test_neuralynx_cheetah_v574_metadata():
     assert get_metadata(str(NLX_PATH / "Cheetah_v5.7.4" / "original_data")) == dict(
-        session_start_time=datetime.datetime(2017, 2, 16, 17, 56, 4),
-        session_id="d8ba8eef-8d11-4cdc-86dc-05f50d4ba13d"
+        session_start_time=datetime.datetime(2017, 2, 16, 17, 56, 4), session_id="d8ba8eef-8d11-4cdc-86dc-05f50d4ba13d"
     )
 
 
 def test_neuralynx_cheetah_v563_metadata():
-    assert get_metadata(str(NLX_PATH/ "Cheetah_v5.6.3" / "original_data")) == dict(
+    assert get_metadata(str(NLX_PATH / "Cheetah_v5.6.3" / "original_data")) == dict(
         session_start_time=datetime.datetime(2016, 11, 28, 21, 50, 33, 327000)
     )
 
 
 def test_neuralynx_cheetah_v540():
-    assert get_metadata((str(NLX_PATH/ "Cheetah_v5.4.0" / "original_data"))) == dict(
+    assert get_metadata((str(NLX_PATH / "Cheetah_v5.4.0" / "original_data"))) == dict(
         session_start_time=datetime.datetime(2001, 1, 1, 0, 0),
     )

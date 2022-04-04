@@ -15,7 +15,7 @@ from ....utils.json_schema import dict_deep_update
 
 def parse_header(header):
     header_dict = dict()
-    for line in header.split('\n')[1:]:
+    for line in header.split("\n")[1:]:
         if line:
             if line[0] == "-":
                 key, val = line[1:].split(" ", 1)
@@ -44,7 +44,7 @@ def get_metadata(folder_path):
     header = parse_header(raw_header)
     if header.get("FileVersion") == "3.4":
         return dict(
-            session_start_time = parser.parse(header["TimeCreated"]),
+            session_start_time=parser.parse(header["TimeCreated"]),
             session_id=header["SessionUUID"],
         )
     if header.get("FileVersion", "").startswith("3.3") or header["CheetahRev"].startswith("5.4"):
