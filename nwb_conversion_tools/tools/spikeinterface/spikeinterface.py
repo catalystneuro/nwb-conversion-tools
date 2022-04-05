@@ -25,44 +25,6 @@ SpikeInterfaceRecording = Union[BaseRecording, RecordingExtractor]
 SpikeInterfaceSorting = Union[BaseSorting, SortingExtractor]
 
 
-def set_dynamic_table_property(
-    dynamic_table,
-    row_ids,
-    property_name,
-    values,
-    index=False,
-    default_value=np.nan,
-    table=False,
-    description="no description",
-):
-    if not isinstance(row_ids, list) or not all(isinstance(x, int) for x in row_ids):
-        raise TypeError("'ids' must be a list of integers")
-    ids = list(dynamic_table.id[:])
-    if any([i not in ids for i in row_ids]):
-        raise ValueError("'ids' contains values outside the range of existing ids")
-    if not isinstance(property_name, str):
-        raise TypeError("'property_name' must be a string")
-    if len(row_ids) != len(values) and index is False:
-        raise ValueError("'ids' and 'values' should be lists of same size")
-    if index is False:
-        if property_name in dynamic_table:
-            for (row_id, value) in zip(row_ids, values):
-                dynamic_table[property_name].data[ids.index(row_id)] = value
-        else:
-            col_data = [default_value] * len(ids)  # init with default val
-            for (row_id, value) in zip(row_ids, values):
-                col_data[ids.index(row_id)] = value
-            dynamic_table.add_column(
-                name=property_name, description=description, data=col_data, index=index, table=table
-            )
-    else:
-        if property_name in dynamic_table:
-            # TODO
-            raise NotImplementedError
-        else:
-            dynamic_table.add_column(name=property_name, description=description, data=values, index=index, table=table)
-
-
 def get_nwb_metadata(recording: SpikeInterfaceRecording, metadata: dict = None):
     """
     Return default metadata for all recording fields.
@@ -1007,25 +969,11 @@ def write_recording(
     return nwbfile
 
 
-def get_nspikes(units_table: pynwb.misc.Units, unit_id: int):
-    """Return the number of spikes for chosen unit."""
-    ids = np.array(units_table.id[:])
-    indexes = np.where(ids == unit_id)[0]
-    if not len(indexes):
-        raise ValueError(f"{unit_id} is an invalid unit_id. Valid ids: {ids}.")
-    index = indexes[0]
-    if index == 0:
-        return units_table["spike_times_index"].data[index]
-    else:
-        return units_table["spike_times_index"].data[index] - units_table["spike_times_index"].data[index - 1]
-
-
 def add_units(
     sorting: SpikeInterfaceSorting,
     nwbfile: pynwb.NWBFile,
-    property_descriptions: Optional[dict] = None,
-    skip_properties: Optional[List[str]] = None,
-    skip_features: Optional[List[str]] = None,
+    property_descriptions: Optional[dict] = dict(),
+    skip_properties: Optional[List[str]] = list(),
     use_times: bool = True,
     write_as: str = "units",
     units_name: str = "units",
@@ -1068,23 +1016,42 @@ def add_units(
     units_description : str (optional)
         Text description of the sorting table; recommended to included parameters of sorting method, curation, etc.
     """
+
+    assert isinstance(nwbfile, pynwb.NWBFile), "'nwbfile' should be of type pynwb.NWBFile"
+
     if isinstance(sorting, SortingExtractor):
-        sampling_frequency = sorting.get_sampling_frequency()
-        if sampling_frequency is None:
-            raise ValueError("Writing a SortingExtractor to an NWBFile requires a known sampling frequency!")
         checked_sorting = OldToNewSorting(oldapi_sorting_extractor=sorting)
     else:
         checked_sorting = sorting
-    unit_ids = checked_sorting.get_unit_ids()
+
     sampling_frequency = checked_sorting.get_sampling_frequency()
     if sampling_frequency is None:
         raise ValueError("Writing a SortingExtractor to an NWBFile requires a known sampling frequency!")
+
     assert write_as in [
         "units",
         "processing",
     ], f"Argument write_as ({write_as}) should be one of 'units' or 'processing'!"
     if write_as == "units":
         assert units_name == "units", "When writing to the nwbfile.units table, the name of the table must be 'units'!"
+
+    if write_as == "units":
+        if nwbfile.units is None:
+            units_table = pynwb.misc.Units(name=units_name, description=units_description)
+        else:
+            units_table = nwbfile.units
+    elif write_as == "processing":
+        ecephys_mod = get_module(
+            nwbfile=nwbfile,
+            name="ecephys",
+            description="Intermediate data from extracellular electrophysiology recordings, e.g., LFP.",
+        )
+        if units_name in nwbfile.processing:
+            units_table = ecephys_mod["units"]
+        else: 
+            units_table = pynwb.misc.Units(name=units_name, description=units_description)
+
+    # Where do we get this ones from
     default_descriptions = dict(
         isi_violation="Quality metric that measures the ISI violation ratio as a proxy for the purity of the unit.",
         firing_rate="Number of spikes per unit of time.",
@@ -1097,102 +1064,114 @@ def add_units(
         spike_amplitude="Average amplitude of peaks detected on the channel.",
         spike_rate="Average rate of peaks detected on the channel.",
     )
-    if property_descriptions is None:
-        property_descriptions = dict(default_descriptions)
-    else:
-        property_descriptions = dict(default_descriptions, **property_descriptions)
-    if skip_properties is None:
-        skip_properties = []
-    units_table = pynwb.misc.Units(name=units_name, description=units_description)
+    property_descriptions = dict(default_descriptions, **property_descriptions)
 
-    all_properties = checked_sorting.get_property_keys()
-    write_properties = set(all_properties) - set(skip_properties)
-    for property_name in write_properties:
-        if property_name not in property_descriptions:
-            warnings.warn(
-                f"Description for property {property_name} not found in property_descriptions. "
-                "Setting description to 'no description'"
-            )
-    aggregated_unit_properties = defaultdict()
-    for property_name in write_properties:
-        unit_col_args = dict(
-            name=property_name, description=property_descriptions.get(property_name, "No description.")
-        )
-        if property_name in ["max_channel", "max_electrode"] and nwbfile.electrodes is not None:
-            unit_col_args.update(table=nwbfile.electrodes)
-        units_table.add_column(**unit_col_args)
-        aggregated_unit_properties[property_name] = checked_sorting.get_property(key=property_name)
-    for i, unit_id in enumerate(unit_ids):
-        if use_times:
-            spkt = checked_sorting.get_unit_spike_train(unit_id=unit_id, return_times=True)
-        else:
-            spkt = checked_sorting.get_unit_spike_train(unit_id=unit_id) / checked_sorting.get_sampling_frequency()
-        kwargs = {key: val[i] for key, val in aggregated_unit_properties.items()}
+    data_to_add = defaultdict(dict)
+    sorting_properties = checked_sorting.get_property_keys()
+    excluded_properties = list(skip_properties) + ["contact_vector"]
+    properties_to_extract = [property for property in sorting_properties if property not in excluded_properties]
 
-        units_table.add_unit(id=int(unit_id), spike_times=spkt, **kwargs)
-    if isinstance(sorting, SortingExtractor):
-        all_features = set()
-        for unit_id in unit_ids:
-            all_features.update(sorting.get_unit_spike_feature_names(unit_id))
-        if skip_features is None:
-            skip_features = []
-        # Check that multidimensional features have the same shape across units
-        feature_shapes = dict()
-        for feature_name in all_features:
-            shapes = []
-            for unit_id in unit_ids:
-                if feature_name in sorting.get_unit_spike_feature_names(unit_id=unit_id):
-                    feat_value = sorting.get_unit_spike_features(unit_id=unit_id, feature_name=feature_name)
-                    if isinstance(feat_value[0], (int, np.integer, float, str, bool)):
-                        break
-                    elif isinstance(feat_value[0], (list, np.ndarray)):  # multidimensional features
-                        if np.array(feat_value).ndim > 1:
-                            shapes.append(np.array(feat_value).shape)
-                            feature_shapes[feature_name] = shapes
-                    elif isinstance(feat_value[0], dict):
-                        print(f"Skipping feature '{feature_name}' because dictionaries are not supported.")
-                        skip_features.append(feature_name)
-                        break
-                else:
-                    print(f"Skipping feature '{feature_name}' because not share across all units.")
-                    skip_features.append(feature_name)
-                    break
-        nspikes = {k: get_nspikes(units_table, int(k)) for k in unit_ids}
-        for feature_name in feature_shapes.keys():
-            # skip first dimension (num_spikes) when comparing feature shape
-            if not np.all([elem[1:] == feature_shapes[feature_name][0][1:] for elem in feature_shapes[feature_name]]):
-                print(f"Skipping feature '{feature_name}' because it has variable size across units.")
-                skip_features.append(feature_name)
-        for feature_name in set(all_features) - set(skip_features):
-            values = []
-            if not feature_name.endswith("_idxs"):
-                for unit_id in sorting.get_unit_ids():
-                    feat_vals = sorting.get_unit_spike_features(unit_id=unit_id, feature_name=feature_name)
-                    if len(feat_vals) < nspikes[unit_id]:
-                        skip_features.append(feature_name)
-                        print(f"Skipping feature '{feature_name}' because it is not defined for all spikes.")
-                        break
-                    else:
-                        all_feat_vals = feat_vals
-                    values.append(all_feat_vals)
-                flatten_vals = [item for sublist in values for item in sublist]
-                nspks_list = [sp for sp in nspikes.values()]
-                spikes_index = np.cumsum(nspks_list).astype("int64")
-                if feature_name in units_table:  # If property already exists, skip it
-                    warnings.warn(f"Feature {feature_name} already present in units table, skipping it")
-                    continue
-                set_dynamic_table_property(
-                    dynamic_table=units_table,
-                    row_ids=[int(k) for k in unit_ids],
-                    property_name=feature_name,
-                    values=flatten_vals,
-                    index=spikes_index,
-                )
+    # Extract properties
+    for property in properties_to_extract:
+        data = checked_sorting.get_property(property)
+        index = isinstance(data[0], (list, np.ndarray, tuple))
+        description = property_descriptions.get(property, "No description.")
+        data_to_add[property].update(description=description, data=data, index=index)
+        if property in ["max_channel", "max_electrode"] and nwbfile.electrodes is not None:
+            data_to_add[property].update(table=nwbfile.electrodes)
+
+    # Unit name logic
+    units_ids = checked_sorting.get_unit_ids()
+    unit_name_array = units_ids.astype("str", copy=False)
+
+    data_to_add["unit_name"].update(description="unique reference for each unit", data=unit_name_array, index=False)
+    # If the channel ids are integer keep the old behavior of asigning table's id equal to unit_ids
+    if np.issubdtype(units_ids.dtype, np.integer):
+        data_to_add["id"].update(data=units_ids.astype('int'), index=False)
+
+    units_table_previous_properties = set(units_table.colnames) - {'spike_times'}
+    extracted_properties = set(data_to_add)
+    properties_to_add_by_rows = units_table_previous_properties | {"id"}
+
+    properties_to_add_by_columns = extracted_properties - properties_to_add_by_rows
+
+    # Find default values for properties / columns already in the table
+    type_to_default_value = {list: [], np.ndarray: np.array(np.nan), str: "", Real: np.nan}
+    property_to_default_values = {'id': None}    
+    for property in units_table_previous_properties:
+        # Find a matching data type and get the default value
+        sample_data = units_table[property].data[0]
+        matching_type = next(type for type in type_to_default_value if isinstance(sample_data, type))
+        default_value = type_to_default_value[matching_type]
+        property_to_default_values.update({property: default_value})
+
+    # Add data by rows excluding the rows containing unit names that were previously added
+    unit_names_used_previously = []
+    if "unit_name" in units_table_previous_properties:
+        unit_names_used_previously = units_table["unit_name"].data
+
+    properties_with_data = {property for property in properties_to_add_by_rows if "data" in data_to_add[property]}
+    rows_in_data = [index for index in range(checked_sorting.get_num_units())]
+    rows_to_add = [index for index in rows_in_data if unit_name_array[index] not in unit_names_used_previously]
+    for row in rows_to_add:
+        unit_kwargs = dict(property_to_default_values)
+        for property in properties_with_data:
+            unit_kwargs[property] = data_to_add[property]["data"][row]
+        spike_times = checked_sorting.get_unit_spike_train(unit_id=units_ids[row], return_times=True)
+        units_table.add_unit(spike_times=spike_times, **unit_kwargs, enforce_unique_id=True)
+
+    # Add channel_name as a column and fill previously existing rows with channel_name equal to str(ids)
+    previous_table_size = len(units_table.id[:]) - len(unit_name_array)
+
+    if "unit_name" in properties_to_add_by_columns:
+        cols_args = data_to_add["unit_name"]
+        data = cols_args["data"]
+
+        previous_ids = units_table.id[:previous_table_size]
+        default_value = np.array(previous_ids).astype("str")
+
+        extended_data = np.hstack([default_value, data])
+        cols_args["data"] = extended_data
+        units_table.add_column("unit_name", **cols_args)
+
+    # Build  a channel name to electrode table index map
+    table_df = units_table.to_dataframe().reset_index()
+    unit_name_to_electrode_index = {
+        unit_name: table_df.query(f"unit_name=='{unit_name}'").index[0] for unit_name in unit_name_array
+    }
+
+    indexes_for_new_data = [unit_name_to_electrode_index[unit_name] for unit_name in unit_name_array]
+    indexes_for_default_values = table_df.index.difference(indexes_for_new_data).values
+
+    # Add properties as columns
+    for property in properties_to_add_by_columns - {"unit_name"}:
+        cols_args = data_to_add[property]
+        data = cols_args["data"]
+        if np.issubdtype(data.dtype, np.integer):
+            data = data.astype("float")
+
+        # if isinstance(type(data), np.ndarray):
+        #     dtype = data.dtype
+        #     if np.issubdtype(data.dtype, np.integer):
+        #         data = data.astype("float")
+        # else:
+        #     dtype = object
+
+        # Find first matching data-type
+        sample_data = data[0]
+        matching_type = next(type for type in type_to_default_value if isinstance(sample_data, type))
+        default_value = type_to_default_value[matching_type]
+
+        extended_data = np.empty(shape=len(units_table.id[:]), dtype=data.dtype)
+        extended_data[indexes_for_new_data] = data
+
+        extended_data[indexes_for_default_values] = default_value
+        cols_args["data"] = extended_data
+        units_table.add_column(property, **cols_args)
+
     if write_as == "units":
         if nwbfile.units is None:
             nwbfile.units = units_table
-        else:
-            warnings.warn("The nwbfile already contains units. These units will not be over-written.")
     elif write_as == "processing":
         ecephys_mod = get_module(
             nwbfile=nwbfile,
@@ -1207,8 +1186,8 @@ def write_sorting(
     save_path: OptionalFilePathType = None,
     overwrite: bool = False,
     nwbfile: Optional[pynwb.NWBFile] = None,
-    property_descriptions: Optional[dict] = None,
-    skip_properties: Optional[List[str]] = None,
+    property_descriptions: Optional[dict] = dict(),
+    skip_properties: Optional[List[str]] = list(),
     skip_features: Optional[List[str]] = None,
     use_times: bool = True,
     metadata: Optional[dict] = None,
@@ -1282,7 +1261,6 @@ def write_sorting(
                 nwbfile=nwbfile,
                 property_descriptions=property_descriptions,
                 skip_properties=skip_properties,
-                skip_features=skip_features,
                 use_times=use_times,
                 write_as=write_as,
                 units_name=units_name,
@@ -1295,10 +1273,128 @@ def write_sorting(
             nwbfile=nwbfile,
             property_descriptions=property_descriptions,
             skip_properties=skip_properties,
-            skip_features=skip_features,
             use_times=use_times,
             write_as=write_as,
             units_name=units_name,
             units_description=units_description,
         )
     return nwbfile
+
+
+def get_nspikes(units_table: pynwb.misc.Units, unit_id: int):
+    """Return the number of spikes for chosen unit."""
+    ids = np.array(units_table.id[:])
+    indexes = np.where(ids == unit_id)[0]
+    if not len(indexes):
+        raise ValueError(f"{unit_id} is an invalid unit_id. Valid ids: {ids}.")
+    index = indexes[0]
+    if index == 0:
+        return units_table["spike_times_index"].data[index]
+    else:
+        return units_table["spike_times_index"].data[index] - units_table["spike_times_index"].data[index - 1]
+
+
+def set_dynamic_table_property(
+    dynamic_table,
+    row_ids,
+    property_name,
+    values,
+    index=False,
+    default_value=np.nan,
+    table=False,
+    description="no description",
+):
+    if not isinstance(row_ids, list) or not all(isinstance(x, int) for x in row_ids):
+        raise TypeError("'ids' must be a list of integers")
+    ids = list(dynamic_table.id[:])
+    if any([i not in ids for i in row_ids]):
+        raise ValueError("'ids' contains values outside the range of existing ids")
+    if not isinstance(property_name, str):
+        raise TypeError("'property_name' must be a string")
+    if len(row_ids) != len(values) and index is False:
+        raise ValueError("'ids' and 'values' should be lists of same size")
+    if index is False:
+        if property_name in dynamic_table:
+            for (row_id, value) in zip(row_ids, values):
+                dynamic_table[property_name].data[ids.index(row_id)] = value
+        else:
+            col_data = [default_value] * len(ids)  # init with default val
+            for (row_id, value) in zip(row_ids, values):
+                col_data[ids.index(row_id)] = value
+            dynamic_table.add_column(
+                name=property_name, description=description, data=col_data, index=index, table=table
+            )
+    else:
+        if property_name in dynamic_table:
+            # TODO
+            raise NotImplementedError
+        else:
+            dynamic_table.add_column(name=property_name, description=description, data=values, index=index, table=table)
+
+
+
+def add_wave_forms_to_units_table(
+    sorting: SpikeInterfaceSorting,
+    nwbfile: pynwb.NWBFile,
+    skip_features: Optional[List[str]] = None,
+):
+    unit_ids = sorting.get_unit_ids()
+
+    if isinstance(sorting, SortingExtractor):
+        all_features = set()
+        for unit_id in unit_ids:
+            all_features.update(sorting.get_unit_spike_feature_names(unit_id))
+        if skip_features is None:
+            skip_features = []
+        # Check that multidimensional features have the same shape across units
+        feature_shapes = dict()
+        for feature_name in all_features:
+            shapes = []
+            for unit_id in unit_ids:
+                if feature_name in sorting.get_unit_spike_feature_names(unit_id=unit_id):
+                    feat_value = sorting.get_unit_spike_features(unit_id=unit_id, feature_name=feature_name)
+                    if isinstance(feat_value[0], (int, np.integer, float, str, bool)):
+                        break
+                    elif isinstance(feat_value[0], (list, np.ndarray)):  # multidimensional features
+                        if np.array(feat_value).ndim > 1:
+                            shapes.append(np.array(feat_value).shape)
+                            feature_shapes[feature_name] = shapes
+                    elif isinstance(feat_value[0], dict):
+                        print(f"Skipping feature '{feature_name}' because dictionaries are not supported.")
+                        skip_features.append(feature_name)
+                        break
+                else:
+                    print(f"Skipping feature '{feature_name}' because not share across all units.")
+                    skip_features.append(feature_name)
+                    break
+        nspikes = {k: get_nspikes(units_table, int(k)) for k in unit_ids}
+        for feature_name in feature_shapes.keys():
+            # skip first dimension (num_spikes) when comparing feature shape
+            if not np.all([elem[1:] == feature_shapes[feature_name][0][1:] for elem in feature_shapes[feature_name]]):
+                print(f"Skipping feature '{feature_name}' because it has variable size across units.")
+                skip_features.append(feature_name)
+        for feature_name in set(all_features) - set(skip_features):
+            values = []
+            if not feature_name.endswith("_idxs"):
+                for unit_id in sorting.get_unit_ids():
+                    feat_vals = sorting.get_unit_spike_features(unit_id=unit_id, feature_name=feature_name)
+                    if len(feat_vals) < nspikes[unit_id]:
+                        skip_features.append(feature_name)
+                        print(f"Skipping feature '{feature_name}' because it is not defined for all spikes.")
+                        break
+                    else:
+                        all_feat_vals = feat_vals
+                    values.append(all_feat_vals)
+                flatten_vals = [item for sublist in values for item in sublist]
+                nspks_list = [sp for sp in nspikes.values()]
+                spikes_index = np.cumsum(nspks_list).astype("int64")
+                if feature_name in units_table:  # If property already exists, skip it
+                    warnings.warn(f"Feature {feature_name} already present in units table, skipping it")
+                    continue
+                set_dynamic_table_property(
+                    dynamic_table=units_table,
+                    row_ids=[int(k) for k in unit_ids],
+                    property_name=feature_name,
+                    values=flatten_vals,
+                    index=spikes_index,
+                )
