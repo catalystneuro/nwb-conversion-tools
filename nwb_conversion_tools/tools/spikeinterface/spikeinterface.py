@@ -1048,7 +1048,7 @@ def add_units(
         )
         if units_name in nwbfile.processing:
             units_table = ecephys_mod["units"]
-        else: 
+        else:
             units_table = pynwb.misc.Units(name=units_name, description=units_description)
 
     # Where do we get this ones from
@@ -1087,9 +1087,9 @@ def add_units(
     data_to_add["unit_name"].update(description="unique reference for each unit", data=unit_name_array, index=False)
     # If the channel ids are integer keep the old behavior of asigning table's id equal to unit_ids
     if np.issubdtype(units_ids.dtype, np.integer):
-        data_to_add["id"].update(data=units_ids.astype('int'), index=False)
+        data_to_add["id"].update(data=units_ids.astype("int"), index=False)
 
-    units_table_previous_properties = set(units_table.colnames) - {'spike_times'}
+    units_table_previous_properties = set(units_table.colnames) - {"spike_times"}
     extracted_properties = set(data_to_add)
     properties_to_add_by_rows = units_table_previous_properties | {"id"}
 
@@ -1097,7 +1097,7 @@ def add_units(
 
     # Find default values for properties / columns already in the table
     type_to_default_value = {list: [], np.ndarray: np.array(np.nan), str: "", Real: np.nan}
-    property_to_default_values = {'id': None}    
+    property_to_default_values = {"id": None}
     for property in units_table_previous_properties:
         # Find a matching data type and get the default value
         sample_data = units_table[property].data[0]
@@ -1330,7 +1330,6 @@ def set_dynamic_table_property(
             raise NotImplementedError
         else:
             dynamic_table.add_column(name=property_name, description=description, data=values, index=index, table=table)
-
 
 
 def add_wave_forms_to_units_table(
