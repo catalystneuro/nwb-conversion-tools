@@ -1150,13 +1150,6 @@ def add_units(
         if np.issubdtype(data.dtype, np.integer):
             data = data.astype("float")
 
-        # if isinstance(type(data), np.ndarray):
-        #     dtype = data.dtype
-        #     if np.issubdtype(data.dtype, np.integer):
-        #         data = data.astype("float")
-        # else:
-        #     dtype = object
-
         # Find first matching data-type
         sample_data = data[0]
         matching_type = next(type for type in type_to_default_value if isinstance(sample_data, type))
