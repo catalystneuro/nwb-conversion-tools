@@ -778,10 +778,8 @@ class TestAddUnitsTable(TestCase):
         unit_ids = self.base_sorting.get_unit_ids()
         self.sorting_1 = self.base_sorting.select_units(unit_ids=unit_ids, renamed_unit_ids=["a", "b", "c", "d"])
         self.sorting_2 = self.base_sorting.select_units(unit_ids=unit_ids, renamed_unit_ids=["c", "d", "e", "f"])
-        
-        self.defaults = dict(
-            spike_times = [1, 1, 1]
-        )
+
+        self.defaults = dict(spike_times=[1, 1, 1])
 
     def test_integer_unit_names(self):
         """Ensure unit names merge correctly after appending when unit names are integers."""
@@ -849,7 +847,7 @@ class TestAddUnitsTable(TestCase):
 
     def test_manual_unit_adition_after_add_units_function(self):
         """Add some units to the units table after using the add_units function"""
-        
+
         add_units(sorting=self.sorting_1, nwbfile=self.nwbfile)
 
         values_dic = self.defaults
