@@ -37,7 +37,7 @@ def get_metadata(folder_path):
     dict
 
     """
-    csc_files = glob(folder_path + "/*.ncs") or glob(folder_path + "/*.Ncs")
+    csc_files = list(Path(folder_path).glob('*.[nN]cs'))
     fpath = csc_files[0]
     with open(fpath, "r", encoding="latin1") as file:
         raw_header = file.read(1024)
