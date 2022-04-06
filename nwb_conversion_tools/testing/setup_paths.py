@@ -8,7 +8,7 @@ from nwb_conversion_tools.utils import load_dict_from_file
 
 
 # Load the configuration for the data tests
-file_path = Path(__file__).parent.parent.parent / "tests"/ "test_on_data" /"gin_test_config.json"
+file_path = Path(__file__).parent.parent.parent / "tests" / "test_on_data" / "gin_test_config.json"
 test_config_dict = load_dict_from_file(file_path)
 
 #  GIN dataset: https://gin.g-node.org/CatalystNeuro/behavior_testing_data
