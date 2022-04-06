@@ -37,7 +37,7 @@ def get_metadata(folder_path):
 
     """
     csc_files = sorted(Path(folder_path).glob("*.[nN]cs"))
-    fpath = csc_files[0]
+    fpath = csc_files[0].resolve()
     with open(fpath, "r", encoding="latin1") as file:
         raw_header = file.read(1024)
     header = parse_header(raw_header)

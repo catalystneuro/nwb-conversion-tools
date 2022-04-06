@@ -16,7 +16,7 @@ from nwb_conversion_tools import (
     Suite2pSegmentationInterface,
 )
 
-from nwb_conversion_tools.testing.setup_paths import OPHYS_DATA_PATH, OUTPUT_PATH
+from .setup_paths import OPHYS_DATA_PATH, OUTPUT_PATH
 
 
 def custom_name_func(testcase_func, param_num, param):

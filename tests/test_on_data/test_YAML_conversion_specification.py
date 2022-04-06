@@ -9,8 +9,8 @@ from pynwb import NWBHDF5IO
 from nwb_conversion_tools import run_conversion_from_yaml
 from nwb_conversion_tools.utils import load_dict_from_file
 
-from nwb_conversion_tools.testing.setup_paths import ECEPHY_DATA_PATH as DATA_PATH
-from nwb_conversion_tools.testing.setup_paths import OUTPUT_PATH
+from .setup_paths import ECEPHY_DATA_PATH as DATA_PATH
+from .setup_paths import OUTPUT_PATH
 
 
 class TestYAMLConversionSpecification(TestCase):

@@ -31,8 +31,8 @@ from nwb_conversion_tools import (
     AxonaLFPDataInterface,
 )
 
-from nwb_conversion_tools.testing.setup_paths import ECEPHY_DATA_PATH as DATA_PATH
-from nwb_conversion_tools.testing.setup_paths import OUTPUT_PATH
+from .setup_paths import ECEPHY_DATA_PATH as DATA_PATH
+from .setup_paths import OUTPUT_PATH
 
 
 def custom_name_func(testcase_func, param_num, param):
