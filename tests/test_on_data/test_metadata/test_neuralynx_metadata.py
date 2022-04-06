@@ -21,7 +21,7 @@ def test_neuralynx_cheetah_v574_metadata():
 
 def test_neuralynx_cheetah_v563_metadata():
     assert get_metadata(str(NLX_PATH / "Cheetah_v5.6.3" / "original_data")) == dict(
-        session_start_time=datetime.datetime(2016, 11, 28, 21, 50, 33, 327000)
+        session_start_time=datetime.datetime(2016, 11, 28, 21, 50, 33, 322000)
     )
 
 

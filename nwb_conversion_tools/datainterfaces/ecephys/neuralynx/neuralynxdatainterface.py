@@ -2,7 +2,6 @@
 import warnings
 from pathlib import Path
 from natsort import natsorted
-from glob import glob
 from dateutil import parser
 import json
 
@@ -38,6 +37,7 @@ def get_metadata(folder_path):
 
     """
     csc_files = list(Path(folder_path).glob("*.[nN]cs"))
+    csc_files.sort()
     fpath = csc_files[0]
     with open(fpath, "r", encoding="latin1") as file:
         raw_header = file.read(1024)
