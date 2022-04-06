@@ -38,7 +38,8 @@ def get_metadata(folder_path):
     """
     csc_files = sorted(Path(folder_path).glob("*.[nN]cs"))
     file_path = csc_files[0]
-    with open(file_path, "r", encoding="latin1") as file:
+    assert file_path.is_file()
+    with file_path.open(encoding="latin1") as file:
         raw_header = file.read(1024)
     header = parse_header(raw_header)
     if header.get("FileVersion") == "3.4":
