@@ -36,7 +36,7 @@ def get_metadata(folder_path):
     dict
 
     """
-    csc_files = list(Path(folder_path).glob("*.[nN]cs"))
+    csc_files = sorted(Path(folder_path).glob("*.[nN]cs"))
     csc_files.sort()
     fpath = csc_files[0]
     with open(fpath, "r", encoding="latin1") as file:
