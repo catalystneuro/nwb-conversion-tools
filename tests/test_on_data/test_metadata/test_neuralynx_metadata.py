@@ -7,7 +7,7 @@ from nwb_conversion_tools.datainterfaces.ecephys.neuralynx.neuralynxdatainterfac
     NeuralynxRecordingInterface,
 )
 
-from ..setup_paths import ECEPHY_DATA_PATH
+from nwb_conversion_tools.testing.setup_paths import ECEPHY_DATA_PATH
 
 NLX_PATH = ECEPHY_DATA_PATH / "neuralynx"
 
