@@ -7,8 +7,7 @@ from nwb_conversion_tools.datainterfaces.ecephys.neuralynx.neuralynxdatainterfac
     NeuralynxRecordingInterface,
 )
 
-from nwb_conversion_tools.testing.setup_paths import ECEPHY_DATA_PATH
-
+from ..setup_paths import ECEPHY_DATA_PATH
 
 NLX_PATH = ECEPHY_DATA_PATH / "neuralynx"
 
@@ -25,7 +24,7 @@ def test_neuralynx_cheetah_v563_metadata():
     )
 
 
-def test_neuralynx_cheetah_v540():
+def test_neuralynx_cheetah_v540_metadata():
     assert get_metadata((str(NLX_PATH / "Cheetah_v5.4.0" / "original_data"))) == dict(
         session_start_time=datetime.datetime(2001, 1, 1, 0, 0),
     )
