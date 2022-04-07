@@ -871,7 +871,7 @@ class TestAddUnitsTable(TestCase):
     def test_property_matching_by_unit_name_with_existing_property(self):
         """
         Add some units to the units tables before using the add_units_table function.
-        Previous properties that are also available in the sorting are matched with unit_name 
+        Previous properties that are also available in the sorting are matched with unit_name
         """
 
         values_dic = self.defaults
@@ -901,7 +901,7 @@ class TestAddUnitsTable(TestCase):
         self.assertListEqual(list(self.nwbfile.units.id.data), expected_units_ids)
         self.assertListEqual(list(self.nwbfile.units["unit_name"].data), expected_unit_names)
         self.assertListEqual(list(self.nwbfile.units["property"].data), expected_property_values)
-        
+
     def test_property_matching_by_unit_name_with_new_property(self):
         """
         Add some units to the units tables before using the add_units_table function.
@@ -939,7 +939,7 @@ class TestAddUnitsTable(TestCase):
         """
         Add some units to the units table before using the add_units_table function.
         In this case there is are some common ids between the manually added units and the sorting ids which causes
-        collisions. That is, if the units ids in the sorter integer it is required for them to be different from the 
+        collisions. That is, if the units ids in the sorter integer it is required for them to be different from the
         ids already in the table.
         """
 
@@ -953,19 +953,20 @@ class TestAddUnitsTable(TestCase):
         # The self.base_sorting unit_ids are [0, 1, 2, 3]
         with self.assertRaisesWith(exc_type=ValueError, exc_msg="id 0 already in the table"):
             add_units_table(sorting=self.base_sorting, nwbfile=self.nwbfile)
-            
+
     def test_write_units_table_in_processing_module(self):
-        """
-        
-        """
-        
-        units_table_name = 'testing_processing'
-        unit_table_description = 'testing_description'
-        add_units_table(sorting=self.base_sorting, nwbfile=self.nwbfile, 
-                        units_table_name=units_table_name,
-                        unit_table_description=unit_table_description,
-                        write_units_table_in_processing_module=True)
-        
+        """ """
+
+        units_table_name = "testing_processing"
+        unit_table_description = "testing_description"
+        add_units_table(
+            sorting=self.base_sorting,
+            nwbfile=self.nwbfile,
+            units_table_name=units_table_name,
+            unit_table_description=unit_table_description,
+            write_units_table_in_processing_module=True,
+        )
+
         ecephys_mod = get_module(
             nwbfile=self.nwbfile,
             name="ecephys",
@@ -975,6 +976,7 @@ class TestAddUnitsTable(TestCase):
         units_table = ecephys_mod[units_table_name]
         self.assertEqual(units_table.name, units_table_name)
         self.assertEqual(units_table.description, unit_table_description)
-                
+
+
 if __name__ == "__main__":
     unittest.main()
