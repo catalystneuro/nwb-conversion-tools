@@ -23,11 +23,13 @@ from nwb_conversion_tools import spikeinterface  # testing aliased import
 from nwb_conversion_tools.tools.spikeinterface import (
     get_nwb_metadata,
     write_recording,
-    add_units,
+    add_units_table,
     write_sorting,
     add_electrodes,
     add_electrical_series,
 )
+from nwb_conversion_tools.tools.nwb_helpers import get_module
+
 from nwb_conversion_tools.tools.spikeinterface.spikeinterfacerecordingdatachunkiterator import (
     SpikeInterfaceRecordingDataChunkIterator,
 )
@@ -364,26 +366,26 @@ class TestExtractors(unittest.TestCase):
             ),
         )
 
-        units_table_name = "test_name"
+        units_name = "test_name"
         write_sorting(
             sorting=self.SX,
             save_path=path,
             overwrite=True,
             write_as="processing",
-            units_table_name=units_table_name,
+            units_name=units_name,
             metadata=self.placeholder_metadata,
         )
         with NWBHDF5IO(path=path, mode="r") as io:
             nwbfile = io.read()
-            name_out = nwbfile.processing["ecephys"][units_table_name].name
+            name_out = nwbfile.processing["ecephys"][units_name].name
         self.assertEqual(
             name_out,
-            units_table_name,
-            f"Units table name not written correctly! (value is: {name_out}, should be: {units_table_name})",
+            units_name,
+            f"Units table name not written correctly! (value is: {name_out}, should be: {units_name})",
         )
 
-        unit_table_description = "test_description"
-        write_sorting(sorting=self.SX, save_path=path, overwrite=False, unit_table_description=unit_table_description)
+        units_description = "test_description"
+        write_sorting(sorting=self.SX, save_path=path, overwrite=False, units_description=units_description)
         SX_nwb = se.NwbSortingExtractor(path, sampling_frequency=sf)
         check_sortings_equal(self.SX, SX_nwb)
         check_dumping(SX_nwb)
@@ -392,9 +394,9 @@ class TestExtractors(unittest.TestCase):
             description_out = nwbfile.units.description
         self.assertEqual(
             description_out,
-            unit_table_description,
+            units_description,
             "Units table description not written correctly! "
-            f"(value is: {description_out}, should be: {unit_table_description})",
+            f"(value is: {description_out}, should be: {units_description})",
         )
 
     def check_metadata_write(self, metadata: dict, nwbfile_path: Path, recording: se.RecordingExtractor):
@@ -788,8 +790,8 @@ class TestAddUnitsTable(TestCase):
             unit_ids=unit_ids, renamed_unit_ids=offest_units_ids
         )
 
-        add_units(sorting=self.base_sorting, nwbfile=self.nwbfile)
-        add_units(sorting=sorting_with_offset_unit_ids, nwbfile=self.nwbfile)
+        add_units_table(sorting=self.base_sorting, nwbfile=self.nwbfile)
+        add_units_table(sorting=sorting_with_offset_unit_ids, nwbfile=self.nwbfile)
 
         expected_unit_names_in_units_table = ["0", "1", "2", "3", "4", "5"]
         unit_names_in_units_table = list(self.nwbfile.units["unit_name"].data)
@@ -797,8 +799,8 @@ class TestAddUnitsTable(TestCase):
 
     def test_string_unit_names(self):
         """Ensure unit names merge correctly after appending when channel names are strings."""
-        add_units(sorting=self.sorting_1, nwbfile=self.nwbfile)
-        add_units(sorting=self.sorting_2, nwbfile=self.nwbfile)
+        add_units_table(sorting=self.sorting_1, nwbfile=self.nwbfile)
+        add_units_table(sorting=self.sorting_2, nwbfile=self.nwbfile)
 
         expected_unit_names_in_units_table = ["a", "b", "c", "d", "e", "f"]
         unit_names_in_units_table = list(self.nwbfile.units["unit_name"].data)
@@ -809,26 +811,26 @@ class TestAddUnitsTable(TestCase):
         self.sorting_1.set_property(key="common_property", values=["value_1"] * self.num_units)
         self.sorting_2.set_property(key="common_property", values=["value_2"] * self.num_units)
 
-        add_units(sorting=self.sorting_1, nwbfile=self.nwbfile)
-        add_units(sorting=self.sorting_2, nwbfile=self.nwbfile)
+        add_units_table(sorting=self.sorting_1, nwbfile=self.nwbfile)
+        add_units_table(sorting=self.sorting_2, nwbfile=self.nwbfile)
 
         properties_in_units_table = list(self.nwbfile.units["common_property"].data)
         expected_properties_in_units_table = ["value_1", "value_1", "value_1", "value_1", "value_2", "value_2"]
         self.assertListEqual(properties_in_units_table, expected_properties_in_units_table)
 
-    def test_new_property_addition(self):
+    def test_property_addition(self):
         """Add a property only available in a second sorting."""
         self.sorting_2.set_property(key="added_property", values=["added_value"] * self.num_units)
 
-        add_units(sorting=self.sorting_1, nwbfile=self.nwbfile)
-        add_units(sorting=self.sorting_2, nwbfile=self.nwbfile)
+        add_units_table(sorting=self.sorting_1, nwbfile=self.nwbfile)
+        add_units_table(sorting=self.sorting_2, nwbfile=self.nwbfile)
 
         properties_in_units_table = list(self.nwbfile.units["added_property"].data)
         expected_properties_in_units_table = ["", "", "added_value", "added_value", "added_value", "added_value"]
         self.assertListEqual(properties_in_units_table, expected_properties_in_units_table)
 
-    def test_manual_units_adition_before_add_units_function(self):
-        """Add some rows to the units tables before using the add_electrodes function"""
+    def test_units_table_extension_after_manual_unit_addition(self):
+        """Add some rows to the units tables before using the add_units_table function"""
         values_dic = self.defaults
 
         values_dic.update(id=123, spike_times=[0, 1, 2])
@@ -837,17 +839,17 @@ class TestAddUnitsTable(TestCase):
         values_dic.update(id=124, spike_times=[2, 3, 4])
         self.nwbfile.add_unit(**values_dic)
 
-        add_units(sorting=self.sorting_1, nwbfile=self.nwbfile)
+        add_units_table(sorting=self.sorting_1, nwbfile=self.nwbfile)
 
         expected_units_ids = [123, 124, 2, 3, 4, 5]
         expected_unit_names = ["123", "124", "a", "b", "c", "d"]
         self.assertListEqual(list(self.nwbfile.units.id.data), expected_units_ids)
         self.assertListEqual(list(self.nwbfile.units["unit_name"].data), expected_unit_names)
 
-    def test_manual_unit_adition_after_add_units_function(self):
-        """Add some units to the units table after using the add_units function"""
+    def test_manual_extension_after_add_units_table(self):
+        """Add some units to the units table after using the add_units_table function"""
 
-        add_units(sorting=self.sorting_1, nwbfile=self.nwbfile)
+        add_units_table(sorting=self.sorting_1, nwbfile=self.nwbfile)
 
         values_dic = self.defaults
 
@@ -866,50 +868,79 @@ class TestAddUnitsTable(TestCase):
         self.assertListEqual(list(self.nwbfile.units.id.data), expected_unit_ids)
         self.assertListEqual(list(self.nwbfile.units["unit_name"].data), expected_unit_names)
 
-    def test_manual_unit_adition_before_add_units_function_with_unit_name_collision(self):
+    def test_property_matching_by_unit_name_with_existing_property(self):
         """
-        Add some units to the units tables before using the add_units function.
-        In this case there are some unit channel names between the previously added units and the sorting
-        which causes collisions.
+        Add some units to the units tables before using the add_units_table function.
+        Previous properties that are also available in the sorting are matched with unit_name 
         """
 
         values_dic = self.defaults
 
         self.nwbfile.add_unit_column(name="unit_name", description="a string reference for the unit")
-        self.nwbfile.add_unit_column(name="property1", description="property_added_before")
+        self.nwbfile.add_unit_column(name="property", description="property_added_before")
 
-        values_dic.update(id=20, unit_name="c", property1="value1_c")
+        values_dic.update(id=20, unit_name="c", property="value_c")
         self.nwbfile.add_unit(**values_dic)
 
-        values_dic.update(id=21, unit_name="d", property1="value1_d")
+        values_dic.update(id=21, unit_name="d", property="value_d")
         self.nwbfile.add_unit(**values_dic)
 
-        values_dic.update(id=22, unit_name="f", property1="value1_f")
+        values_dic.update(id=22, unit_name="f", property="value_f")
         self.nwbfile.add_unit(**values_dic)
 
-        property1_values = ["value1_a", "value1_b", "x", "y"]
-        self.sorting_1.set_property(key="property1", values=property1_values)
+        property_values = ["value_a", "value_b", "x", "y"]
+        self.sorting_1.set_property(key="property", values=property_values)
 
-        property2_values = ["value2_a", "value2_b", "value2_c", "value2_d"]
-        self.sorting_1.set_property(key="property2", values=property2_values)
+        add_units_table(sorting=self.sorting_1, nwbfile=self.nwbfile)
 
-        add_units(sorting=self.sorting_1, nwbfile=self.nwbfile)
-
+        # Properties correspond with unit names, ids are filled positionally
         expected_units_ids = [20, 21, 22, 3, 4]
         expected_unit_names = ["c", "d", "f", "a", "b"]
+        expected_property_values = ["value_c", "value_d", "value_f", "value_a", "value_b"]
+
         self.assertListEqual(list(self.nwbfile.units.id.data), expected_units_ids)
         self.assertListEqual(list(self.nwbfile.units["unit_name"].data), expected_unit_names)
-
-        expected_property_values1 = ["value1_c", "value1_d", "value1_f", "value1_a", "value1_b"]
-        expected_property_values2 = ["value2_c", "value2_d", "", "value2_a", "value2_b"]
-        self.assertListEqual(list(self.nwbfile.units["property1"].data), expected_property_values1)
-        self.assertListEqual(list(self.nwbfile.units["property2"].data), expected_property_values2)
-
-    def test_manually_added_before_recording_id_collision(self):
+        self.assertListEqual(list(self.nwbfile.units["property"].data), expected_property_values)
+        
+    def test_property_matching_by_unit_name_with_new_property(self):
         """
-        Add some units to the unit table before using the add_units function.
-        In this case there is are some common ids between the manually added units and the sorting which causes
-        collisions.
+        Add some units to the units tables before using the add_units_table function.
+        New properties in the sorter are matched by unit name
+        """
+
+        values_dic = self.defaults
+
+        self.nwbfile.add_unit_column(name="unit_name", description="a string reference for the unit")
+
+        values_dic.update(id=20, unit_name="c")
+        self.nwbfile.add_unit(**values_dic)
+
+        values_dic.update(id=21, unit_name="d")
+        self.nwbfile.add_unit(**values_dic)
+
+        values_dic.update(id=22, unit_name="f")
+        self.nwbfile.add_unit(**values_dic)
+
+        property_values = ["value_a", "value_b", "value_c", "value_d"]
+        self.sorting_1.set_property(key="property", values=property_values)
+
+        add_units_table(sorting=self.sorting_1, nwbfile=self.nwbfile)
+
+        # Properties correspond with unit names, ids are filled positionally
+        expected_units_ids = [20, 21, 22, 3, 4]
+        expected_unit_names = ["c", "d", "f", "a", "b"]
+        expected_property_values = ["value_c", "value_d", "", "value_a", "value_b"]
+
+        self.assertListEqual(list(self.nwbfile.units.id.data), expected_units_ids)
+        self.assertListEqual(list(self.nwbfile.units["unit_name"].data), expected_unit_names)
+        self.assertListEqual(list(self.nwbfile.units["property"].data), expected_property_values)
+
+    def test_id_collision_assertion(self):
+        """
+        Add some units to the units table before using the add_units_table function.
+        In this case there is are some common ids between the manually added units and the sorting ids which causes
+        collisions. That is, if the units ids in the sorter integer it is required for them to be different from the 
+        ids already in the table.
         """
 
         values_dic = self.defaults
@@ -921,8 +952,29 @@ class TestAddUnitsTable(TestCase):
         self.nwbfile.add_unit(**values_dic)
         # The self.base_sorting unit_ids are [0, 1, 2, 3]
         with self.assertRaisesWith(exc_type=ValueError, exc_msg="id 0 already in the table"):
-            add_units(sorting=self.base_sorting, nwbfile=self.nwbfile)
-
-
+            add_units_table(sorting=self.base_sorting, nwbfile=self.nwbfile)
+            
+    def test_write_units_table_in_processing_module(self):
+        """
+        
+        """
+        
+        units_table_name = 'testing_processing'
+        unit_table_description = 'testing_description'
+        add_units_table(sorting=self.base_sorting, nwbfile=self.nwbfile, 
+                        units_table_name=units_table_name,
+                        unit_table_description=unit_table_description,
+                        write_units_table_in_processing_module=True)
+        
+        ecephys_mod = get_module(
+            nwbfile=self.nwbfile,
+            name="ecephys",
+            description="Intermediate data from extracellular electrophysiology recordings, e.g., LFP.",
+        )
+        self.assertIn(units_table_name, ecephys_mod.data_interfaces)
+        units_table = ecephys_mod[units_table_name]
+        self.assertEqual(units_table.name, units_table_name)
+        self.assertEqual(units_table.description, unit_table_description)
+                
 if __name__ == "__main__":
     unittest.main()
