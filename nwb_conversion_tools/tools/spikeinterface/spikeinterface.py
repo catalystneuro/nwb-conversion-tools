@@ -1087,7 +1087,7 @@ def add_units_table(
         property_descriptions = dict()
     if skip_properties is None:
         skip_properties = list()
-        
+
     property_descriptions = dict(default_descriptions, **property_descriptions)
 
     data_to_add = defaultdict(dict)
@@ -1248,7 +1248,7 @@ def write_sorting(
     write_units_table_in_processing_module = True
     units_table_name = units_name
     units_table_description = units_description
-    
+
     if write_as == "units":
         assert units_name == "units", "When writing to the nwbfile.units table, the name of the table must be 'units'!"
         write_units_table_in_processing_module = False
