@@ -1384,7 +1384,7 @@ def add_wave_forms_to_units_table(
             name="ecephys",
             description="Intermediate data from extracellular electrophysiology recordings, e.g., LFP.",
         )
-        if units_table_name not in nwbfile.processing:
+        if units_table_name not in ecephys_mod.data_interfaces:
             units_table = pynwb.misc.Units(name=units_table_name, description=unit_table_description)
             ecephys_mod.add(units_table)
 
