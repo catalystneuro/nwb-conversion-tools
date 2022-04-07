@@ -331,7 +331,6 @@ class TestExtractors(unittest.TestCase):
             sorting=self.SX2,
             save_path=path,
             skip_features=["widths"],
-            use_times=False,
             overwrite=True,
             metadata=self.placeholder_metadata,
         )
@@ -365,26 +364,26 @@ class TestExtractors(unittest.TestCase):
             ),
         )
 
-        units_name = "test_name"
+        units_table_name = "test_name"
         write_sorting(
             sorting=self.SX,
             save_path=path,
             overwrite=True,
             write_as="processing",
-            units_name=units_name,
+            units_table_name=units_table_name,
             metadata=self.placeholder_metadata,
         )
         with NWBHDF5IO(path=path, mode="r") as io:
             nwbfile = io.read()
-            name_out = nwbfile.processing["ecephys"][units_name].name
+            name_out = nwbfile.processing["ecephys"][units_table_name].name
         self.assertEqual(
             name_out,
-            units_name,
-            f"Intended units table name does not match what was written! (Out: {name_out}, should be: {units_name})",
+            units_table_name,
+            f"Units table name not written correctly! (value is: {name_out}, should be: {units_table_name})",
         )
 
-        units_description = "test_description"
-        write_sorting(sorting=self.SX, save_path=path, overwrite=False, units_description=units_description)
+        unit_table_description = "test_description"
+        write_sorting(sorting=self.SX, save_path=path, overwrite=False, unit_table_description=unit_table_description)
         SX_nwb = se.NwbSortingExtractor(path, sampling_frequency=sf)
         check_sortings_equal(self.SX, SX_nwb)
         check_dumping(SX_nwb)
@@ -393,9 +392,9 @@ class TestExtractors(unittest.TestCase):
             description_out = nwbfile.units.description
         self.assertEqual(
             description_out,
-            units_description,
-            "Intended units table description does not match what was written! "
-            f"(Out: {description_out}, should be: {units_description})",
+            unit_table_description,
+            "Units table description not written correctly! "
+            f"(value is: {description_out}, should be: {unit_table_description})",
         )
 
     def check_metadata_write(self, metadata: dict, nwbfile_path: Path, recording: se.RecordingExtractor):
@@ -923,7 +922,6 @@ class TestAddUnitsTable(TestCase):
         # The self.base_sorting unit_ids are [0, 1, 2, 3]
         with self.assertRaisesWith(exc_type=ValueError, exc_msg="id 0 already in the table"):
             add_units(sorting=self.base_sorting, nwbfile=self.nwbfile)
-            x = 1
 
 
 if __name__ == "__main__":
