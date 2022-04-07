@@ -1027,11 +1027,13 @@ def add_units(
         "processing",
     ], f"Argument write_as ({write_as}) should be one of 'units' or 'processing'!"
     if write_as == "units":
-        assert units_table_name == "units", "When writing to the nwbfile.units table, the name of the table must be 'units'!"
+        assert (
+            units_table_name == "units"
+        ), "When writing to the nwbfile.units table, the name of the table must be 'units'!"
 
     if write_as == "units":
         if nwbfile.units is None:
-            nwbfile.units  = pynwb.misc.Units(name=units_table_name, description=unit_table_description)
+            nwbfile.units = pynwb.misc.Units(name=units_table_name, description=unit_table_description)
         units_table = nwbfile.units
     elif write_as == "processing":
         ecephys_mod = get_module(
@@ -1042,11 +1044,10 @@ def add_units(
         if units_table_name not in nwbfile.processing:
             units_table = pynwb.misc.Units(name=units_table_name, description=unit_table_description)
             ecephys_mod.add(units_table)
-        
-        units_table = ecephys_mod[units_table_name]
-        
 
-    # Typical property descriptions 
+        units_table = ecephys_mod[units_table_name]
+
+    # Typical property descriptions
     default_descriptions = dict(
         isi_violation="Quality metric that measures the ISI violation ratio as a proxy for the purity of the unit.",
         firing_rate="Number of spikes per unit of time.",
@@ -1216,7 +1217,9 @@ def write_sorting(
         "processing",
     ], f"Argument write_as ({write_as}) should be one of 'units' or 'processing'!"
     if write_as == "units":
-        assert units_table_name == "units", "When writing to the nwbfile.units table, the name of the table must be 'units'!"
+        assert (
+            units_table_name == "units"
+        ), "When writing to the nwbfile.units table, the name of the table must be 'units'!"
     if metadata is None:
         metadata = dict()
     if nwbfile is None:
@@ -1366,9 +1369,8 @@ def add_wave_forms_to_units_table(
     if write_as == "units":
         assert units_name == "units", "When writing to the nwbfile.units table, the name of the table must be 'units'!"
 
-
     units_table = pynwb.misc.Units(name=units_name, description=units_description)
-    
+
     if isinstance(sorting, SortingExtractor):
         all_features = set()
         for unit_id in unit_ids:
@@ -1439,4 +1441,3 @@ def add_wave_forms_to_units_table(
             description="Intermediate data from extracellular electrophysiology recordings, e.g., LFP.",
         )
         ecephys_mod.add(units_table)
-
