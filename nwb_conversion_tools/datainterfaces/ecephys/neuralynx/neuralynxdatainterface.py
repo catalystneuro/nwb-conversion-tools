@@ -22,23 +22,23 @@ def parse_header(header):
     return header_dict
 
 
-def get_metadata(folder_path):
+def get_metadata(folder_path: FolderPathType) -> dict:
     """
     Parse the header of one of the .ncs files to get the session start time (without
     timezone) and the session_id.
 
     Parameters
     ----------
-    folder_path: str
+    folder_path: str or Path
 
     Returns
     -------
     dict
 
     """
-    csc_files = sorted(Path(folder_path).glob("*.[nN]cs"))
+    folder_path = Path(folder_path)
+    csc_files = sorted(folder_path.glob("*.[nN]cs"))
     file_path = csc_files[0]
-    assert file_path.is_file()
     with file_path.open(encoding="latin1") as file:
         raw_header = file.read(1024)
     header = parse_header(raw_header)
@@ -53,12 +53,12 @@ def get_metadata(folder_path):
         return dict(session_start_time=parser.parse(spliced_line, dayfirst=False))
 
 
-def get_filtering(channel_path):
+def get_filtering(channel_path: FolderPathType) -> str:
     """Get the filtering metadata from an .nsc file.
 
     Parameters
     ----------
-    channel_path: str
+    channel_path: str or Path
         Filepath for an .nsc file
 
     Returns
@@ -67,7 +67,7 @@ def get_filtering(channel_path):
         json dump of filter parameters. Uses the mu character, which may cause problems
         for downstream things that expect ASCII.
     """
-
+    channel_path = Path(channel_path)
     with open(channel_path, "r", encoding="latin1") as file:
         raw_header = file.read(1024)
     header = parse_header(raw_header)
