@@ -20,6 +20,8 @@ from nwb_conversion_tools import (
     IntanRecordingInterface,
     NeuralynxRecordingInterface,
     NeuroscopeRecordingInterface,
+    NeuroscopeMultiRecordingTimeInterface,
+    NeuroscopeLFPInterface,
     NeuroscopeSortingInterface,
     OpenEphysRecordingExtractorInterface,
     PhySortingInterface,
@@ -59,6 +61,13 @@ class TestEcephysNwbConversions(unittest.TestCase):
                 )
             ),
         ),
+        param(
+            data_interface=NeuroscopeLFPInterface,
+            interface_kwargs=dict(
+                file_path=str(DATA_PATH / "neuroscope" / "dataset_1" / "YutaMouse42-151117.eeg"),
+                xml_file_path=str(DATA_PATH / "neuroscope" / "dataset_1" / "YutaMouse42-151117.xml"),
+            ),
+        ),
     ]
 
     @parameterized.expand(input=parameterized_lfp_list, name_func=custom_name_func)
@@ -95,6 +104,10 @@ class TestEcephysNwbConversions(unittest.TestCase):
         param(
             data_interface=NeuroscopeRecordingInterface,
             interface_kwargs=dict(file_path=str(DATA_PATH / "neuroscope" / "test1" / "test1.dat")),
+        ),
+        param(
+            data_interface=NeuroscopeMultiRecordingTimeInterface,
+            interface_kwargs=dict(folder_path=str(DATA_PATH / "neuroscope" / "test1")),
         ),
         param(
             data_interface=NeuroscopeRecordingInterface,
