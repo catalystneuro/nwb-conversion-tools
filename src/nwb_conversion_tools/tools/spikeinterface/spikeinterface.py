@@ -1082,6 +1082,7 @@ def add_units_table(
         quality="Quality of the unit as defined by phy (good, mua, noise).",
         spike_amplitude="Average amplitude of peaks detected on the channel.",
         spike_rate="Average rate of peaks detected on the channel.",
+        unit_name="unique reference for each unit",
     )
     if property_descriptions is None:
         property_descriptions = dict()
@@ -1106,9 +1107,12 @@ def add_units_table(
 
     # Unit name logic
     units_ids = checked_sorting.get_unit_ids()
-    unit_name_array = units_ids.astype("str", copy=False)
+    if "unit_name" in data_to_add:
+        unit_name_array = data_to_add["unit_name"]["data"]
+    else:
+        unit_name_array = units_ids.astype("str", copy=False)
+        data_to_add["unit_name"].update(description="unique reference for each unit", data=unit_name_array, index=False)
 
-    data_to_add["unit_name"].update(description="unique reference for each unit", data=unit_name_array, index=False)
     # If the channel ids are integer keep the old behavior of asigning table's id equal to unit_ids
     if np.issubdtype(units_ids.dtype, np.integer):
         data_to_add["id"].update(data=units_ids.astype("int"), index=False)
