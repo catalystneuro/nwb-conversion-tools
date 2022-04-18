@@ -1,14 +1,14 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from nwb_conversion_tools.tools.hdmf import MemmapDataChunkIterator
+from nwb_conversion_tools.tools.hdmf import SliceableDataChunkIterator
 
 
-def test_memmap_data_chunk_iterator():
+def test_sliceable_data_chunk_iterator():
 
     data = np.arange(100).reshape(10, 10)
 
-    dci = MemmapDataChunkIterator(data=data, buffer_shape=(5, 5), chunk_shape=(5, 5))
+    dci = SliceableDataChunkIterator(data=data, buffer_shape=(5, 5), chunk_shape=(5, 5))
 
     data_chunk = next(dci)
 

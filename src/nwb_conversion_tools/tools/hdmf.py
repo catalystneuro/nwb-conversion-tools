@@ -4,7 +4,7 @@ import numpy as np
 from hdmf.data_utils import GenericDataChunkIterator
 
 
-class MemmapDataChunkIterator(GenericDataChunkIterator):
+class SliceableDataChunkIterator(GenericDataChunkIterator):
     """
     Generic data chunk iterator that works for any memory mapped array, such as a np.memmap or an h5py.Dataset
     """
