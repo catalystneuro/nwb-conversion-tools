@@ -20,7 +20,6 @@ from nwb_conversion_tools import (
     IntanRecordingInterface,
     NeuralynxRecordingInterface,
     NeuroscopeRecordingInterface,
-    NeuroscopeMultiRecordingTimeInterface,
     NeuroscopeLFPInterface,
     NeuroscopeSortingInterface,
     OpenEphysRecordingExtractorInterface,
@@ -104,10 +103,6 @@ class TestEcephysNwbConversions(unittest.TestCase):
         param(
             data_interface=NeuroscopeRecordingInterface,
             interface_kwargs=dict(file_path=str(DATA_PATH / "neuroscope" / "test1" / "test1.dat")),
-        ),
-        param(
-            data_interface=NeuroscopeMultiRecordingTimeInterface,
-            interface_kwargs=dict(folder_path=str(DATA_PATH / "neuroscope" / "test1")),
         ),
         param(
             data_interface=NeuroscopeRecordingInterface,
