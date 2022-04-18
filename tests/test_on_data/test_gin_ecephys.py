@@ -20,6 +20,7 @@ from nwb_conversion_tools import (
     IntanRecordingInterface,
     NeuralynxRecordingInterface,
     NeuroscopeRecordingInterface,
+    NeuroscopeSortingInterface,
     OpenEphysRecordingExtractorInterface,
     PhySortingInterface,
     SpikeGadgetsRecordingInterface,
@@ -180,10 +181,14 @@ class TestEcephysNwbConversions(unittest.TestCase):
                 x=recording.get_traces(return_scaled=False), y=nwb_recording.get_traces(return_scaled=False)
             )
         else:
-            # Cast channel_ids to string and do the comparisons with spikeinterface methods
+            # Spikeinterface behavior is to load the electrode table channel_name property as a channel_id
             nwb_recording = NwbRecordingExtractorSI(file_path=nwbfile_path)
+            if "channel_name" in recording.get_property_keys():
+                renamed_channel_ids = recording.get_property("channel_name")
+            else:
+                renamed_channel_ids = recording.get_channel_ids().astype("str")
             recording = recording.channel_slice(
-                channel_ids=recording.get_channel_ids(), renamed_channel_ids=recording.get_channel_ids().astype("str")
+                channel_ids=recording.get_channel_ids(), renamed_channel_ids=renamed_channel_ids
             )
 
             check_recordings_equal_si(RX1=recording, RX2=nwb_recording, return_scaled=False)
@@ -226,6 +231,13 @@ class TestEcephysNwbConversions(unittest.TestCase):
                     file_path=str(
                         DATA_PATH / "cellexplorer" / "dataset_3" / "20170519_864um_900um_merge.spikes.cellinfo.mat"
                     )
+                ),
+            ),
+            param(
+                data_interface=NeuroscopeSortingInterface,
+                interface_kwargs=dict(
+                    folder_path=str(DATA_PATH / "neuroscope" / "dataset_1"),
+                    xml_file_path=str(DATA_PATH / "neuroscope" / "dataset_1" / "YutaMouse42-151117.xml"),
                 ),
             ),
         ],

@@ -21,4 +21,3 @@ class SliceableDataChunkIterator(GenericDataChunkIterator):
 
     def _get_data(self, selection: Tuple[slice]) -> np.ndarray:
         return self.data[selection]
-
