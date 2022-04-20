@@ -172,14 +172,20 @@ def add_electrode_groups(recording: SpikeInterfaceRecording, nwbfile: pynwb.NWBF
         metadata = dict()
     if "Ecephys" not in metadata:
         metadata["Ecephys"] = dict()
+
+    if "group_name" in checked_recording.get_property_keys():
+        group_names = np.unique(checked_recording.get_property("group_name"))
+    else:
+        group_names = np.unique(checked_recording.get_channel_groups()).astype("str", copy=False)
+
     defaults = [
         dict(
-            name=str(group_id),
+            name=group_name,
             description="no description",
             location="unknown",
             device=[i.name for i in nwbfile.devices.values()][0],
         )
-        for group_id in np.unique(checked_recording.get_channel_groups())
+        for group_name in group_names
     ]
 
     if "ElectrodeGroup" not in metadata["Ecephys"]:
@@ -306,9 +312,12 @@ def add_electrodes(
 
     # Channel name logic
     channel_ids = checked_recording.get_channel_ids()
-    channel_name_array = channel_ids.astype("str", copy=False)
+    if "channel_name" in data_to_add:
+        channel_name_array = data_to_add["channel_name"]["data"]
+    else:
+        channel_name_array = channel_ids.astype("str", copy=False)
+        data_to_add["channel_name"].update(description="unique channel reference", data=channel_name_array, index=False)
 
-    data_to_add["channel_name"].update(description="unique channel reference", data=channel_name_array, index=False)
     # If the channel ids are integer keep the old behavior of asigning nwbfile.electrodes.id equal to channel_ids
     if np.issubdtype(channel_ids.dtype, np.integer):
         data_to_add["id"].update(data=channel_ids, index=False)
@@ -331,7 +340,6 @@ def add_electrodes(
     # If no group_names are provide use information from groups or default values
     if "group_name" in data_to_add:
         group_name_array = data_to_add["group_name"]["data"].astype("str", copy=False)
-
     else:
         if "group" in data_to_add:
             group_name_array = data_to_add["group"]["data"].astype("str", copy=False)
@@ -443,8 +451,8 @@ def add_electrodes(
         cols_args["data"] = extended_data
         nwbfile.add_electrode_column(property, **cols_args)
 
-    if (len(rows_to_add) > 0) or (len(properties_to_add_by_columns) > 0):
-        warnings.warn(f"No information added to the table")
+    if (len(rows_to_add) == 0) and (len(properties_to_add_by_columns) == 0):
+        warnings.warn(f"No information added to the electrodes table")
 
 
 def add_electrical_series(
