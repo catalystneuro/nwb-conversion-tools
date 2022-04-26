@@ -327,7 +327,7 @@ def add_icephys_recordings(
                 stim_unit = protocol[2][ei]
                 stim_conversion = get_conversion_from_unit(unit=stim_unit)
                 stimulus = stim_classes[icephys_experiment_type](
-                    name=f"stimulus-{si + 1 + simultaneous_recordings_offset}-ch-{ei}",
+                    name=f"stimulus-{si + 1 + simultaneous_recordings_offset:02}-ch-{ei}",
                     description=f"Stim type: {session_stimulus_type}",
                     electrode=electrode,
                     data=protocol[0][si][ei],
