@@ -1010,7 +1010,7 @@ class TestAddUnitsTable(TestCase):
             nwbfile=self.nwbfile,
             units_table_name=units_table_name,
             unit_table_description=unit_table_description,
-            write_units_table_in_processing_module=True,
+            write_in_processing_module=True,
         )
 
         ecephys_mod = get_module(
