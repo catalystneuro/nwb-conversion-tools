@@ -11,7 +11,7 @@ dandi>=0.34.1
 nwbinspector>=0.2.3
 spikeextractors>=0.9.9
 spikeinterface>=0.93.0
-neo>=0.9.0
+neo @ git+https://github.com/catalystneuro/python-neo.git@add_neuroscope_support_for_non_data_channels
 roiextractors @ git+https://github.com/catalystneuro/roiextractors.git@10265be4a1eaece7461296a2877cc11c84bf87dc
 lxml>=4.6.5
 scipy>=1.4.1
