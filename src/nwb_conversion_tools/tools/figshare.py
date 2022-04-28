@@ -61,7 +61,8 @@ def download_article(article_record: dict, destination: str) -> None:
     if not os.path.exists(metadata_filepath):
         with open(metadata_filepath, "w") as metadata_file:
             json.dump(
-                dict(NWBFile=dict(experiment_description=article_metadata["description"])), metadata_file,
+                dict(NWBFile=dict(experiment_description=article_metadata["description"])),
+                metadata_file,
             )
 
     # download data files
@@ -98,5 +99,6 @@ def download_collection(collection_id: int, destination: str) -> None:
     # iterate over articles
     for article_record in tqdm(article_records, desc="articles in collection {}", leave=False):
         download_article(
-            article_record=article_record, destination=os.path.join(destination, article_record["title"]),
+            article_record=article_record,
+            destination=os.path.join(destination, article_record["title"]),
         )
