@@ -2,6 +2,8 @@ import sys
 from pathlib import Path
 from jsonschema import validate, RefResolver
 from datetime import datetime
+from tempfile import mkdtemp
+from shutil import rmtree, copytree
 
 from hdmf.testing import TestCase
 from pynwb import NWBHDF5IO
@@ -120,3 +122,31 @@ class TestYAMLConversionSpecification(TestCase):
                 output_folder=self.test_folder,
                 overwrite=True,
             )
+
+
+class TestYAMLConversionSpecification(TestCase):
+    test_folder = OUTPUT_PATH
+
+    def setUp(self):
+        self.tmpdir = Path(mkdtemp())
+        self.nwb_folder = self.tmpdir / "test_yaml_conversion_specification_iterative"
+        self.nwb_folder.mkdir()
+        self.imitation_data_folder = self.tmpdir / "my_data"
+        self.imitation_data_folder.mkdir()
+
+        self.subject_ids = ["001", "bruce", "YM41"]
+        self.session_ids = ["sess21", "ses_14", "some_condition"]
+        self.session_start_times = ["20210204_131205", "20190314_231656", "20221011_085232"]
+        for subject_id, session_id, session_start_time in zip(
+            self.subject_ids, self.session_ids, self.session_start_times
+        ):
+            subject_path = self.imitation_data_folder / subject_id
+            subject_path.mkdir()
+            copytree(src=Path(DATA_PATH) / "spikeglx" / "Noise4Sam_g0" / "Noise4Sam_g0_imec0", dst=subject_path)
+            for suffix in ["ap.bin", "lf.bin", "ap.metadata", "lf.metadata"]:
+                (subject_path / "Noise4Sam_g0_imec0" / f"Noise4Sam_g0_t0.imec.{suffix}").rename(
+                    str(subject_path / f"{session_id}-{session_start_time}" / f"{session_id}.imec.{suffix}")
+                )
+
+    def tearDown(self):
+        rmtree(self.tmpdir)

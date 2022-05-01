@@ -89,3 +89,7 @@ def test_parse_f_string_no_trailing_value():
 def test_parse_f_string_duplicates():
     f_string_values = parse_f_string(string="a/foobthat/cbar/sub-foo", f_string="a/{x}b{y}/c{z}/sub-{x}")
     assert f_string_values == dict(x="foo", y="that", z="bar")
+
+
+# def test_extract_metadata_from_inverse_fstring(fstring: str):
+#     metadata = extract_metadata_from_(fstring="base/{subjet_id}/{subject_id}_{session_id}")

@@ -1,0 +1,28 @@
+metadata:
+  NWBFile:
+    lab: My Lab
+    institution: My Institution
+data_interfaces:
+  - SpikeGLXRecordingInterface
+  - SpikeGLXLFPInterface
+
+experiments:
+  ymaze:
+    metadata:
+      NWBFile:
+        session_description: Subject navigating a Y-shaped maze.
+
+    sessions:
+      - nwbfile_name: test_yaml_conversion_specification_iterative/{subject_id}_{session_id}.nwb
+        data_interfaces:
+          - SpikeGLXRecordingInterface
+        source_data:
+          SpikeGLXRecordingInterface:
+            file_path: my_data/{subject_id}/{session_id}-{session_start_time}/{session_id}.imec.ap.bin
+          SpikeGLXLFPInterface:
+            file_path: my_data/{subject_id}/{session_id}-{session_start_time}/{session_id}.imec.lf.bin
+        conversion_options:
+          SpikeGLXRecordingInterface:
+            stub_test: True  # Required for all SpikeGLX here. File on GIN is still huge
+          SpikeGLXLFPInterface:
+            stub_test: True  # Required for all SpikeGLX here. File on GIN is still huge
