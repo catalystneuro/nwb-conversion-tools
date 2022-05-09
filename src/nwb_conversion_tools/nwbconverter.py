@@ -1,6 +1,7 @@
 """Authors: Cody Baker and Ben Dichter."""
 from jsonschema import validate
 from pathlib import Path
+import datetime
 from typing import Optional, Dict
 
 from pynwb import NWBHDF5IO, NWBFile
@@ -101,6 +102,10 @@ class NWBConverter:
 
     def validate_metadata(self, metadata: Dict[str, dict]):
         """Validate metadata against Converter metadata_schema."""
+        session_start_time = metadata.get("NWBFile", dict()).get("session_start_time", None)
+        if session_start_time and isinstance(session_start_time, datetime.datetime):
+            metadata["NWBFile"]["session_start_time"] = session_start_time.isoformat()
+
         validate(instance=metadata, schema=self.get_metadata_schema())
         if self.verbose:
             print("Metadata is valid!")
