@@ -12,12 +12,10 @@ from .setup_paths import OUTPUT_PATH, BEHAVIOR_DATA_PATH
 class TestMovieDataNwbConversions(unittest.TestCase):
     savedir = OUTPUT_PATH
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.movie_files = list((BEHAVIOR_DATA_PATH / "videos" / "CFR").iterdir())
-        self.number_of_movie_files = len(self.movie_files)
         self.nwb_converter = self.create_movie_converter()
         self.nwbfile_path = os.path.join(self.savedir, "movie_test.nwb")
-        self.starting_times = [0.0, 50.0, 100.0, 150.0, 175.0]
 
     def create_movie_converter(self):
         class MovieTestNWBConverter(NWBConverter):
@@ -32,7 +30,7 @@ class TestMovieDataNwbConversions(unittest.TestCase):
         return metadata
 
     def test_movie_starting_times(self):
-        starting_times = self.starting_times
+        starting_times = [float(np.random.randint(200)) for i in range(len(self.movie_files))]
         conversion_opts = dict(Movie=dict(starting_times=starting_times, external_mode=False))
         self.nwb_converter.run_conversion(
             nwbfile_path=self.nwbfile_path,
@@ -83,7 +81,7 @@ class TestMovieDataNwbConversions(unittest.TestCase):
             assert mod[movie_interface_name].starting_time == 0.0
 
     def test_movie_custom_module(self):
-        starting_times = self.starting_times
+        starting_times = [float(np.random.randint(200)) for i in range(len(self.movie_files))]
         module_name = "TestModule"
         module_description = "This is a test module."
         conversion_opts = dict(
@@ -106,7 +104,7 @@ class TestMovieDataNwbConversions(unittest.TestCase):
             assert module_description == nwbfile.processing[module_name].description
 
     def test_movie_chunking(self):
-        starting_times = self.starting_times
+        starting_times = [float(np.random.randint(200)) for i in range(len(self.movie_files))]
         conv_ops = dict(
             Movie=dict(external_mode=False, stub_test=True, starting_times=starting_times, chunk_data=False)
         )
@@ -123,7 +121,7 @@ class TestMovieDataNwbConversions(unittest.TestCase):
                 assert mod[movie_interface_name].data.chunks is not None  # TODO retrive storage_layout of hdf5 dataset
 
     def test_movie_external_mode(self):
-        starting_times = self.starting_times
+        starting_times = [float(np.random.randint(200)) for i in range(len(self.movie_files))]
         conversion_opts = dict(Movie=dict(starting_times=starting_times, external_mode=True))
         self.nwb_converter.run_conversion(
             nwbfile_path=self.nwbfile_path,
@@ -172,7 +170,7 @@ class TestMovieDataNwbConversions(unittest.TestCase):
             )
 
     def test_movie_stub(self):
-        starting_times = self.starting_times
+        starting_times = [float(np.random.randint(200)) for i in range(len(self.movie_files))]
         conversion_opts = dict(Movie=dict(starting_times=starting_times, external_mode=False, stub_test=True))
         self.nwb_converter.run_conversion(
             nwbfile_path=self.nwbfile_path,
