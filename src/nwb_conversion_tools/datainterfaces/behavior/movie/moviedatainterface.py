@@ -1,6 +1,7 @@
 """Authors: Saksham Sharda, Cody Baker and Ben Dichter."""
 from pathlib import Path
 from typing import Optional
+from copy import deepcopy
 from warnings import warn
 
 import psutil
@@ -188,6 +189,8 @@ class MovieInterface(BaseDataInterface):
                 f"Image series as input {image_series_kwargs_list} \n"
                 f"starting times = {starting_times} \n"
                 f"Image series after _check_duplicates {image_series_kwargs_list_updated}"
+                f"files provide here {file_paths}"
+                f"number of files {len(file_paths)}"
             )
         else:
             if len(image_series_kwargs_list_updated) == 1:
