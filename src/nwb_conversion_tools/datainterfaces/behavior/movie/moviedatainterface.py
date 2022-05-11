@@ -140,8 +140,8 @@ class MovieInterface(BaseDataInterface):
             assert isinstance(starting_times, list) and all(
                 [isinstance(x, float) for x in starting_times]
             ), "Argument 'starting_times' must be a list of floats."
-        image_series_kwargs_list = metadata.get("Behavior", dict()).get(
-            "Movies", self.get_metadata()["Behavior"]["Movies"]
+        image_series_kwargs_list = deepcopy(
+            metadata.get("Behavior", dict()).get("Movies", self.get_metadata()["Behavior"]["Movies"])
         )
         assert len(image_series_kwargs_list) == len(self.source_data["file_paths"]), (
             "Mismatch in metadata dimensions "
