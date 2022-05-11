@@ -32,7 +32,7 @@ class MovieInterface(BaseDataInterface):
             Many movie storage formats segment a sequence of movies over the course of the experiment.
             Pass the file paths for this movies as a list in sorted, consecutive order.
         """
-        super().__init__(file_paths=file_paths)
+        super().__init__(file_paths=deepcopy(file_paths))
 
     def get_metadata_schema(self):
         metadata_schema = super().get_metadata_schema()
