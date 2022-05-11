@@ -136,10 +136,11 @@ class MovieInterface(BaseDataInterface):
         """
         file_paths = self.source_data["file_paths"]
 
-        if starting_times is not None:
-            assert isinstance(starting_times, list) and all(
-                [isinstance(x, float) for x in starting_times]
-            ), "Argument 'starting_times' must be a list of floats."
+        starting_times_local = deepcopy(starting_times)
+        if starting_times_local is not None:
+            assert isinstance(starting_times_local, list) and all(
+                [isinstance(x, float) for x in starting_times_local]
+            ), "Argument 'starting_times_local' must be a list of floats."
         image_series_kwargs_list = deepcopy(
             metadata.get("Behavior", dict()).get("Movies", self.get_metadata()["Behavior"]["Movies"])
         )
@@ -182,20 +183,20 @@ class MovieInterface(BaseDataInterface):
             return image_series_kwargs_list_unique, file_paths_list
 
         image_series_kwargs_list_updated, file_paths_list = _check_duplicates(image_series_kwargs_list)
-        if starting_times is not None:
-            assert len(starting_times) == len(image_series_kwargs_list_updated), (
-                f"starting times list length {len(starting_times)} must be equal to number of unique "
+        if starting_times_local is not None:
+            assert len(starting_times_local) == len(image_series_kwargs_list_updated), (
+                f"starting times list length {len(starting_times_local)} must be equal to number of unique "
                 f"ImageSeries {len(image_series_kwargs_list_updated)} \n"
                 f"Image series as input {image_series_kwargs_list} \n"
-                f"starting times = {starting_times} \n"
+                f"starting times = {starting_times_local} \n"
                 f"Image series after _check_duplicates {image_series_kwargs_list_updated}"
                 f"files provide here {file_paths}"
                 f"number of files {len(file_paths)}"
             )
         else:
             if len(image_series_kwargs_list_updated) == 1:
-                warn("starting_times not provided, setting to 0.0")
-                starting_times = [0.0]
+                warn("starting_times_local not provided, setting to 0.0")
+                starting_times_local = [0.0]
             else:
                 raise ValueError("provide starting times as a list of len " f"{len(image_series_kwargs_list_updated)}")
         for j, (image_series_kwargs, file_list) in enumerate(zip(image_series_kwargs_list_updated, file_paths_list)):
@@ -203,7 +204,7 @@ class MovieInterface(BaseDataInterface):
                 with VideoCaptureContext(str(file_list[0])) as vc:
                     fps = vc.get_movie_fps()
                 image_series_kwargs.update(
-                    starting_time=starting_times[j], rate=fps, format="external", external_file=file_list
+                    starting_time=starting_times_local[j], rate=fps, format="external", external_file=file_list
                 )
             else:
                 file = file_list[0]
@@ -220,7 +221,7 @@ class MovieInterface(BaseDataInterface):
                         video_capture_ob.frame_count = 10
                     total_frames = video_capture_ob.get_movie_frame_count()
                     frame_shape = video_capture_ob.get_frame_shape()
-                    timestamps = starting_times[j] + video_capture_ob.get_movie_timestamps()
+                    timestamps = starting_times_local[j] + video_capture_ob.get_movie_timestamps()
                     fps = video_capture_ob.get_movie_fps()
                 maxshape = (total_frames, *frame_shape)
                 best_gzip_chunk = (1, frame_shape[0], frame_shape[1], 3)
@@ -277,7 +278,7 @@ class MovieInterface(BaseDataInterface):
                     )
                 image_series_kwargs.update(data=data)
                 if check_regular_series(series=timestamps):
-                    image_series_kwargs.update(starting_time=starting_times[j], rate=fps)
+                    image_series_kwargs.update(starting_time=starting_times_local[j], rate=fps)
                 else:
                     image_series_kwargs.update(timestamps=timestamps)
             if module_name is None:
