@@ -8,6 +8,7 @@ from pynwb import NWBHDF5IO, NWBFile
 from pynwb.file import Subject
 
 from .tools.nwb_helpers import get_default_nwbfile_metadata, make_nwbfile_from_metadata
+from .tools.data_transfer import TransferClient
 from .utils import (
     get_schema_from_hdmf_class,
     get_schema_for_NWBFile,
@@ -60,10 +61,15 @@ class NWBConverter:
         """Validate source_data against Converter source_schema."""
         cls._validate_source_data(source_data=source_data, verbose=verbose)
 
-    def __init__(self, source_data: Dict[str, dict], verbose: bool = True):
+    def __init__(
+        self, source_data: Dict[str, dict], verbose: bool = True, transfer_client: Optional[TransferClient] = None
+    ):
         """Validate source_data against source_schema and initialize all data interfaces."""
         self.verbose = verbose
         self._validate_source_data(source_data=source_data, verbose=self.verbose)
+
+        if transfer_client is not None:
+            transfer_client.transfer_data()
         self.data_interface_objects = {
             name: data_interface(**source_data[name])
             for name, data_interface in self.data_interface_classes.items()
