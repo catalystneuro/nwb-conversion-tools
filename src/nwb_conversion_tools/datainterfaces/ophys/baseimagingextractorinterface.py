@@ -72,10 +72,43 @@ class BaseImagingExtractorInterface(BaseDataInterface):
         nwbfile: Optional[NWBFile] = None,
         metadata: Optional[dict] = None,
         overwrite: bool = False,
-        save_path: OptionalFilePathType = None,
+        stub_test: bool = False,
+        save_path: OptionalFilePathType = None,  # TODO deprecate on or after Aug 1
     ):
+        """
+        Primary function for converting raw (unprocessed) RecordingExtractor data to the NWB standard.
+
+        nwbfile_path: FilePathType
+            Path for where to write or load (if overwrite=False) the NWBFile.
+            If specified, this context will always write to this location.
+        nwbfile: NWBFile
+            nwb file to which the recording information is to be added
+        metadata: dict
+            metadata info for constructing the nwb file (optional).
+            Should be of the format::
+
+                metadata['Ecephys']['ElectricalSeries'] = dict(name=my_name, description=my_description)
+        overwrite: bool, optional
+            Whether or not to overwrite the NWBFile if one exists at the nwbfile_path.
+        The default is False (append mode).
+        starting_time: float (optional)
+            Sets the starting time of the ElectricalSeries to a manually set value.
+            Increments timestamps if use_times is True.
+        use_times: bool
+            If True, the times are saved to the nwb file using recording.frame_to_time(). If False (default),
+            the sampling rate is used.
+        stub_test: bool, optional (default False)
+            If True, will truncate the data to run the conversion faster and take up less memory.
+
+        """
+        if stub_test:
+            end_frame = max(self.imaging_extractor.get_frame_size()) + 1
+            imaging = self.imaging_extractor.frame_slice(start_frame=0, end_frame=end_frame)
+        else:
+            imaging = self.imaging_extractor
+
         write_imaging(
-            imaging=self.imaging_extractor,
+            imaging=imaging,
             nwbfile_path=nwbfile_path,
             nwbfile=nwbfile,
             metadata=metadata,
