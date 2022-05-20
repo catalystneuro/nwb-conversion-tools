@@ -135,11 +135,10 @@ def transfer_globus_content(
                 for source_file in batched_source_files:
                     file_name = Path(source_file).name
                     f.write(f"{file_name} {file_name}\n")
-
             transfer_command = (
                 "globus transfer "
                 f"{source_endpoint_id}:{source_folder} {destination_endpoint_id}:/{destination_folder_name} "
-                f"--batch {paths_file}"
+                f"--batch {paths_file} --label {Path(batched_source_files[0]).parent.name}"
             )
             transfer_message = deploy_process(
                 command=transfer_command,
@@ -179,8 +178,8 @@ def transfer_globus_content(
         """Track the progress of transfers."""
         if display_progress:
             all_pbars = [
-                tqdm(desc=f"Transferring batch #{j}...", total=total_size, position=j, leave=True)
-                for j, total_size in enumerate(task_total_sizes.values(), start=1)
+                tqdm(desc=f"Transferring task ID {task_id}...", total=total_size, leave=True)
+                for _, (task_id, total_size) in enumerate(task_total_sizes.items(), start=1)
             ]
         all_status = [False for _ in task_total_sizes]
         success = all(all_status)
