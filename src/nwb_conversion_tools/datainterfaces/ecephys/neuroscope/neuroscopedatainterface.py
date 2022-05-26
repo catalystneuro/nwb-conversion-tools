@@ -99,6 +99,7 @@ class NeuroscopeRecordingInterface(BaseRecordingExtractorInterface):
         gain: Optional[float] = None,
         xml_file_path: OptionalFilePathType = None,
         spikeextractors_backend: Optional[bool] = False,
+        verbose: bool = True,
     ):
         """
         Load and prepare raw acquisition data and corresponding metadata from the Neuroscope format (.dat files).
@@ -126,10 +127,10 @@ class NeuroscopeRecordingInterface(BaseRecordingExtractorInterface):
 
         if spikeextractors_backend:
             self.RX = se.NeuroscopeRecordingExtractor
-            super().__init__(file_path=file_path, xml_file_path=xml_file_path)
+            super().__init__(file_path=file_path, xml_file_path=xml_file_path, verbose=verbose)
             self.recording_extractor = OldToNewRecording(oldapi_recording_extractor=self.recording_extractor)
         else:
-            super().__init__(file_path=file_path)
+            super().__init__(file_path=file_path, verbose=verbose)
 
         self.recording_extractor = subset_shank_channels(
             recording_extractor=self.recording_extractor, xml_file_path=xml_file_path
@@ -277,6 +278,7 @@ class NeuroscopeSortingInterface(BaseSortingExtractorInterface):
         keep_mua_units: bool = True,
         exclude_shanks: Optional[list] = None,
         xml_file_path: OptionalFilePathType = None,
+        verbose: bool = True,
         # TODO: we can enable this once
         #     a) waveforms on unit columns support conversion factor in NWB
         #     b) write_sorting utils support writing said waveforms properly to a units table
@@ -319,6 +321,7 @@ class NeuroscopeSortingInterface(BaseSortingExtractorInterface):
             keep_mua_units=keep_mua_units,
             exclude_shanks=exclude_shanks,
             xml_file_path=xml_file_path,
+            verbose=verbose,
             # TODO: we can enable this once
             #     a) waveforms on unit columns support conversion factor in NWB
             #     b) write_sorting utils support writing said waveforms properly to a units table

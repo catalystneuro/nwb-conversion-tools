@@ -10,12 +10,47 @@ from hdmf.data_utils import DataChunkIterator
 from pynwb import NWBFile
 from pynwb.image import ImageSeries
 from tqdm import tqdm
-from nwb_conversion_tools.utils import check_regular_series
+from nwb_conversion_tools.utils import calculate_regular_series_rate
 
 from .movie_utils import VideoCaptureContext
 from ....basedatainterface import BaseDataInterface
 from ....tools.nwb_helpers import get_module
 from ....utils import get_schema_from_hdmf_class, get_base_schema
+
+
+def _check_duplicates(movies_metadata, file_paths):
+    """
+    Accumulates metadata for when multiple video files go in one ImageSeries container.
+
+    Parameters
+    ----------
+    movies_metadata: List[Dict]
+        The metadata corresponding to the movies should be organized as follow
+                movies_metadata =[
+                            dict(name="Video1", description="This is the first video.."),
+                            dict(name="SecondVideo", description="Video #2 details..."),
+                ]
+    -------
+    movies_metadata_unique: List[Dict]
+        if metadata has common names (case when the user intends to put multiple video files
+        under the same ImageSeries container), this removes the duplicate names.
+    file_paths_list: List[List[str]]
+        len(file_paths_list)==len(movies_metadata_unique)
+    """
+
+    keys_set = []
+    movies_metadata_unique = []
+    file_paths_list = []
+    for n, movie in enumerate(movies_metadata):
+        if movie["name"] not in keys_set:
+            keys_set.append(movie["name"])
+            file_paths_list.append([file_paths[n]])
+            movies_metadata_unique.append(dict(movie))
+        else:
+            idx = keys_set.index(movie["name"])
+            file_paths_list[idx].append(file_paths[n])
+
+    return movies_metadata_unique, file_paths_list
 
 
 class MovieInterface(BaseDataInterface):
@@ -71,6 +106,7 @@ class MovieInterface(BaseDataInterface):
         stub_test: bool = False,
         external_mode: bool = True,
         starting_times: Optional[list] = None,
+        timestamps: Optional[list] = None,
         chunk_data: bool = True,
         module_name: Optional[str] = None,
         module_description: Optional[str] = None,
@@ -115,6 +151,8 @@ class MovieInterface(BaseDataInterface):
         starting_times : list, optional
             List of start times for each movie. If unspecified, assumes that the movies in the file_paths list are in
             sequential order and are contiguous.
+        timestamps : list, optional
+            List of timestamps for the movies. If unspecified, timestamps are extracted from each movie data.
         chunk_data : bool, optional
             If True, uses a DataChunkIterator to read and write the movie, reducing overhead RAM usage at the cost of
             reduced conversion speed (compared to loading video entirely into RAM as an array). This will also force to
@@ -139,68 +177,50 @@ class MovieInterface(BaseDataInterface):
             assert isinstance(starting_times, list) and all(
                 [isinstance(x, float) for x in starting_times]
             ), "Argument 'starting_times' must be a list of floats."
-        image_series_kwargs_list = metadata.get("Behavior", dict()).get(
-            "Movies", self.get_metadata()["Behavior"]["Movies"]
+
+        movies_metadata = metadata.get("Behavior", dict()).get("Movies", None)
+        if movies_metadata is None:
+            movies_metadata = self.get_metadata()["Behavior"]["Movies"]
+
+        number_of_file_paths = len(file_paths)
+        assert len(movies_metadata) == number_of_file_paths, (
+            "Incomplete metadata "
+            f"(number of metadata in movie {len(movies_metadata)})"
+            f"is not equal to the number of file_paths {number_of_file_paths}"
         )
-        assert len(image_series_kwargs_list) == len(self.source_data["file_paths"]), (
-            "Mismatch in metadata dimensions "
-            f"({len(image_series_kwargs_list)}) vs. file_paths ({len(self.source_data['file_paths'])})!"
-        )
 
-        def _check_duplicates(image_series_kwargs_list):
-            """
-            Accumulates metadata for when multiple video files go in one ImageSeries container.
+        movies_name_list = [movie["name"] for movie in movies_metadata]
+        some_movie_names_are_not_unique = len(set(movies_name_list)) < len(movies_name_list)
+        if some_movie_names_are_not_unique:
+            assert external_mode, "For multiple video files under the same ImageSeries name, use exernal_mode=True."
 
-            Parameters
-            ----------
-            image_series_kwargs_list: List[Dict]
-                metadata passed into run_conversion
+        movies_metadata_unique, file_paths_list = _check_duplicates(movies_metadata, file_paths)
 
-            Returns
-            -------
-            image_series_kwargs_list_unique: List[Dict]
-                if metadata has common names (case when the user intends to put multiple video files
-                under the same ImageSeries container), this removes the duplicate names.
-            file_paths_list: List[List[str]]
-                len(file_paths_list)==len(image_series_kwargs_list_unique)
-            """
-            image_series_kwargs_list_keys = [i["name"] for i in image_series_kwargs_list]
-            if len(set(image_series_kwargs_list_keys)) < len(image_series_kwargs_list_keys):
-                assert external_mode, "For multiple video files under the same ImageSeries name, use exernal_mode=True."
-            keys_set = []
-            image_series_kwargs_list_unique = []
-            file_paths_list = []
-            for n, image_series_kwargs in enumerate(image_series_kwargs_list):
-                if image_series_kwargs["name"] not in keys_set:
-                    keys_set.append(image_series_kwargs["name"])
-                    file_paths_list.append([file_paths[n]])
-                    image_series_kwargs_list_unique.append(dict(image_series_kwargs))
-                else:
-                    idx = keys_set.index(image_series_kwargs["name"])
-                    file_paths_list[idx].append(file_paths[n])
-            return image_series_kwargs_list_unique, file_paths_list
-
-        image_series_kwargs_list_updated, file_paths_list = _check_duplicates(image_series_kwargs_list)
         if starting_times is not None:
-            assert len(starting_times) == len(image_series_kwargs_list_updated), (
+            assert len(starting_times) == len(movies_metadata_unique), (
                 f"starting times list length {len(starting_times)} must be equal to number of unique "
-                f"ImageSeries {len(image_series_kwargs_list_updated)} \n"
-                f"Image series as input {image_series_kwargs_list} \n"
+                f"ImageSeries {len(movies_metadata_unique)} \n"
+                f"Movies metadata provided as input {movies_metadata} \n"
                 f"starting times = {starting_times} \n"
-                f"Image series after _check_duplicates {image_series_kwargs_list_updated}"
+                f"Image series after _check_duplicates {movies_metadata_unique}"
             )
         else:
-            if len(image_series_kwargs_list_updated) == 1:
+            if len(movies_metadata_unique) == 1:
                 warn("starting_times not provided, setting to 0.0")
                 starting_times = [0.0]
             else:
-                raise ValueError("provide starting times as a list of len " f"{len(image_series_kwargs_list_updated)}")
-        for j, (image_series_kwargs, file_list) in enumerate(zip(image_series_kwargs_list_updated, file_paths_list)):
+                raise ValueError("provide starting times as a list of len " f"{len(movies_metadata_unique)}")
+
+        for j, (image_series_kwargs, file_list) in enumerate(zip(movies_metadata_unique, file_paths_list)):
+
             if external_mode:
                 with VideoCaptureContext(str(file_list[0])) as vc:
                     fps = vc.get_movie_fps()
+                    if timestamps is None:
+                        timestamps = starting_times[j] + vc.get_movie_timestamps()
                 image_series_kwargs.update(
-                    starting_time=starting_times[j], rate=fps, format="external", external_file=file_list
+                    format="external",
+                    external_file=file_list,
                 )
             else:
                 file = file_list[0]
@@ -273,10 +293,19 @@ class MovieInterface(BaseDataInterface):
                         chunks=best_gzip_chunk,
                     )
                 image_series_kwargs.update(data=data)
-                if check_regular_series(series=timestamps):
-                    image_series_kwargs.update(starting_time=starting_times[j], rate=fps)
-                else:
-                    image_series_kwargs.update(timestamps=timestamps)
+
+            rate = calculate_regular_series_rate(series=timestamps)
+            if rate is not None:
+                if fps != rate:
+                    warn(
+                        f"The fps={fps} from movie data is unequal to the difference in "
+                        f"regular timestamps. Using fps={rate} from timestamps instead.",
+                        UserWarning,
+                    )
+                image_series_kwargs.update(starting_time=starting_times[j], rate=rate)
+            else:
+                image_series_kwargs.update(timestamps=timestamps)
+
             if module_name is None:
                 nwbfile.add_acquisition(ImageSeries(**image_series_kwargs))
             else:

@@ -46,7 +46,7 @@ def test_tutorials():
     sampling_frequency = 30000.0  # Hz
     stub_test = False
     test_dir = Path(mkdtemp())
-    output_file = str(test_dir / "TestTutorial.nwb")
+    nwbfile_path = str(test_dir / "TestTutorial.nwb")
     source_data = dict(
         RecordingTutorial=dict(duration=duration, num_channels=num_channels, sampling_frequency=sampling_frequency),
         SortingTutorial=dict(duration=duration, num_units=num_units, sampling_frequency=sampling_frequency),
@@ -54,14 +54,13 @@ def test_tutorials():
     converter = TutorialNWBConverter(source_data=source_data)
     metadata = converter.get_metadata()
     metadata["NWBFile"]["session_description"] = "NWB Conversion Tools tutorial."
-    metadata["NWBFile"]["session_start_time"] = datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S")
+    metadata["NWBFile"]["session_start_time"] = datetime.now().astimezone()
     metadata["NWBFile"]["experimenter"] = ["My name"]
     metadata["Subject"] = dict(subject_id="Name of imaginary testing subject (required for DANDI upload)")
     conversion_options = dict(RecordingTutorial=dict(stub_test=stub_test), SortingTutorial=dict())
     converter.run_conversion(
+        nwbfile_path=nwbfile_path,
         metadata=metadata,
-        nwbfile_path=output_file,
-        save_to_file=True,
         overwrite=True,
         conversion_options=conversion_options,
     )
@@ -74,15 +73,15 @@ def test_tutorial_interfaces():
         )
 
     test_dir = Path(mkdtemp())
-    output_file = str(test_dir / "TestTutorial.nwb")
+    nwbfile_path = str(test_dir / "TestTutorial.nwb")
     source_data = dict(
         RecordingTutorial=dict(),
         SortingTutorial=dict(),
     )
     converter = TutorialNWBConverter(source_data=source_data)
     metadata = converter.get_metadata()
-    metadata["NWBFile"]["session_start_time"] = datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S")
-    converter.run_conversion(nwbfile_path=output_file, overwrite=True, metadata=metadata)
+    metadata["NWBFile"]["session_start_time"] = datetime.now().astimezone()
+    converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True, metadata=metadata)
 
 
 def test_pkl_interface():
@@ -105,8 +104,8 @@ def test_pkl_interface():
     )
     converter = SpikeInterfaceTestNWBConverter(source_data=source_data)
     metadata = converter.get_metadata()
-    metadata["NWBFile"]["session_start_time"] = datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S")
-    converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True, metadata=metadata)
+    metadata["NWBFile"]["session_start_time"] = datetime.now().astimezone()
+    converter.run_conversion(nwbfile_path=nwbfile_path, metadata=metadata, overwrite=True)
 
     nwb_recording = se.NwbRecordingExtractor(file_path=nwbfile_path)
     nwb_sorting = se.NwbSortingExtractor(file_path=nwbfile_path)
@@ -126,9 +125,10 @@ class TestSortingInterface(unittest.TestCase):
         sorting.add_unit(unit_id=3, times=np.arange(self.sorting_start_frames[2], self.num_frames))
 
         class TestSortingInterface(BaseSortingExtractorInterface):
-            def __init__(self):
+            def __init__(self, verbose: bool = True):
                 self.sorting_extractor = sorting
                 self.source_data = dict()
+                self.verbose = verbose
 
         class TempConverter(NWBConverter):
             data_interface_classes = dict(TestSortingInterface=TestSortingInterface)
@@ -141,7 +141,7 @@ class TestSortingInterface(unittest.TestCase):
         minimal_nwbfile = test_dir / "stub_temp.nwb"
         conversion_options = dict(TestSortingInterface=dict(stub_test=True))
         metadata = self.test_sorting_interface.get_metadata()
-        metadata["NWBFile"]["session_start_time"] = datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S")
+        metadata["NWBFile"]["session_start_time"] = datetime.now().astimezone()
         self.test_sorting_interface.run_conversion(
             nwbfile_path=minimal_nwbfile, metadata=metadata, conversion_options=conversion_options
         )
@@ -155,7 +155,7 @@ class TestSortingInterface(unittest.TestCase):
         test_dir = Path(mkdtemp())
         minimal_nwbfile = test_dir / "temp.nwb"
         metadata = self.test_sorting_interface.get_metadata()
-        metadata["NWBFile"]["session_start_time"] = datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S")
+        metadata["NWBFile"]["session_start_time"] = datetime.now().astimezone()
         self.test_sorting_interface.run_conversion(nwbfile_path=minimal_nwbfile, metadata=metadata)
         with NWBHDF5IO(minimal_nwbfile, "r") as io:
             nwbfile = io.read()

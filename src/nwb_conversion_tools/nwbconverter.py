@@ -1,12 +1,13 @@
 """Authors: Cody Baker and Ben Dichter."""
+import json
 from jsonschema import validate
-from pathlib import Path
 from typing import Optional, Dict
+from pathlib import Path
 
-from pynwb import NWBHDF5IO, NWBFile
+from pynwb import NWBFile
 from pynwb.file import Subject
 
-from .tools.nwb_helpers import get_default_nwbfile_metadata, make_nwbfile_from_metadata
+from .tools.nwb_helpers import get_default_nwbfile_metadata, make_nwbfile_from_metadata, make_or_load_nwbfile
 from .utils import (
     get_schema_from_hdmf_class,
     get_schema_for_NWBFile,
@@ -15,6 +16,8 @@ from .utils import (
     unroot_schema,
     fill_defaults,
 )
+
+from .utils.json_schema import NWBMetaDataEncoder
 
 
 class NWBConverter:
@@ -81,7 +84,9 @@ class NWBConverter:
         for data_interface in self.data_interface_objects.values():
             interface_schema = unroot_schema(data_interface.get_metadata_schema())
             metadata_schema = dict_deep_update(metadata_schema, interface_schema)
-        fill_defaults(metadata_schema, self.get_metadata())
+
+        default_values = self.get_metadata()
+        fill_defaults(metadata_schema, default_values)
         return metadata_schema
 
     def get_metadata(self):
@@ -101,7 +106,11 @@ class NWBConverter:
 
     def validate_metadata(self, metadata: Dict[str, dict]):
         """Validate metadata against Converter metadata_schema."""
-        validate(instance=metadata, schema=self.get_metadata_schema())
+        encoder = NWBMetaDataEncoder()
+        # The encoder produces a serialiazed object so we de serialized it for comparison
+        serialied_metadata = encoder.encode(metadata)
+        decoded_metadata = json.loads(serialied_metadata)
+        validate(instance=decoded_metadata, schema=self.get_metadata_schema())
         if self.verbose:
             print("Metadata is valid!")
 
@@ -118,39 +127,39 @@ class NWBConverter:
 
     def run_conversion(
         self,
-        metadata: Optional[dict] = None,
-        save_to_file: Optional[bool] = True,
         nwbfile_path: Optional[str] = None,
-        overwrite: Optional[bool] = False,
         nwbfile: Optional[NWBFile] = None,
+        metadata: Optional[dict] = None,
+        overwrite: bool = False,
         conversion_options: Optional[dict] = None,
-    ):
+    ) -> NWBFile:
         """
         Run the NWB conversion over all the instantiated data interfaces.
 
         Parameters
         ----------
-        metadata : dict, optional
-        save_to_file : bool, optional
-            If False, returns an NWBFile object instead of writing it to the nwbfile_path. The default is True.
-        nwbfile_path : str, optional
-            Location to save the NWBFile, if save_to_file is True. The default is None.
-        overwrite : bool, optional
-            If True, replaces any existing NWBFile at the nwbfile_path location, if save_to_file is True.
-            If False, appends the existing NWBFile at the nwbfile_path location, if save_to_file is True.
-            The default is False.
-        nwbfile : NWBFile, optional
-            A pre-existing NWBFile object to be appended (instead of reading from nwbfile_path).
-        conversion_options : dict, optional
+        nwbfile_path: FilePathType
+            Path for where to write or load (if overwrite=False) the NWBFile.
+            If specified, the context will always write to this location.
+        nwbfile: NWBFile, optional
+            An in-memory NWBFile object to write to the location.
+        metadata: dict, optional
+            Metadata dictionary with information used to create the NWBFile when one does not exist or overwrite=True.
+        overwrite: bool, optional
+            Whether or not to overwrite the NWBFile if one exists at the nwbfile_path.
+            The default is False (append mode).
+        verbose: bool, optional
+            If 'nwbfile_path' is specified, informs user after a successful write operation.
+            The default is True.
+        conversion_options: dict, optional
             Similar to source_data, a dictionary containing keywords for each interface for which non-default
             conversion specification is requested.
-        """
-        assert (
-            not save_to_file and nwbfile_path is None
-        ) or nwbfile is None, (
-            "Either pass a nwbfile_path location with save_to_file=True, or a nwbfile object, but not both!"
-        )
 
+        Returns
+        -------
+        nwbfile: NWBFile
+            The in-memory NWBFile object after all conversion operations are complete.
+        """
         if metadata is None:
             metadata = self.get_metadata()
         self.validate_metadata(metadata=metadata)
@@ -161,29 +170,15 @@ class NWBConverter:
         conversion_options_to_run = dict_deep_update(default_conversion_options, conversion_options)
         self.validate_conversion_options(conversion_options=conversion_options_to_run)
 
-        if save_to_file:
-            load_kwargs = dict(path=nwbfile_path)
-            if nwbfile_path is None:
-                raise TypeError("A path to the output file must be provided, but nwbfile_path got value None")
-            if Path(nwbfile_path).is_file() and not overwrite:
-                load_kwargs.update(mode="r+", load_namespaces=True)
-            else:
-                load_kwargs.update(mode="w")
-            with NWBHDF5IO(**load_kwargs) as io:
-                if load_kwargs["mode"] == "r+":
-                    nwbfile = io.read()
-                elif nwbfile is None:
-                    nwbfile = make_nwbfile_from_metadata(metadata=metadata)
-                for interface_name, data_interface in self.data_interface_objects.items():
-                    data_interface.run_conversion(
-                        nwbfile, metadata, **conversion_options_to_run.get(interface_name, dict())
-                    )
-                io.write(nwbfile)
-            if self.verbose:
-                print(f"NWB file saved at {nwbfile_path}!")
-        else:
-            if nwbfile is None:
-                nwbfile = make_nwbfile_from_metadata(metadata=metadata)
+        with make_or_load_nwbfile(
+            nwbfile_path=nwbfile_path,
+            nwbfile=nwbfile,
+            metadata=metadata,
+            overwrite=overwrite,
+            verbose=self.verbose,
+        ) as nwbfile_out:
             for interface_name, data_interface in self.data_interface_objects.items():
-                data_interface.run_conversion(nwbfile, metadata, **conversion_options.get(interface_name, dict()))
-            return nwbfile
+                data_interface.run_conversion(
+                    nwbfile=nwbfile_out, metadata=metadata, **conversion_options_to_run.get(interface_name, dict())
+                )
+        return nwbfile_out

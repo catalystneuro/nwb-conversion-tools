@@ -1,11 +1,10 @@
 """Authors: Cody Baker and Ben Dichter."""
 from abc import ABC
 from typing import Optional
-import numpy as np
 
+import numpy as np
 import spikeextractors as se
 import spikeinterface as si
-
 from pynwb import NWBFile
 from pynwb.device import Device
 from pynwb.ecephys import ElectrodeGroup
@@ -20,10 +19,11 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
 
     RX = None
 
-    def __init__(self, **source_data):
+    def __init__(self, verbose: bool = True, **source_data):
         super().__init__(**source_data)
         self.recording_extractor = self.RX(**source_data)
         self.subset_channels = None
+        self.verbose = verbose
 
     def get_metadata_schema(self):
         """Compile metadata schema for the RecordingExtractor."""
@@ -95,26 +95,30 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
 
     def run_conversion(
         self,
-        nwbfile: NWBFile = None,
-        metadata: dict = None,
+        nwbfile_path: OptionalFilePathType = None,
+        nwbfile: Optional[NWBFile] = None,
+        metadata: Optional[dict] = None,
+        overwrite: bool = False,
         stub_test: bool = False,
         starting_time: Optional[float] = None,
         use_times: bool = False,
-        save_path: OptionalFilePathType = None,
-        overwrite: bool = False,
-        write_as: str = "raw",
+        write_as: Optional[str] = None,
         write_electrical_series: bool = True,
         es_key: str = None,
-        compression: Optional[str] = "gzip",
+        compression: Optional[str] = None,
         compression_opts: Optional[int] = None,
         iterator_type: Optional[str] = None,
         iterator_opts: Optional[dict] = None,
+        save_path: OptionalFilePathType = None,  # TODO: to be removed, depreceation applied at tools level
     ):
         """
         Primary function for converting raw (unprocessed) RecordingExtractor data to the NWB standard.
 
         Parameters
         ----------
+        nwbfile_path: FilePathType
+            Path for where to write or load (if overwrite=False) the NWBFile.
+            If specified, this context will always write to this location.
         nwbfile: NWBFile
             nwb file to which the recording information is to be added
         metadata: dict
@@ -122,18 +126,15 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
             Should be of the format::
 
                 metadata['Ecephys']['ElectricalSeries'] = dict(name=my_name, description=my_description)
-
+        overwrite: bool, optional
+            Whether or not to overwrite the NWBFile if one exists at the nwbfile_path.
+        The default is False (append mode).
         starting_time: float (optional)
             Sets the starting time of the ElectricalSeries to a manually set value.
             Increments timestamps if use_times is True.
         use_times: bool
             If True, the times are saved to the nwb file using recording.frame_to_time(). If False (default),
             the sampling rate is used.
-        save_path: OptionalFilePathType
-            Required if an nwbfile is not passed. Must be the path to the nwbfile
-            being appended, otherwise one is created and written.
-        overwrite: bool
-            If using save_path, whether or not to overwrite the NWBFile if it already exists.
         stub_test: bool, optional (default False)
             If True, will truncate the data to run the conversion faster and take up less memory.
         write_as: str (optional, defaults to 'raw')
@@ -165,19 +166,22 @@ class BaseRecordingExtractorInterface(BaseDataInterface, ABC):
             recording = self.subset_recording(stub_test=stub_test)
         else:
             recording = self.recording_extractor
+
         write_recording(
             recording=recording,
+            nwbfile_path=nwbfile_path,
             nwbfile=nwbfile,
             metadata=metadata,
+            overwrite=overwrite,
+            verbose=self.verbose,
             starting_time=starting_time,
             use_times=use_times,
             write_as=write_as,
             write_electrical_series=write_electrical_series,
             es_key=es_key,
-            save_path=save_path,
-            overwrite=overwrite,
             compression=compression,
             compression_opts=compression_opts,
             iterator_type=iterator_type,
             iterator_opts=iterator_opts,
+            save_path=save_path,  # TODO: to be removed, depreceation applied at tools level
         )
