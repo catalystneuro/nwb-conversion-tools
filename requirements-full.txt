@@ -22,3 +22,4 @@ pyopenephys==1.1.2
 sonpy>=1.7.1
 tiffile==2018.10.18
 ndx-dandi-icephys>=0.4.0
+pillow==9.1.1
