@@ -96,7 +96,7 @@ def add_two_photon_series(imaging, nwbfile, metadata, buffer_size=10, use_times=
     Adds two photon series from imaging object as TwoPhotonSeries to nwbfile object.
     """
     metadata = dict_deep_update(default_ophys_metadata(), metadata)
-    metadata = safe_update(metadata, get_nwb_imaging_metadata(imaging))
+    metadata = safe_update(get_nwb_imaging_metadata(imaging), metadata)
     # Tests if ElectricalSeries already exists in acquisition
     nwb_es_names = [ac for ac in nwbfile.acquisition]
     opts = metadata["Ophys"]["TwoPhotonSeries"][0]
