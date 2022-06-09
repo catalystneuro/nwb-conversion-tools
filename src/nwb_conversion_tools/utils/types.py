@@ -4,12 +4,14 @@ from typing import Optional, Union
 from typing import TypeVar
 
 import numpy as np
+from numpy.typing import ArrayLike, DTypeLike
 
 FilePathType = TypeVar("FilePathType", str, Path)
 FolderPathType = TypeVar("FolderPathType", str, Path)
 OptionalFilePathType = Optional[FilePathType]
 OptionalFolderPathType = Optional[FolderPathType]
-ArrayType = Union[list, np.ndarray]
+ArrayType = ArrayLike
+DtypeType = DTypeLike
 OptionalArrayType = Optional[ArrayType]
 FloatType = float
 IntType = Union[int, np.integer]
