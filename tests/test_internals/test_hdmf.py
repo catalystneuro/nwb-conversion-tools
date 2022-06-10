@@ -34,3 +34,9 @@ def test_min_axis_too_large():
     """uses ~8 MB array with each contiguous axis at around ~8 KB with 5 KB buffer_size and 1 KB chunk size."""
     iterator = SliceableDataChunkIterator(data=np.empty(shape=(1000, 1000)), chunk_mb=1e-3, buffer_gb=5e-6)
     assert iterator.buffer_shape == (22, 22)
+
+
+def test_2D_partial_buffer():
+    """Uses a 32 byte array with 1 GB buffer size (default) and 1 MB chunk size (default)."""
+    iterator = SliceableDataChunkIterator(data=np.empty(shape=(10**7, 20)), buffer_gb=1.1e-2, buffer_shape=(None, 10))
+    assert iterator.buffer_shape == (68482, 10)
