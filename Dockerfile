@@ -1,7 +1,5 @@
-FROM python:3.8
+FROM python:3.8  # Cannot support 3.9 due to numpy conflict and compatibility issue
 WORKDIR /usr/src/
 ADD . nwb-conversion-tools/
 RUN cd nwb-conversion-tools \
-  && pip install -e .[full] \
-  && pip uninstall -y numpy \
-  && pip install numpy==1.21.0  # needed because of a binary incompatability
+  && pip install -e .[full]
