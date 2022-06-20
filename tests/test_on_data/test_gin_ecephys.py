@@ -1,5 +1,4 @@
 import unittest
-from itertools import product
 from pathlib import Path
 from datetime import datetime
 
@@ -28,7 +27,7 @@ from nwb_conversion_tools import (
     NeuroscopeSortingInterface,
     OpenEphysRecordingExtractorInterface,
     PhySortingInterface,
-    KiloSortingInterface,
+    KilosortSortingInterface,
     SpikeGadgetsRecordingInterface,
     SpikeGLXRecordingInterface,
     SpikeGLXLFPInterface,
@@ -79,7 +78,7 @@ class TestEcephysNwbConversions(unittest.TestCase):
             if interface_kwarg in ["file_path", "folder_path"]:
                 self.assertIn(member=interface_kwarg, container=converter.data_interface_objects["TestLFP"].source_data)
         metadata = converter.get_metadata()
-        metadata["NWBFile"].update(session_start_time=datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S"))
+        metadata["NWBFile"].update(session_start_time=datetime.now().astimezone())
         converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True, metadata=metadata)
         recording = converter.data_interface_objects["TestLFP"].recording_extractor
         with NWBHDF5IO(path=nwbfile_path, mode="r") as io:
@@ -191,7 +190,7 @@ class TestEcephysNwbConversions(unittest.TestCase):
                     member=interface_kwarg, container=converter.data_interface_objects["TestRecording"].source_data
                 )
         metadata = converter.get_metadata()
-        metadata["NWBFile"].update(session_start_time=datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S"))
+        metadata["NWBFile"].update(session_start_time=datetime.now().astimezone())
         converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True, metadata=metadata)
         recording = converter.data_interface_objects["TestRecording"].recording_extractor
 
@@ -237,7 +236,7 @@ class TestEcephysNwbConversions(unittest.TestCase):
                 interface_kwargs=dict(folder_path=str(DATA_PATH / "phy" / "phy_example_0")),
             ),
             param(
-                data_interface=KiloSortingInterface,
+                data_interface=KilosortSortingInterface,
                 interface_kwargs=dict(folder_path=str(DATA_PATH / "phy" / "phy_example_0")),
             ),
             param(
@@ -294,7 +293,7 @@ class TestEcephysNwbConversions(unittest.TestCase):
                     member=interface_kwarg, container=converter.data_interface_objects["TestSorting"].source_data
                 )
         metadata = converter.get_metadata()
-        metadata["NWBFile"].update(session_start_time=datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S"))
+        metadata["NWBFile"].update(session_start_time=datetime.now().astimezone())
         converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True, metadata=metadata)
         sorting = converter.data_interface_objects["TestSorting"].sorting_extractor
         sf = sorting.get_sampling_frequency()
@@ -329,7 +328,7 @@ class TestEcephysNwbConversions(unittest.TestCase):
 
         converter = TestConverter(source_data=dict(TestRecording=interface_kwargs))
         metadata = converter.get_metadata()
-        metadata["NWBFile"].update(session_start_time=datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S"))
+        metadata["NWBFile"].update(session_start_time=datetime.now().astimezone())
         converter.run_conversion(
             nwbfile_path=nwbfile_path, overwrite=True, metadata=metadata, conversion_options=conversion_options
         )
@@ -363,7 +362,7 @@ class TestEcephysNwbConversions(unittest.TestCase):
 
         converter = TestConverter(source_data=dict(TestRecording=interface_kwargs))
         metadata = converter.get_metadata()
-        metadata["NWBFile"].update(session_start_time=datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S"))
+        metadata["NWBFile"].update(session_start_time=datetime.now().astimezone())
         converter.run_conversion(
             nwbfile_path=nwbfile_path, overwrite=True, metadata=metadata, conversion_options=conversion_options
         )
@@ -383,7 +382,7 @@ class TestEcephysNwbConversions(unittest.TestCase):
             source_data=dict(TestRecording=dict(file_path=str(DATA_PATH / "neuroscope" / "test1" / "test1.dat")))
         )
         metadata = converter.get_metadata()
-        metadata["NWBFile"].update(session_start_time=datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S"))
+        metadata["NWBFile"].update(session_start_time=datetime.now().astimezone())
         starting_time = 123.0
         converter.run_conversion(
             nwbfile_path=nwbfile_path,

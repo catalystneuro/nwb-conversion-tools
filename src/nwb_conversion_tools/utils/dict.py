@@ -39,9 +39,9 @@ def load_dict_from_file(file_path: FilePathType) -> dict:
     """Safely load metadata from .yml or .json files."""
     file_path = Path(file_path)
     assert file_path.is_file(), f"{file_path} is not a file."
-    assert file_path.suffix in [".yml", ".json"], f"{file_path} is not a valid .yml or .json file."
+    assert file_path.suffix in (".json", ".yml", ".yaml"), f"{file_path} is not a valid yaml or .json file."
 
-    if file_path.suffix == ".yml":
+    if file_path.suffix in (".yml", ".yaml"):
         with open(file=file_path, mode="r") as stream:
             dictionary = yaml.load(stream=stream, Loader=NoDatesSafeLoader)
     elif file_path.suffix == ".json":
@@ -112,7 +112,7 @@ def dict_deep_update(
     copy: bool = True,
     compare_key: str = "name",
     list_dict_deep_update: bool = True,
-) -> collections.abc.Mapping:
+) -> dict:
     """
     Perform an update to all nested keys of dictionary d(input) from dictionary u(updating dict).
 

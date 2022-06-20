@@ -1,5 +1,6 @@
 """Authors: Cody Baker and Ben Dichter."""
 from abc import ABC
+from typing import Optional
 
 import spikeinterface as si
 import spikeextractors as se
@@ -10,7 +11,7 @@ from pynwb.ecephys import ElectrodeGroup
 
 from ...basedatainterface import BaseDataInterface
 from ...tools.spikeinterface import add_devices, add_electrode_groups, add_electrodes, write_sorting
-from ...utils import get_base_schema, get_schema_from_hdmf_class
+from ...utils import get_base_schema, get_schema_from_hdmf_class, OptionalFilePathType
 
 
 class BaseSortingExtractorInterface(BaseDataInterface, ABC):
@@ -18,9 +19,10 @@ class BaseSortingExtractorInterface(BaseDataInterface, ABC):
 
     SX = None
 
-    def __init__(self, **source_data):
+    def __init__(self, verbose=True, **source_data):
         super().__init__(**source_data)
         self.sorting_extractor = self.SX(**source_data)
+        self.verbose = verbose
 
     def get_metadata_schema(self):
         """Compile metadata schema for the RecordingExtractor."""
@@ -98,21 +100,38 @@ class BaseSortingExtractorInterface(BaseDataInterface, ABC):
         return stub_sorting_extractor
 
     def run_conversion(
-        self, nwbfile: NWBFile, metadata: dict, stub_test: bool = False, write_ecephys_metadata: bool = False
+        self,
+        nwbfile_path: OptionalFilePathType = None,
+        nwbfile: Optional[NWBFile] = None,
+        metadata: Optional[dict] = None,
+        overwrite: bool = False,
+        stub_test: bool = False,
+        write_ecephys_metadata: bool = False,
+        save_path: OptionalFilePathType = None,  # TODO: to be removed
     ):
         """
         Primary function for converting the data in a SortingExtractor to NWB format.
 
         Parameters
         ----------
-        nwbfile: NWBFile
-            nwb file to which the recording information is to be added
+        nwbfile_path: FilePathType
+            Path for where to write or load (if overwrite=False) the NWBFile.
+            If specified, the context will always write to this location.
+        nwbfile: NWBFile, optional
+            If passed, this function will fill the relevant fields within the NWBFile object.
+            E.g., calling
+                write_recording(recording=my_recording_extractor, nwbfile=my_nwbfile)
+            will result in the appropriate changes to the my_nwbfile object.
+            If neither 'save_path' nor 'nwbfile' are specified, an NWBFile object will be automatically generated
+            and returned by the function.
         metadata: dict
-            metadata info for constructing the nwb file (optional).
+            Information for constructing the nwb file (optional) and units table descriptions.
             Should be of the format::
 
                 metadata["Ecephys"]["UnitProperties"] = dict(name=my_name, description=my_description)
-
+        overwrite: bool, optional
+            Whether or not to overwrite the NWBFile if one exists at the nwbfile_path.
+            The default is False (append mode).
         stub_test: bool, optional (default False)
             If True, will truncate the data to run the conversion faster and take up less memory.
         write_ecephys_metadata: bool (optional, defaults to False)
@@ -147,4 +166,13 @@ class BaseSortingExtractorInterface(BaseDataInterface, ABC):
                                 )
                             ],
                         )
-        write_sorting(sorting_extractor, property_descriptions=property_descriptions, nwbfile=nwbfile)
+        write_sorting(
+            sorting_extractor,
+            nwbfile_path=nwbfile_path,
+            nwbfile=nwbfile,
+            metadata=metadata,
+            overwrite=overwrite,
+            verbose=self.verbose,
+            save_path=save_path,
+            property_descriptions=property_descriptions,
+        )

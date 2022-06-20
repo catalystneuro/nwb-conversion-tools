@@ -7,11 +7,10 @@ numpy>=1.21.0
 PyYAML>=5.4
 jsonschema>=3.2.0
 psutil>=5.8.0
-dandi @ git+https://github.com/dandi/dandi-cli.git@9a749401aa2dec2ba59f352205b02a3d8083b1d8  # that uses schema v0.7.x
-nwbinspector>=0.2.3
+dandi==0.39.6  # 0.39.5 already uses schema v0.7.x
 spikeextractors>=0.9.9
 spikeinterface>=0.93.0
 neo @ git+https://github.com/catalystneuro/python-neo.git@add_neuroscope_support_for_non_data_channels
-roiextractors @ git+https://github.com/catalystneuro/roiextractors.git@10265be4a1eaece7461296a2877cc11c84bf87dc
+roiextractors @ git+https://github.com/catalystneuro/roiextractors.git@c23e4a00324b381f2aad25d685e1cd68b588b563  # v0.4.7, pre-transpose fix
 lxml>=4.6.5
 scipy>=1.4.1

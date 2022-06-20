@@ -1,4 +1,6 @@
 """Author: Ben Dichter."""
+from typing import Optional
+
 from pynwb import NWBFile
 from pynwb.device import Device
 from pynwb.ophys import ImagingPlane, TwoPhotonSeries
@@ -10,15 +12,17 @@ from ...utils import (
     fill_defaults,
     get_base_schema,
     OptionalFilePathType,
+    dict_deep_update,
 )
 
 
 class BaseImagingExtractorInterface(BaseDataInterface):
     IX = None
 
-    def __init__(self, **source_data):
+    def __init__(self, verbose=True, **source_data):
         super().__init__(**source_data)
         self.imaging_extractor = self.IX(**source_data)
+        self.verbose = verbose
 
     def get_metadata_schema(self):
         metadata_schema = super().get_metadata_schema()
@@ -40,9 +44,12 @@ class BaseImagingExtractorInterface(BaseDataInterface):
         )
 
         # Schema definition for arrays
+
+        imaging_plane_schema = get_schema_from_hdmf_class(ImagingPlane)
+        imaging_plane_schema["properties"]["optical_channel"].pop("maxItems")
         metadata_schema["properties"]["Ophys"]["properties"]["definitions"] = dict(
             Device=get_schema_from_hdmf_class(Device),
-            ImagingPlane=get_schema_from_hdmf_class(ImagingPlane),
+            ImagingPlane=imaging_plane_schema,
             TwoPhotonSeries=get_schema_from_hdmf_class(TwoPhotonSeries),
         )
 
@@ -51,7 +58,8 @@ class BaseImagingExtractorInterface(BaseDataInterface):
 
     def get_metadata(self):
         metadata = super().get_metadata()
-        metadata.update(get_nwb_imaging_metadata(self.imaging_extractor))
+        default_metadata = get_nwb_imaging_metadata(self.imaging_extractor)
+        metadata = dict_deep_update(default_metadata, metadata)
         _ = metadata.pop("NWBFile")
 
         # fix troublesome data types
@@ -65,11 +73,26 @@ class BaseImagingExtractorInterface(BaseDataInterface):
 
     def run_conversion(
         self,
-        nwbfile: NWBFile = None,
-        metadata: dict = None,
+        nwbfile_path: OptionalFilePathType = None,
+        nwbfile: Optional[NWBFile] = None,
+        metadata: Optional[dict] = None,
         overwrite: bool = False,
+        stub_test: bool = False,
         save_path: OptionalFilePathType = None,
     ):
+
+        if stub_test:
+            stub_frames = min([100, self.imaging_extractor.get_num_frames()])
+            imaging_extractor = self.imaging_extractor.frame_slice(start_frame=0, end_frame=stub_frames)
+        else:
+            imaging_extractor = self.imaging_extractor
+
         write_imaging(
-            imaging=self.imaging_extractor, nwbfile=nwbfile, metadata=metadata, overwrite=overwrite, save_path=save_path
+            imaging=imaging_extractor,
+            nwbfile_path=nwbfile_path,
+            nwbfile=nwbfile,
+            metadata=metadata,
+            overwrite=overwrite,
+            verbose=self.verbose,
+            save_path=save_path,
         )

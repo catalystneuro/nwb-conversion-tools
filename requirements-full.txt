@@ -1,5 +1,5 @@
-dandi @ git+https://github.com/dandi/dandi-cli.git@9a749401aa2dec2ba59f352205b02a3d8083b1d8  # that uses schema v0.7.x
-pynwb==2.0.0
+dandi==0.39.6
+pynwb==2.0.1
 hdmf==3.2.1
 tqdm==4.60.0
 natsort==7.1.1
@@ -16,9 +16,10 @@ opencv-python==4.5.1.48
 spikeextractors==0.9.9
 spikeinterface @ git+https://github.com/SpikeInterface/spikeinterface.git@12b7863684b705e3d0ae8165bb3009143c70530c
 neo @ git+https://github.com/catalystneuro/python-neo.git@add_neuroscope_support_for_non_data_channels
-roiextractors @ git+https://github.com/catalystneuro/roiextractors.git@10265be4a1eaece7461296a2877cc11c84bf87dc
+roiextractors @ git+https://github.com/catalystneuro/roiextractors.git@c23e4a00324b381f2aad25d685e1cd68b588b563  # v0.4.7, pre-transpose fix
 pyintan==0.3.0
 pyopenephys==1.1.2
 sonpy>=1.7.1
 tiffile==2018.10.18
-nwbinspector==0.4.0
+ndx-dandi-icephys>=0.4.0
+pillow==9.1.1

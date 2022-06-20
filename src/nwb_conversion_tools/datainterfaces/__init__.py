@@ -31,7 +31,7 @@ from .ecephys.axona.axonadatainterface import (
 )
 from .ecephys.neuralynx.neuralynxdatainterface import NeuralynxRecordingInterface
 from .ecephys.phy.phydatainterface import PhySortingInterface
-from .ecephys.kilo.kilodatainterface import KiloSortingInterface
+from .ecephys.kilosort.kilosortdatainterface import KilosortSortingInterface
 
 from .ophys.caiman.caimandatainterface import CaimanSegmentationInterface
 from .ophys.cnmfe.cnmfedatainterface import CnmfeSegmentationInterface
@@ -42,8 +42,11 @@ from .ophys.sima.simadatainterface import SimaSegmentationInterface
 from .ophys.sbx.sbxdatainterface import SbxImagingInterface
 from .ophys.tiff.tiffdatainterface import TiffImagingInterface
 from .ophys.hdf5.hdf5datainterface import Hdf5ImagingInterface
+from .ophys.scanimage.scanimageimaginginterface import ScanImageImagingInterface
 
 from .behavior.movie.moviedatainterface import MovieInterface
+
+from .icephys.abf.abfdatainterface import AbfInterface
 
 
 interface_list = [
@@ -67,7 +70,7 @@ interface_list = [
     OpenEphysRecordingExtractorInterface,
     OpenEphysSortingExtractorInterface,
     PhySortingInterface,
-    KiloSortingInterface,
+    KilosortSortingInterface,
     AxonaRecordingExtractorInterface,
     AxonaPositionDataInterface,
     AxonaLFPDataInterface,
@@ -81,4 +84,6 @@ interface_list = [
     TiffImagingInterface,
     Hdf5ImagingInterface,
     MovieInterface,
+    AbfInterface,
+    ScanImageImagingInterface,
 ]

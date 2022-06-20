@@ -1,13 +1,30 @@
 """Authors: Luiz Tauffer, Cody Baker, Saksham Sharda and Ben Dichter."""
 import collections.abc
+import json
 import inspect
 from datetime import datetime
+import numpy as np
 
 import pynwb
-import numpy as np
+from pynwb.device import Device
+from pynwb.icephys import IntracellularElectrode
 
 from .dict import dict_deep_update
 from .types import FilePathType, FolderPathType
+
+
+class NWBMetaDataEncoder(json.JSONEncoder):
+    def default(self, o):
+        # Over-write behaviors for datetime object
+        if isinstance(o, datetime):
+            return o.isoformat()
+
+        # This should transforms numpy generic integers and floats to python floats
+        if isinstance(o, np.generic):
+            return o.item()
+
+        # The base-class handles it
+        return super().default(o)
 
 
 def get_base_schema(tag=None, root=False, id_=None, **kwargs) -> dict:
@@ -47,6 +64,7 @@ def get_schema_from_method_signature(class_method: classmethod, exclude: list = 
         float="number",
         dict="object",
         list="array",
+        tuple="array",
         FilePathType="string",
         FolderPathType="string",
     )
@@ -268,4 +286,54 @@ def get_schema_for_NWBFile():
             "items": {"title": "keyword", "type": "string"},
         },
     }
+    return schema
+
+
+def get_metadata_schema_for_icephys():
+    schema = get_base_schema(tag="Icephys")
+    schema["required"] = ["Device", "Electrode"]
+    schema["properties"] = dict(
+        Device=dict(type="array", minItems=1, items={"$ref": "#/properties/Icephys/properties/definitions/Device"}),
+        Electrode=dict(
+            type="array",
+            minItems=1,
+            items={"$ref": "#/properties/Icephys/properties/definitions/Electrode"},
+        ),
+        Sessions=dict(
+            type="array",
+            minItems=1,
+            items={"$ref": "#/properties/Icephys/properties/definitions/Sessions"},
+        ),
+    )
+
+    schema["properties"]["definitions"] = dict(
+        Device=get_schema_from_hdmf_class(Device),
+        Electrode=get_schema_from_hdmf_class(IntracellularElectrode),
+        Sessions=dict(
+            name={"type": "string", "description": "Session name."},
+            relative_session_start_time={
+                "type": "number",
+                "description": "the start time of the sessions in seconds, relative to the absolute start time",
+            },
+            icephys_experiment_type={
+                "type": "string",
+                "description": "Icephys experiment type. Allowed types are: voltage_clamp, current_clamp and izero",
+            },
+            stimulus_type={
+                "type": "string",
+                "description": "Description of the type pf stimulus, e.g. Square current clamp.",
+            },
+            recordings=dict(
+                type="array",
+                minItems=1,
+                items={"$ref": "#/properties/Icephys/properties/definitions/SessionsRecordings"},
+            ),
+        ),
+        SessionsRecordings=dict(
+            intracellular_recordings_table_ind={"type": "number", "description": ""},
+            simultaneous_recordings_table_ind={"type": "number", "description": ""},
+            sequential_recordings_table_ind={"type": "number", "description": ""},
+        ),
+    )
+
     return schema
