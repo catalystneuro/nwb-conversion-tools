@@ -1,5 +1,6 @@
 """Author: Ben Dichter."""
 from typing import Optional
+from abc import ABC
 
 from pynwb import NWBFile
 from pynwb.device import Device
@@ -16,7 +17,7 @@ from ...utils import (
 )
 
 
-class BaseImagingExtractorInterface(BaseDataInterface):
+class BaseImagingExtractorInterface(BaseDataInterface, ABC):
     IX = None
 
     def __init__(self, verbose=True, **source_data):
@@ -26,7 +27,6 @@ class BaseImagingExtractorInterface(BaseDataInterface):
 
     def get_metadata_schema(self):
         metadata_schema = super().get_metadata_schema()
-        self.imaging_extractor._sampling_frequency = float(self.imaging_extractor._sampling_frequency)
 
         metadata_schema["required"] = ["Ophys"]
 
@@ -77,10 +77,18 @@ class BaseImagingExtractorInterface(BaseDataInterface):
         nwbfile: Optional[NWBFile] = None,
         metadata: Optional[dict] = None,
         overwrite: bool = False,
+        stub_test: bool = False,
         save_path: OptionalFilePathType = None,
     ):
+
+        if stub_test:
+            stub_frames = min([100, self.imaging_extractor.get_num_frames()])
+            imaging_extractor = self.imaging_extractor.frame_slice(start_frame=0, end_frame=stub_frames)
+        else:
+            imaging_extractor = self.imaging_extractor
+
         write_imaging(
-            imaging=self.imaging_extractor,
+            imaging=imaging_extractor,
             nwbfile_path=nwbfile_path,
             nwbfile=nwbfile,
             metadata=metadata,
