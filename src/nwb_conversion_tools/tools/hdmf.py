@@ -1,8 +1,9 @@
 """Collection of modifications of HDMF functions that are to be tested/used on this repo until propagation upstream."""
-from typing import Tuple
+from typing import Tuple, Optional
 
 import numpy as np
 from hdmf.data_utils import GenericDataChunkIterator as HDMFGenericDataChunkIterator
+from roiextractors import ImagingExtractor
 
 
 class GenericDataChunkIterator(HDMFGenericDataChunkIterator):
@@ -90,3 +91,74 @@ class SliceableDataChunkIterator(GenericDataChunkIterator):
 
     def _get_data(self, selection: Tuple[slice]) -> np.ndarray:
         return self.data[selection]
+
+
+class ImagingExtractorDataChunkIterator(GenericDataChunkIterator):
+    """
+    Generic data chunk iterator for an ImagingExtractor object
+    primarily used when writing imaging data to an NWB file.
+    """
+
+    def __init__(
+            self,
+            imaging_extractor: ImagingExtractor,
+            buffer_gb: Optional[float] = None,
+            buffer_shape: Optional[tuple] = None,
+            chunk_mb: Optional[float] = None,
+            chunk_shape: Optional[tuple] = None,
+            display_progress: bool = False,
+            progress_bar_options: Optional[dict] = None,
+    ):
+        self.imaging_extractor = imaging_extractor
+
+        if buffer_gb is None and buffer_shape is None:
+            buffer_gb = 1.0
+
+        if buffer_shape is None:
+            buffer_shape = self._get_default_shape(num_bytes=buffer_gb * 1e9)
+
+        if chunk_mb is None and chunk_shape is None:
+            chunk_mb = 1.0
+
+        if chunk_shape is None:
+            chunk_shape = self._get_default_shape(num_bytes=chunk_mb * 1e6)
+
+        super().__init__(
+            buffer_shape=buffer_shape,
+            chunk_shape=chunk_shape,
+            display_progress=display_progress,
+            progress_bar_options=progress_bar_options,
+        )
+
+        assert self.buffer_shape[1:] == self.maxshape[1:], (
+            f"Except from the first axis, the buffer shape ({self.buffer_shape}) "
+            f"must be equal to max shape ({self.maxshape})."
+        )
+        array_buffer_shape = np.array(self.buffer_shape)
+        array_chunk_shape = np.array(self.chunk_shape)
+        assert all(array_buffer_shape % array_chunk_shape == 0), (
+            f"Some dimensions of chunk_shape ({self.chunk_shape}) do not "
+            f"evenly divide the buffer shape ({self.buffer_shape})!"
+        )
+
+    def _get_default_shape(self, num_bytes: float) -> tuple:
+        num_frames_in_buffer_gb = int(num_bytes / (np.prod(
+            self.imaging_extractor.get_image_size()) * self._get_dtype().itemsize))
+        if num_frames_in_buffer_gb > self.imaging_extractor.get_num_frames():
+            num_frames_in_buffer_gb = self.imaging_extractor.get_num_frames()
+
+        return (num_frames_in_buffer_gb,) + self.imaging_extractor.get_image_size()
+
+    def _get_dtype(self) -> np.dtype:
+        return self.imaging_extractor.get_dtype()
+
+    def _get_maxshape(self) -> tuple:
+        return (self.imaging_extractor.get_num_frames(),) + self.imaging_extractor.get_image_size()
+
+    def _get_data(self, selection: Tuple[slice]) -> np.ndarray:
+        data = self.imaging_extractor.get_video(
+            start_frame=selection[0].start,
+            end_frame=selection[0].stop,
+        )
+        # transpose from (num_frames, num_rows, num_columns) to (num_frames, num_columns, num_rows)
+        return data.transpose((0, 2, 1))
