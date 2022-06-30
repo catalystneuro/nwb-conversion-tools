@@ -1,6 +1,7 @@
 import unittest
 from pathlib import Path
 from datetime import datetime
+import itertools
 
 import numpy as np
 import numpy.testing as npt
@@ -119,12 +120,15 @@ class TestEcephysNwbConversions(unittest.TestCase):
             )
         )
 
-    for suffix in ["rhd", "rhs"]:
+    for suffix, spikeextractors_backend in itertools.product(["rhd", "rhs"], [True, False]):
         parameterized_recording_list.append(
             param(
                 data_interface=IntanRecordingInterface,
-                interface_kwargs=dict(file_path=str(DATA_PATH / "intan" / f"intan_{suffix}_test_1.{suffix}")),
-                case_name=suffix,
+                interface_kwargs=dict(
+                    file_path=str(DATA_PATH / "intan" / f"intan_{suffix}_test_1.{suffix}"),
+                    spikeextractors_backend=spikeextractors_backend,
+                ),
+                case_name=f"{suffix}, spikeextractors_backend={spikeextractors_backend}",
             )
         )
     for file_name, num_channels in zip(["20210225_em8_minirec2_ac", "W122_06_09_2019_1_fromSD"], [512, 128]):
@@ -261,16 +265,21 @@ class TestEcephysNwbConversions(unittest.TestCase):
                 )
             ),
         ),
-        param(
-            data_interface=NeuroscopeSortingInterface,
-            interface_kwargs=dict(
-                folder_path=str(DATA_PATH / "neuroscope" / "dataset_1"),
-                xml_file_path=str(DATA_PATH / "neuroscope" / "dataset_1" / "YutaMouse42-151117.xml"),
-            ),
-        ),
     ]
 
     for spikeextractors_backend in [False, True]:
+        parameterized_sorting_list.append(
+            param(
+                data_interface=NeuroscopeSortingInterface,
+                interface_kwargs=dict(
+                    folder_path=str(DATA_PATH / "neuroscope" / "dataset_1"),
+                    xml_file_path=str(DATA_PATH / "neuroscope" / "dataset_1" / "YutaMouse42-151117.xml"),
+                    spikeextractors_backend=spikeextractors_backend,
+                ),
+                case_name=f"spikeextractors_backend={spikeextractors_backend}",
+            )
+        )
+
         parameterized_sorting_list.append(
             param(
                 data_interface=PhySortingInterface,
