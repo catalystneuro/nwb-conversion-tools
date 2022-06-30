@@ -22,7 +22,7 @@ def test_sliceable_data_chunk_iterator():
     )
 
 
-def test_roi_extractors_data_chunk_iterator():
+def test_imaging_extractor_data_chunk_iterator():
     roi_extractor = generate_dummy_imaging_extractor(num_frames=100)
 
     dci = ImagingExtractorDataChunkIterator(
