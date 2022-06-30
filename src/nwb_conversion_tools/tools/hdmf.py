@@ -100,14 +100,14 @@ class ImagingExtractorDataChunkIterator(GenericDataChunkIterator):
     """
 
     def __init__(
-            self,
-            imaging_extractor: ImagingExtractor,
-            buffer_gb: Optional[float] = None,
-            buffer_shape: Optional[tuple] = None,
-            chunk_mb: Optional[float] = None,
-            chunk_shape: Optional[tuple] = None,
-            display_progress: bool = False,
-            progress_bar_options: Optional[dict] = None,
+        self,
+        imaging_extractor: ImagingExtractor,
+        buffer_gb: Optional[float] = None,
+        buffer_shape: Optional[tuple] = None,
+        chunk_mb: Optional[float] = None,
+        chunk_shape: Optional[tuple] = None,
+        display_progress: bool = False,
+        progress_bar_options: Optional[dict] = None,
     ):
         self.imaging_extractor = imaging_extractor
 
@@ -134,8 +134,9 @@ class ImagingExtractorDataChunkIterator(GenericDataChunkIterator):
         )
 
     def _get_default_buffer_shape(self, buffer_gb: float) -> tuple:
-        num_frames_in_buffer_gb = int(buffer_gb * 1e9 / (np.prod(
-            self.imaging_extractor.get_image_size()) * self._get_dtype().itemsize))
+        num_frames_in_buffer_gb = int(
+            buffer_gb * 1e9 / (np.prod(self.imaging_extractor.get_image_size()) * self._get_dtype().itemsize)
+        )
         if num_frames_in_buffer_gb > self.imaging_extractor.get_num_frames():
             num_frames_in_buffer_gb = self.imaging_extractor.get_num_frames()
 

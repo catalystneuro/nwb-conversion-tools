@@ -35,5 +35,4 @@ def test_roi_extractors_data_chunk_iterator():
 
     assert data_chunk.selection == (slice(0, 100, None), slice(0, 10, None), slice(0, 10, None))
 
-    assert_array_equal(data_chunk.data, roi_extractor.get_video(start_frame=0,
-                                                                end_frame=100).transpose((0, 2, 1)))
+    assert_array_equal(data_chunk.data, roi_extractor.get_video(start_frame=0, end_frame=100).transpose((0, 2, 1)))
