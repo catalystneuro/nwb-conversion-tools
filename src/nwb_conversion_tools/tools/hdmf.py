@@ -115,16 +115,14 @@ class ImagingExtractorDataChunkIterator(GenericDataChunkIterator):
             buffer_gb = 1.0
 
         if buffer_shape is None:
-            buffer_shape = self._get_default_shape(num_bytes=buffer_gb * 1e9)
+            buffer_shape = self._get_default_buffer_shape(buffer_gb=buffer_gb)
 
         if chunk_mb is None and chunk_shape is None:
             chunk_mb = 1.0
 
-        if chunk_shape is None:
-            chunk_shape = self._get_default_shape(num_bytes=chunk_mb * 1e6)
-
         super().__init__(
             buffer_shape=buffer_shape,
+            chunk_mb=chunk_mb,
             chunk_shape=chunk_shape,
             display_progress=display_progress,
             progress_bar_options=progress_bar_options,
@@ -134,15 +132,9 @@ class ImagingExtractorDataChunkIterator(GenericDataChunkIterator):
             f"Except from the first axis, the buffer shape ({self.buffer_shape}) "
             f"must be equal to max shape ({self.maxshape})."
         )
-        array_buffer_shape = np.array(self.buffer_shape)
-        array_chunk_shape = np.array(self.chunk_shape)
-        assert all(array_buffer_shape % array_chunk_shape == 0), (
-            f"Some dimensions of chunk_shape ({self.chunk_shape}) do not "
-            f"evenly divide the buffer shape ({self.buffer_shape})!"
-        )
 
-    def _get_default_shape(self, num_bytes: float) -> tuple:
-        num_frames_in_buffer_gb = int(num_bytes / (np.prod(
+    def _get_default_buffer_shape(self, buffer_gb: float) -> tuple:
+        num_frames_in_buffer_gb = int(buffer_gb * 1e9 / (np.prod(
             self.imaging_extractor.get_image_size()) * self._get_dtype().itemsize))
         if num_frames_in_buffer_gb > self.imaging_extractor.get_num_frames():
             num_frames_in_buffer_gb = self.imaging_extractor.get_num_frames()
@@ -160,5 +152,4 @@ class ImagingExtractorDataChunkIterator(GenericDataChunkIterator):
             start_frame=selection[0].start,
             end_frame=selection[0].stop,
         )
-        # transpose from (num_frames, num_rows, num_columns) to (num_frames, num_columns, num_rows)
         return data.transpose((0, 2, 1))
