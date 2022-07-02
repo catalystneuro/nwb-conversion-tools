@@ -10,7 +10,6 @@ Convert Scanbox imaging data to NWB using :py:class:`~nwb_conversion_tools.datai
     >>> from pathlib import Path
     >>> from nwb_conversion_tools import SbxImagingInterface
     >>>
-    >>> OPHYS_DATA_PATH = Path("/home/heberto/ophys_testing_data/")
     >>> file_path = OPHYS_DATA_PATH / "imaging_datasets" / "Scanbox" / "sample.sbx"
     >>> interface = SbxImagingInterface(file_path=file_path, verbose=False)
     >>>
