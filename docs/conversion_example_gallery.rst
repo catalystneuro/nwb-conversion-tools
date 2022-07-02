@@ -29,3 +29,26 @@ Sorting
     Kilosort <conversion_examples_gallery/sorting/kilosort>
     Neuroscope <conversion_examples_gallery/sorting/neuroscope>
     Phy <conversion_examples_gallery/sorting/phy>
+
+
+Imaging
+-------
+
+.. toctree::
+    :maxdepth: 1
+
+    Tiff <conversion_examples_gallery/imaging/tiff>
+    HDF5 <conversion_examples_gallery/imaging/hdf5imaging>
+    Scanbox <conversion_examples_gallery/imaging/scanbox>
+    ScanImage -TBD
+
+Segmentation
+------------
+
+.. toctree::
+    :maxdepth: 1
+
+    Suit2P (TBD)
+    Caiman (TBD)
+    Extraction (TBD)
+    Cnmfe (Tbd)
