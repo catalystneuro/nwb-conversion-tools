@@ -138,19 +138,19 @@ class ImagingExtractorDataChunkIterator(GenericDataChunkIterator):
             progress_bar_options=progress_bar_options,
         )
 
-        assert self.buffer_shape[1:] == self.maxshape[1:], (
-            f"Except from the first axis, the buffer shape ({self.buffer_shape}) "
-            f"must be equal to max shape ({self.maxshape})."
+    def _get_scaled_buffer_shape(self, buffer_gb: float, chunk_shape: tuple) -> tuple:
+        """Select buffer shape with size in GB less than the threshold of buffer_gb
+         scaled to the given chunk_shape."""
+        scaling_factor = np.floor(
+            (buffer_gb * 1e9 / (np.prod(chunk_shape) * self._get_dtype().itemsize)) ** (1 / len(chunk_shape))
         )
+        max_array_buffer_shape = scaling_factor * np.array(chunk_shape)
+        scaled_buffer_shape = tuple([
+            min(max(int(dimension_length), chunk_shape[dimension_index]), self._get_maxshape()[dimension_index])
+            for dimension_index, dimension_length in enumerate(max_array_buffer_shape)
+        ])
 
-    def _get_default_buffer_shape(self, buffer_gb: float) -> tuple:
-        num_frames_in_buffer_gb = int(
-            buffer_gb * 1e9 / (np.prod(self.imaging_extractor.get_image_size()) * self._get_dtype().itemsize)
-        )
-        if num_frames_in_buffer_gb > self.imaging_extractor.get_num_frames():
-            num_frames_in_buffer_gb = self.imaging_extractor.get_num_frames()
-
-        return (num_frames_in_buffer_gb,) + self.imaging_extractor.get_image_size()
+        return scaled_buffer_shape
 
     def _get_dtype(self) -> np.dtype:
         return self.imaging_extractor.get_dtype()
