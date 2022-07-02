@@ -111,6 +111,14 @@ class ImagingExtractorDataChunkIterator(GenericDataChunkIterator):
     ):
         self.imaging_extractor = imaging_extractor
 
+        if chunk_mb is None and chunk_shape is None:
+            chunk_mb = 1.0
+
+        self._maxshape = self._get_maxshape()
+        self._dtype = self._get_dtype()
+        if chunk_shape is None:
+            chunk_shape = super()._get_default_chunk_shape(chunk_mb=chunk_mb)
+
         if buffer_gb is None and buffer_shape is None:
             buffer_gb = 1.0
 
