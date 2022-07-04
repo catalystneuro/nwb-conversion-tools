@@ -147,16 +147,15 @@ class ImagingExtractorDataChunkIterator(GenericDataChunkIterator):
         )
 
     def _get_scaled_buffer_shape(self, buffer_gb: float, chunk_shape: tuple) -> tuple:
-        """Select buffer shape with size in GB less than the threshold of buffer_gb
-        scaled to the given chunk_shape."""
-        scaling_factor = np.floor(
-            (buffer_gb * 1e9 / (np.prod(chunk_shape) * self._get_dtype().itemsize)) ** (1 / len(chunk_shape))
-        )
-        max_array_buffer_shape = scaling_factor * np.array(chunk_shape)
+        """Select the buffer_shape with size in GB less than the threshold of buffer_gb
+        and as a multiplier of chunk_shape."""
+        min_buffer_shape = tuple([chunk_shape[0]]) + self.imaging_extractor.get_image_size()
+        scaling_factor = np.floor((buffer_gb * 1e9 / (np.prod(min_buffer_shape) * self._get_dtype().itemsize)))
+        max_buffer_shape = tuple([int(scaling_factor * min_buffer_shape[0])]) + self.imaging_extractor.get_image_size()
         scaled_buffer_shape = tuple(
             [
                 min(max(int(dimension_length), chunk_shape[dimension_index]), self._get_maxshape()[dimension_index])
-                for dimension_index, dimension_length in enumerate(max_array_buffer_shape)
+                for dimension_index, dimension_length in enumerate(max_buffer_shape)
             ]
         )
 
