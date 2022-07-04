@@ -50,5 +50,5 @@ Segmentation
 
     Suite2P (TBD)
     Caiman (TBD)
-    Extraction (TBD)
+    EXTRACT (TBD)
     CNMFE (Tbd)
