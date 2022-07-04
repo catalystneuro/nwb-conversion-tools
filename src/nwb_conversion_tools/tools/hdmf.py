@@ -131,14 +131,6 @@ class ImagingExtractorDataChunkIterator(GenericDataChunkIterator):
                 f"must be equal to max shape ({self._maxshape})."
             )
 
-        if buffer_shape[0] % chunk_shape[0] != 0:
-            # warn if the first axis is not a multiple of the chunk shape
-            warn(
-                f"The first axis of the buffer shape ({buffer_shape[0]}) must be divisible by the first axis of the chunk shape ({chunk_shape[0]})"
-            )
-            # override the chunk shape?
-            chunk_shape = tuple([chunk_shape[0] - (buffer_shape[0] % chunk_shape[0])]) + chunk_shape[1:]
-
         super().__init__(
             buffer_shape=buffer_shape,
             chunk_shape=chunk_shape,
