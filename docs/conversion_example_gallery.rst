@@ -48,7 +48,7 @@ Segmentation
 .. toctree::
     :maxdepth: 1
 
-    Suit2P (TBD)
+    Suite2P (TBD)
     Caiman (TBD)
     Extraction (TBD)
     CNMFE (Tbd)
