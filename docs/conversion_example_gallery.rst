@@ -51,4 +51,4 @@ Segmentation
     Suit2P (TBD)
     Caiman (TBD)
     Extraction (TBD)
-    Cnmfe (Tbd)
+    CNMFE (Tbd)
