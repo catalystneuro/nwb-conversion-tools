@@ -40,7 +40,7 @@ Imaging
     Tiff <conversion_examples_gallery/imaging/tiff>
     HDF5 <conversion_examples_gallery/imaging/hdf5imaging>
     Scanbox <conversion_examples_gallery/imaging/scanbox>
-    ScanImage -TBD
+    ScanImage <conversion_examples_gallery/imaging/scanimage>
 
 Segmentation
 ------------
