@@ -163,5 +163,5 @@ class ImagingExtractorDataChunkIterator(GenericDataChunkIterator):
         data = self.imaging_extractor.get_video(
             start_frame=selection[0].start,
             end_frame=selection[0].stop,
-        )
+        )[selection]
         return data.transpose((0, 2, 1))
