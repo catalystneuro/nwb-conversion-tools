@@ -112,6 +112,9 @@ class ImagingExtractorDataChunkIterator(GenericDataChunkIterator):
     ):
         self.imaging_extractor = imaging_extractor
 
+        assert not (buffer_gb and buffer_shape), "Only one of 'buffer_gb' or 'buffer_shape' can be specified!"
+        assert not (chunk_mb and chunk_shape), "Only one of 'chunk_mb' or 'chunk_shape' can be specified!"
+
         if chunk_mb is None and chunk_shape is None:
             chunk_mb = 1.0
 
@@ -136,6 +139,8 @@ class ImagingExtractorDataChunkIterator(GenericDataChunkIterator):
     def _get_scaled_buffer_shape(self, buffer_gb: float, chunk_shape: tuple) -> tuple:
         """Select the buffer_shape with size in GB less than the threshold of buffer_gb
         and as a multiplier of chunk_shape."""
+        assert buffer_gb > 0, f"buffer_gb ({buffer_gb}) must be greater than zero!"
+        assert all(np.array(chunk_shape) > 0), f"Some dimensions of chunk_shape ({chunk_shape}) are less than zero!"
         image_size = self._get_maxshape()[1:]
         min_buffer_shape = tuple([chunk_shape[0]]) + image_size
         scaling_factor = np.floor((buffer_gb * 1e9 / (np.prod(min_buffer_shape) * self._get_dtype().itemsize)))
