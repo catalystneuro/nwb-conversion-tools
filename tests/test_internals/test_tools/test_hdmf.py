@@ -118,6 +118,12 @@ class TestImagingExtractorDataChunkIterator(TestCase):
                 chunk_shape=chunk_shape,
             )
 
+    def test_iterator_with_defaults(self):
+        dci = ImagingExtractorDataChunkIterator(imaging_extractor=self.imaging_extractor)
+
+        assert dci.buffer_shape == (30, 10, 10)
+        assert dci.chunk_shape == (30, 10, 10)
+
     def test_data_selections(self):
         dci = ImagingExtractorDataChunkIterator(
             imaging_extractor=self.imaging_extractor,
