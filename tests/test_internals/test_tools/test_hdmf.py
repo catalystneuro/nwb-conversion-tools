@@ -1,7 +1,10 @@
+from importlib.metadata import version
+
 import numpy as np
 from hdmf.testing import TestCase
 from numpy.testing import assert_array_equal
 from parameterized import parameterized, param
+
 
 from nwb_conversion_tools.tools.hdmf import SliceableDataChunkIterator, ImagingExtractorDataChunkIterator
 
@@ -33,73 +36,85 @@ class TestImagingExtractorDataChunkIterator(TestCase):
     def setUpClass(cls) -> None:
         cls.imaging_extractor = generate_dummy_imaging_extractor()
 
+    iterator_params = [
+        param(
+            buffer_gb=1,
+            buffer_shape=(10, 10, 10),
+            chunk_mb=None,
+            chunk_shape=(5, 2, 2),
+            expected_error_msg="Only one of 'buffer_gb' or 'buffer_shape' can be specified!",
+            case_name="buffer_gb_and_buffer_shape",
+        ),
+        param(
+            buffer_gb=None,
+            buffer_shape=None,
+            chunk_mb=1,
+            chunk_shape=(5, 5, 5),
+            expected_error_msg="Only one of 'chunk_mb' or 'chunk_shape' can be specified!",
+            case_name="chunk_mb_and_chunk_shape",
+        ),
+        param(
+            buffer_gb=0,
+            buffer_shape=None,
+            chunk_mb=None,
+            chunk_shape=None,
+            expected_error_msg="buffer_gb (0) must be greater than zero!",
+            case_name="buffer_gb_zero",
+        ),
+        param(
+            buffer_gb=None,
+            buffer_shape=None,
+            chunk_mb=0,
+            chunk_shape=None,
+            expected_error_msg="chunk_mb (0) must be greater than zero!",
+            case_name="chunk_mb_zero",
+        ),
+        param(
+            buffer_gb=None,
+            buffer_shape=(0, 10, 10),
+            chunk_mb=None,
+            chunk_shape=None,
+            expected_error_msg=f"Some dimensions of buffer_shape ((0, 10, 10)) are less than zero!",
+            case_name="buffer_shape_less_than_zero",
+        ),
+        param(
+            buffer_gb=None,
+            buffer_shape=None,
+            chunk_mb=None,
+            chunk_shape=(0, 10, 10),
+            expected_error_msg=f"Some dimensions of chunk_shape ((0, 10, 10)) are less than zero!",
+            case_name="chunk_shape_less_than_zero",
+        ),
+        param(
+            buffer_gb=None,
+            buffer_shape=(5, 10, 10),
+            chunk_mb=None,
+            chunk_shape=(2, 2, 2),
+            expected_error_msg="Some dimensions of chunk_shape ((2, 2, 2)) do not evenly divide the buffer shape ((5, 10, 10))!",
+            case_name="buffer_shape_not_divisible_by_chunk_shape",
+        ),
+    ]
+
+    param_chunk_shape_exceeds_buffer_shape = param(
+        buffer_gb=None,
+        buffer_shape=(5, 10, 10),
+        chunk_mb=None,
+        chunk_shape=(13, 2, 2),
+        case_name="chunk_shape_greater_than_buffer_shape",
+    )
+    if version("hdmf") >= "3.3.2":
+        param_chunk_shape_exceeds_buffer_shape.kwargs[
+            "expected_error_msg"
+        ] = "Some dimensions of chunk_shape ((13, 2, 2)) exceed the buffer shape ((5, 10, 10))!"
+    else:
+        param_chunk_shape_exceeds_buffer_shape.kwargs[
+            "expected_error_msg"
+        ] = "Some dimensions of chunk_shape ((13, 2, 2)) exceed the manual buffer shape ((5, 10, 10))!"
+
+    iterator_params.append(param_chunk_shape_exceeds_buffer_shape)
+
     @parameterized.expand(
-        [
-            param(
-                buffer_gb=1,
-                buffer_shape=(10, 10, 10),
-                chunk_mb=None,
-                chunk_shape=(5, 2, 2),
-                expected_error_msg="Only one of 'buffer_gb' or 'buffer_shape' can be specified!",
-                case_name="buffer_gb_and_buffer_shape",
-            ),
-            param(
-                buffer_gb=None,
-                buffer_shape=None,
-                chunk_mb=1,
-                chunk_shape=(5, 5, 5),
-                expected_error_msg="Only one of 'chunk_mb' or 'chunk_shape' can be specified!",
-                case_name="chunk_mb_and_chunk_shape",
-            ),
-            param(
-                buffer_gb=0,
-                buffer_shape=None,
-                chunk_mb=None,
-                chunk_shape=None,
-                expected_error_msg="buffer_gb (0) must be greater than zero!",
-                case_name="buffer_gb_zero",
-            ),
-            param(
-                buffer_gb=None,
-                buffer_shape=None,
-                chunk_mb=0,
-                chunk_shape=None,
-                expected_error_msg="chunk_mb (0) must be greater than zero!",
-                case_name="chunk_mb_zero",
-            ),
-            param(
-                buffer_gb=None,
-                buffer_shape=(5, 10, 10),
-                chunk_mb=None,
-                chunk_shape=(13, 2, 2),
-                expected_error_msg=f"Some dimensions of chunk_shape ((13, 2, 2)) exceed the manual buffer shape ((5, 10, 10))!",
-                case_name="chunk_shape_greater_than_buffer_shape",
-            ),
-            param(
-                buffer_gb=None,
-                buffer_shape=(0, 10, 10),
-                chunk_mb=None,
-                chunk_shape=None,
-                expected_error_msg=f"Some dimensions of buffer_shape ((0, 10, 10)) are less than zero!",
-                case_name="buffer_shape_less_than_zero",
-            ),
-            param(
-                buffer_gb=None,
-                buffer_shape=None,
-                chunk_mb=None,
-                chunk_shape=(0, 10, 10),
-                expected_error_msg=f"Some dimensions of chunk_shape ((0, 10, 10)) are less than zero!",
-                case_name="chunk_shape_less_than_zero",
-            ),
-            param(
-                buffer_gb=None,
-                buffer_shape=(5, 10, 10),
-                chunk_mb=None,
-                chunk_shape=(2, 2, 2),
-                expected_error_msg="Some dimensions of chunk_shape ((2, 2, 2)) do not evenly divide the buffer shape ((5, 10, 10))!",
-                case_name="buffer_shape_not_divisible_by_chunk_shape",
-            ),
-        ],
+        input=iterator_params,
         name_func=custom_name_func,
     )
     def test_iterator_assertions(
