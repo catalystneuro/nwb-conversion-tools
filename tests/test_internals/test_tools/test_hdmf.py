@@ -1,18 +1,15 @@
-from importlib.metadata import version
-
 import numpy as np
-from hdmf.testing import TestCase
 from numpy.testing import assert_array_equal
 from parameterized import parameterized, param
 
-
+from hdmf.testing import TestCase
+from nwbinspector.utils import get_package_version
 from nwb_conversion_tools.tools.hdmf import SliceableDataChunkIterator, ImagingExtractorDataChunkIterator
 
 from roiextractors.testing import generate_dummy_imaging_extractor
 
 
 def test_sliceable_data_chunk_iterator():
-
     data = np.arange(100).reshape(10, 10)
 
     dci = SliceableDataChunkIterator(data=data, buffer_shape=(5, 5), chunk_shape=(5, 5))
@@ -102,7 +99,7 @@ class TestImagingExtractorDataChunkIterator(TestCase):
         chunk_shape=(13, 2, 2),
         case_name="chunk_shape_greater_than_buffer_shape",
     )
-    if version("hdmf") >= "3.3.2":
+    if get_package_version(name="hdmf").base_version >= "3.3.2":
         param_chunk_shape_exceeds_buffer_shape.kwargs[
             "expected_error_msg"
         ] = "Some dimensions of chunk_shape ((13, 2, 2)) exceed the buffer shape ((5, 10, 10))!"
