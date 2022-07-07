@@ -125,11 +125,6 @@ class ImagingExtractorDataChunkIterator(GenericDataChunkIterator):
 
         if buffer_shape is None:
             buffer_shape = self._get_scaled_buffer_shape(buffer_gb=buffer_gb, chunk_shape=chunk_shape)
-        else:
-            assert buffer_shape[1:] == self._maxshape[1:], (
-                f"Except from the first axis, the buffer shape ({self.buffer_shape}) "
-                f"must be equal to max shape ({self._maxshape})."
-            )
 
         super().__init__(
             buffer_shape=buffer_shape,
