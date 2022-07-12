@@ -130,21 +130,52 @@ class TestImagingExtractorDataChunkIterator(TestCase):
                 chunk_shape=chunk_shape,
             )
 
-    def test_iterator_with_defaults(self):
-        dci = ImagingExtractorDataChunkIterator(imaging_extractor=self.imaging_extractor)
-
-        assert dci.buffer_shape == (30, 10, 10)
-        assert dci.chunk_shape == (30, 10, 10)
-
-    def test_data_selections(self):
+    @parameterized.expand(
+        input=[
+            param(
+                num_frames=None,
+                buffer_gb=None,
+                buffer_shape=None,
+                chunk_mb=None,
+                chunk_shape=None,
+                case_name="with_default_buffer_shape_and_chunk_shape",
+            ),
+            param(
+                num_frames=28,
+                buffer_gb=None,
+                buffer_shape=(9, 10, 10),
+                chunk_mb=None,
+                chunk_shape=(3, 10, 10),
+                case_name="with_custom_buffer_shape_and_chunk_shape",
+            ),
+            param(
+                num_frames=27,
+                buffer_gb=None,
+                buffer_shape=(10, 5, 5),
+                chunk_mb=None,
+                chunk_shape=(5, 5, 5),
+                case_name="with_custom_buffer_shape_and_chunk_shape",
+            ),
+        ],
+        name_func=custom_name_func,
+    )
+    def test_data_validity(self, num_frames, buffer_gb, buffer_shape, chunk_mb, chunk_shape, case_name=""):
+        """Test that the iterator returns the expected data given different buffer and chunk shapes."""
+        if num_frames is None:
+            imaging_extractor = self.imaging_extractor
+        else:
+            imaging_extractor = generate_dummy_imaging_extractor(num_frames=num_frames)
         dci = ImagingExtractorDataChunkIterator(
-            imaging_extractor=self.imaging_extractor,
-            buffer_shape=(10, 5, 5),
-            chunk_shape=(5, 5, 5),
+            imaging_extractor=imaging_extractor,
+            buffer_gb=buffer_gb,
+            buffer_shape=buffer_shape,
+            chunk_mb=chunk_mb,
+            chunk_shape=chunk_shape,
         )
 
-        data_chunk = next(dci)
-        assert data_chunk.selection == (slice(0, 10, None), slice(0, 5, None), slice(0, 5, None))
+        data_chunks = np.zeros(dci.maxshape)
+        for data_chunk in dci:
+            data_chunks[data_chunk.selection] = data_chunk.data
 
-        frames = self.imaging_extractor.get_video(start_frame=0, end_frame=10)
-        assert_array_equal(data_chunk.data, frames[data_chunk.selection].transpose((0, 2, 1)))
+        expected_frames = imaging_extractor.get_video().transpose((0, 2, 1))
+        assert_array_equal(data_chunks, expected_frames)
