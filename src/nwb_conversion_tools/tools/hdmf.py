@@ -161,8 +161,7 @@ class ImagingExtractorDataChunkIterator(GenericDataChunkIterator):
         return (self.imaging_extractor.get_num_frames(),) + self.imaging_extractor.get_image_size()[::-1]
 
     def _get_data(self, selection: Tuple[slice]) -> np.ndarray:
-        data = self.imaging_extractor.get_video(
-            start_frame=selection[0].start,
-            end_frame=selection[0].stop,
-        ).transpose((0, 2, 1))[(slice(0, self.buffer_shape[0]),) + selection[1:]]
+        data = self.imaging_extractor.get_video(start_frame=selection[0].start, end_frame=selection[0].stop,).transpose(
+            (0, 2, 1)
+        )[(slice(0, self.buffer_shape[0]),) + selection[1:]]
         return data
