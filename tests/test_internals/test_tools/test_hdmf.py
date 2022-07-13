@@ -4,8 +4,7 @@ from parameterized import parameterized, param
 
 from hdmf.testing import TestCase
 from nwbinspector.utils import get_package_version
-from nwb_conversion_tools.tools.hdmf import SliceableDataChunkIterator, \
-    ImagingExtractorDataChunkIterator
+from nwb_conversion_tools.tools.hdmf import SliceableDataChunkIterator, ImagingExtractorDataChunkIterator
 
 from roiextractors.testing import generate_dummy_imaging_extractor
 
@@ -21,8 +20,7 @@ def test_sliceable_data_chunk_iterator():
 
     assert_array_equal(
         data_chunk.data,
-        [[0, 1, 2, 3, 4], [10, 11, 12, 13, 14], [20, 21, 22, 23, 24],
-         [30, 31, 32, 33, 34], [40, 41, 42, 43, 44]],
+        [[0, 1, 2, 3, 4], [10, 11, 12, 13, 14], [20, 21, 22, 23, 24], [30, 31, 32, 33, 34], [40, 41, 42, 43, 44]],
     )
 
 
@@ -103,13 +101,13 @@ class TestImagingExtractorDataChunkIterator(TestCase):
         name_func=custom_name_func,
     )
     def test_iterator_assertions(
-            self,
-            buffer_gb: float = None,
-            buffer_shape: tuple[int, int, int] = None,
-            chunk_mb: float = None,
-            chunk_shape: tuple[int, int, int] = None,
-            expected_error_msg: str = None,
-            case_name="",
+        self,
+        buffer_gb: float = None,
+        buffer_shape: tuple[int, int, int] = None,
+        chunk_mb: float = None,
+        chunk_shape: tuple[int, int, int] = None,
+        expected_error_msg: str = None,
+        case_name="",
     ):
         """Test that the iterator raises the expected error when the assertions are violated."""
         with self.assertRaisesWith(
@@ -156,13 +154,13 @@ class TestImagingExtractorDataChunkIterator(TestCase):
         name_func=custom_name_func,
     )
     def test_data_validity(
-            self,
-            max_data_shape: tuple[int, int, int] = None,
-            buffer_gb: float = None,
-            buffer_shape: tuple[int, int, int] = None,
-            chunk_mb: float = None,
-            chunk_shape: tuple[int, int, int] = None,
-            case_name=""
+        self,
+        max_data_shape: tuple[int, int, int] = None,
+        buffer_gb: float = None,
+        buffer_shape: tuple[int, int, int] = None,
+        chunk_mb: float = None,
+        chunk_shape: tuple[int, int, int] = None,
+        case_name="",
     ):
         """Test that the iterator returns the expected data given different buffer and chunk shapes."""
         if max_data_shape is None:
@@ -183,8 +181,7 @@ class TestImagingExtractorDataChunkIterator(TestCase):
         )
 
         if buffer_gb is not None:
-            assert ((np.prod(
-                dci.buffer_shape) * self.imaging_extractor.get_dtype().itemsize) / 1e9) <= buffer_gb
+            assert ((np.prod(dci.buffer_shape) * self.imaging_extractor.get_dtype().itemsize) / 1e9) <= buffer_gb
 
         data_chunks = np.zeros(dci.maxshape)
         for data_chunk in dci:
