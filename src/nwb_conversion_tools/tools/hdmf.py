@@ -115,6 +115,9 @@ class ImagingExtractorDataChunkIterator(GenericDataChunkIterator):
         assert not (buffer_gb and buffer_shape), "Only one of 'buffer_gb' or 'buffer_shape' can be specified!"
         assert not (chunk_mb and chunk_shape), "Only one of 'chunk_mb' or 'chunk_shape' can be specified!"
 
+        if chunk_mb and buffer_gb:
+            assert chunk_mb * 1e6 <= buffer_gb * 1e9, "chunk_mb must be less than or equal to buffer_gb!"
+
         if chunk_mb is None and chunk_shape is None:
             chunk_mb = 1.0
 
