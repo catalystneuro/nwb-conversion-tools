@@ -174,3 +174,13 @@ class TestImagingExtractorDataChunkIterator(TestCase):
 
         expected_frames = imaging_extractor.get_video().transpose((0, 2, 1))
         assert_array_equal(data_chunks, expected_frames)
+
+    def test_progress_bar(self):
+        dci = ImagingExtractorDataChunkIterator(
+            imaging_extractor=self.imaging_extractor,
+            display_progress=True,
+            progress_bar_options={"desc": "Test Progress Bar"},
+        )
+
+        self.assertEqual(dci.display_progress, True)
+        self.assertEqual(dci.progress_bar.desc, "Test Progress Bar")
