@@ -236,7 +236,9 @@ class TestEcephysNwbConversions(unittest.TestCase):
                     member=interface_kwarg, container=converter.data_interface_objects["TestRecording"].source_data
                 )
         metadata = converter.get_metadata()
-        metadata["NWBFile"].update(session_start_time=datetime.now().astimezone())
+        metadata["NWBFile"].update(session_start_time=metadata["NWBFile"]["session_start_time"].astimezone())
+        if 'session_stop_time' in metadata["NWBFile"]:
+            metadata["NWBFile"].update(session_stop_time=metadata["NWBFile"]['session_stop_time'].astimezone())
         converter.run_conversion(nwbfile_path=nwbfile_path, overwrite=True, metadata=metadata)
         recording = converter.data_interface_objects["TestRecording"].recording_extractor
 
