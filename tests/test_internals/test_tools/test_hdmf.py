@@ -102,11 +102,11 @@ class TestImagingExtractorDataChunkIterator(TestCase):
     )
     def test_iterator_assertions(
         self,
-        buffer_gb: float = None,
-        buffer_shape: tuple[int, int, int] = None,
-        chunk_mb: float = None,
-        chunk_shape: tuple[int, int, int] = None,
-        expected_error_msg: str = None,
+        buffer_gb=None,
+        buffer_shape=None,
+        chunk_mb=None,
+        chunk_shape=None,
+        expected_error_msg=None,
         case_name="",
     ):
         """Test that the iterator raises the expected error when the assertions are violated."""
@@ -155,11 +155,11 @@ class TestImagingExtractorDataChunkIterator(TestCase):
     )
     def test_data_validity(
         self,
-        max_data_shape: tuple[int, int, int] = None,
-        buffer_gb: float = None,
-        buffer_shape: tuple[int, int, int] = None,
-        chunk_mb: float = None,
-        chunk_shape: tuple[int, int, int] = None,
+        max_data_shape=None,
+        buffer_gb=None,
+        buffer_shape=None,
+        chunk_mb=None,
+        chunk_shape=None,
         case_name="",
     ):
         """Test that the iterator returns the expected data given different buffer and chunk shapes."""
