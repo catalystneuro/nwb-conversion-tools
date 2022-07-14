@@ -29,7 +29,6 @@ def get_common_metadata(extractors: list[NeuralynxRecordingExtractor]) -> dict:
     """
 
     key_mapping = {
-        "recording_closed": "session_stop_time",
         "recording_opened": "session_start_time",
         "sessionUUID": "session_id",
     }
