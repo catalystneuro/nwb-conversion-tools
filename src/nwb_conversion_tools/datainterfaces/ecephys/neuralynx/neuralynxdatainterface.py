@@ -59,7 +59,6 @@ def get_common_metadata(extractors: list[NeuralynxRecordingExtractor]) -> dict:
     if hasattr(start_time, "__iter__") and len(start_time) == 1:
         common_header["session_start_time"] = common_header["session_start_time"][0]
 
-
     # convert version objects back to string
     if common_header.get("ApplicationVersion", None) is not None:
         common_header["ApplicationVersion"] = str(common_header["ApplicationVersion"])
