@@ -1,10 +1,8 @@
 """Collection of modifications of HDMF functions that are to be tested/used on this repo until propagation upstream."""
-from typing import Tuple, Optional
-from warnings import warn
+from typing import Tuple
 
 import numpy as np
 from hdmf.data_utils import GenericDataChunkIterator as HDMFGenericDataChunkIterator
-from roiextractors import ImagingExtractor
 
 
 class GenericDataChunkIterator(HDMFGenericDataChunkIterator):
@@ -92,85 +90,3 @@ class SliceableDataChunkIterator(GenericDataChunkIterator):
 
     def _get_data(self, selection: Tuple[slice]) -> np.ndarray:
         return self.data[selection]
-
-
-class ImagingExtractorDataChunkIterator(GenericDataChunkIterator):
-    """
-    Generic data chunk iterator for an ImagingExtractor object
-    primarily used when writing imaging data to an NWB file.
-    """
-
-    def __init__(
-        self,
-        imaging_extractor: ImagingExtractor,
-        buffer_gb: Optional[float] = None,
-        buffer_shape: Optional[tuple] = None,
-        chunk_mb: Optional[float] = None,
-        chunk_shape: Optional[tuple] = None,
-        display_progress: bool = False,
-        progress_bar_options: Optional[dict] = None,
-    ):
-        self.imaging_extractor = imaging_extractor
-
-        assert not (buffer_gb and buffer_shape), "Only one of 'buffer_gb' or 'buffer_shape' can be specified!"
-        assert not (chunk_mb and chunk_shape), "Only one of 'chunk_mb' or 'chunk_shape' can be specified!"
-
-        if chunk_mb and buffer_gb:
-            assert chunk_mb * 1e6 <= buffer_gb * 1e9, "chunk_mb must be less than or equal to buffer_gb!"
-
-        if chunk_mb is None and chunk_shape is None:
-            chunk_mb = 1.0
-
-        self._maxshape = self._get_maxshape()
-        self._dtype = self._get_dtype()
-        if chunk_shape is None:
-            chunk_shape = super()._get_default_chunk_shape(chunk_mb=chunk_mb)
-
-        if buffer_gb is None and buffer_shape is None:
-            buffer_gb = 1.0
-
-        if buffer_shape is None:
-            buffer_shape = self._get_scaled_buffer_shape(buffer_gb=buffer_gb, chunk_shape=chunk_shape)
-
-        super().__init__(
-            buffer_shape=buffer_shape,
-            chunk_shape=chunk_shape,
-            display_progress=display_progress,
-            progress_bar_options=progress_bar_options,
-        )
-
-    def _get_scaled_buffer_shape(self, buffer_gb: float, chunk_shape: tuple) -> tuple:
-        """Select the buffer_shape with size in GB less than the threshold of buffer_gb
-        and as a multiplier of chunk_shape."""
-        assert buffer_gb > 0, f"buffer_gb ({buffer_gb}) must be greater than zero!"
-        assert all(np.array(chunk_shape) > 0), f"Some dimensions of chunk_shape ({chunk_shape}) are less than zero!"
-        image_size = self._get_maxshape()[1:]
-        min_buffer_shape = tuple([chunk_shape[0]]) + image_size
-        scaling_factor = np.floor((buffer_gb * 1e9 / (np.prod(min_buffer_shape) * self._get_dtype().itemsize)))
-        max_buffer_shape = tuple([int(scaling_factor * min_buffer_shape[0])]) + image_size
-        scaled_buffer_shape = tuple(
-            [
-                min(max(int(dimension_length), chunk_shape[dimension_index]), self._get_maxshape()[dimension_index])
-                for dimension_index, dimension_length in enumerate(max_buffer_shape)
-            ]
-        )
-
-        return scaled_buffer_shape
-
-    def _get_dtype(self) -> np.dtype:
-        return self.imaging_extractor.get_dtype()
-
-    def _get_maxshape(self) -> tuple:
-        return (self.imaging_extractor.get_num_frames(),) + self.imaging_extractor.get_image_size()[::-1]
-
-    def _get_data(self, selection: Tuple[slice]) -> np.ndarray:
-        data = self.imaging_extractor.get_video(
-            start_frame=selection[0].start,
-            end_frame=selection[0].stop,
-        )
-        # This condition can be removed when the ImagingExtractors are not
-        # squeezing the data when the selection is a single slice
-        if len(data.shape) < len(selection):
-            data = data[np.newaxis, ...]
-
-        return data.transpose((0, 2, 1))[(slice(0, self.buffer_shape[0]),) + selection[1:]]
