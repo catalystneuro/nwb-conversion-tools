@@ -28,12 +28,14 @@ def get_common_metadata(extractors: list[NeuralynxRecordingExtractor]) -> dict:
     dict
     """
 
-    key_mapping = {'recording_closed':'session_stop_time',
-                   'recording_opened': 'session_start_time',
-                   'sessionUUID': 'session_id'}
+    key_mapping = {
+        "recording_closed": "session_stop_time",
+        "recording_opened": "session_start_time",
+        "sessionUUID": "session_id",
+    }
 
     # check if neuralynx file header objects are present and use these for consensus extraction
-    if hasattr(extractors[0].neo_reader, 'file_headers'):
+    if hasattr(extractors[0].neo_reader, "file_headers"):
         headers = [list(e.neo_reader.file_headers.values())[0] for e in extractors]
         common_keys = list(set.intersection(*[set(h.keys()) for h in headers]))
         common_header = {k: headers[0][k] for k in common_keys if all([headers[0][k] == h[k] for h in headers])}
@@ -41,8 +43,8 @@ def get_common_metadata(extractors: list[NeuralynxRecordingExtractor]) -> dict:
     # use minimal set of metadata of first recording
     else:
         neo_annotations = extractors[0].neo_reader.raw_annotations
-        signal_info = neo_annotations['blocks'][0]['segments'][0]['signals'][0]
-        annotations = signal_info['__array_annotations__']
+        signal_info = neo_annotations["blocks"][0]["segments"][0]["signals"][0]
+        annotations = signal_info["__array_annotations__"]
         common_header = {k: annotations.get(k, None) for k in key_mapping}
 
         # # extraction of general metadata and remapping of of keys to nwb terms
@@ -54,20 +56,20 @@ def get_common_metadata(extractors: list[NeuralynxRecordingExtractor]) -> dict:
         common_header.setdefault(nwb_key, common_header.pop(neuralynx_key, None))
 
     # reformat session_start_time
-    start_time = common_header['session_start_time']
-    if hasattr(start_time, '__iter__') and len(start_time) == 1:
-        common_header['session_start_time'] = common_header['session_start_time'][0]
+    start_time = common_header["session_start_time"]
+    if hasattr(start_time, "__iter__") and len(start_time) == 1:
+        common_header["session_start_time"] = common_header["session_start_time"][0]
 
     # remove stop time metadata if not provided as None is an invalid default value
-    stop_time = common_header.get('session_stop_time', None)
+    stop_time = common_header.get("session_stop_time", None)
     if stop_time is None:
-        common_header.pop('session_stop_time')
-    elif hasattr(stop_time, '__iter__') and len(stop_time) == 1:
-        common_header['session_stop_time'] = common_header['session_stop_time'][0]
+        common_header.pop("session_stop_time")
+    elif hasattr(stop_time, "__iter__") and len(stop_time) == 1:
+        common_header["session_stop_time"] = common_header["session_stop_time"][0]
 
     # convert version objects back to string
-    if common_header.get('ApplicationVersion', None) is not None:
-        common_header['ApplicationVersion'] = str(common_header['ApplicationVersion'])
+    if common_header.get("ApplicationVersion", None) is not None:
+        common_header["ApplicationVersion"] = str(common_header["ApplicationVersion"])
 
     return common_header
 
@@ -87,13 +89,13 @@ def get_filtering(extractor: NeuralynxRecordingExtractor) -> str:
 
     # extracting filter annotations
     neo_annotations = extractor.neo_reader.raw_annotations
-    signal_info = neo_annotations['blocks'][0]['segments'][0]['signals'][0]
-    signal_annotations = signal_info['__array_annotations__']
-    filter_dict = {k: v for k, v in signal_annotations.items() if k.lower().startswith('dsp')}
+    signal_info = neo_annotations["blocks"][0]["segments"][0]["signals"][0]
+    signal_annotations = signal_info["__array_annotations__"]
+    filter_dict = {k: v for k, v in signal_annotations.items() if k.lower().startswith("dsp")}
 
     # conversion to string values
     for key, value in filter_dict.items():
-        filter_dict[key] = ' '.join(value)
+        filter_dict[key] = " ".join(value)
 
     filter_info = json.dumps(filter_dict, ensure_ascii=True)
 
