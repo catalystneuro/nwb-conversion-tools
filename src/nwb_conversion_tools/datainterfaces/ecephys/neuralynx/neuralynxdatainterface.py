@@ -1,8 +1,7 @@
-"""Authors: Heberto Mayorquin, Cody Baker and Ben Dichter."""
+"""Authors: Heberto Mayorquin, Cody Baker, Ben Dichter and Julia Sprenger"""
 import warnings
 from pathlib import Path
 from natsort import natsorted
-from dateutil import parser
 import json
 
 from spikeinterface.extractors import NeuralynxRecordingExtractor
@@ -16,64 +15,89 @@ from ....utils import FolderPathType
 from ....utils.json_schema import dict_deep_update
 
 
-def parse_header(header):
-    header_dict = dict()
-    for line in header.split("\n")[1:]:
-        if line:
-            if line[0] == "-":
-                key, val = line[1:].split(" ", 1)
-                header_dict[key] = val
-    return header_dict
-
-
-def get_metadata(folder_path: FolderPathType) -> dict:
+def get_common_metadata(extractors: list[NeuralynxRecordingExtractor]) -> dict:
     """
     Parse the header of one of the .ncs files to get the session start time (without
     timezone) and the session_id.
     Parameters
     ----------
-    folder_path: str or Path
+    extractors: list of NeuralynxRecordingExtractor objects
+
     Returns
     -------
     dict
     """
-    folder_path = Path(folder_path)
-    csc_files = sorted(folder_path.glob("*.[nN]cs"))
-    file_path = csc_files[0]
-    with file_path.open(encoding="latin1") as file:
-        raw_header = file.read(1024)
-    header = parse_header(raw_header)
-    if header.get("FileVersion") == "3.4":
-        return dict(
-            session_start_time=parser.parse(header["TimeCreated"]),
-            session_id=header["SessionUUID"],
-        )
-    if header.get("FileVersion", "").startswith("3.3") or header["CheetahRev"].startswith("5.4"):
-        open_line = raw_header.split("\n")[2]
-        spliced_line = open_line[24:35] + open_line[-13:]
-        return dict(session_start_time=parser.parse(spliced_line, dayfirst=False))
+
+    key_mapping = {'recording_closed':'session_stop_time',
+                   'recording_opened': 'session_start_time',
+                   'sessionUUID': 'session_id'}
+
+    # check if neuralynx file header objects are present and use these for consensus extraction
+    if hasattr(extractors[0].neo_reader, 'file_headers'):
+        headers = [list(e.neo_reader.file_headers.values())[0] for e in extractors]
+        common_keys = list(set.intersection(*[set(h.keys()) for h in headers]))
+        common_header = {k: headers[0][k] for k in common_keys if all([headers[0][k] == h[k] for h in headers])}
+
+    # use minimal set of metadata of first recording
+    else:
+        neo_annotations = extractors[0].neo_reader.raw_annotations
+        signal_info = neo_annotations['blocks'][0]['segments'][0]['signals'][0]
+        annotations = signal_info['__array_annotations__']
+        common_header = {k: annotations.get(k, None) for k in key_mapping}
+
+        # # extraction of general metadata and remapping of of keys to nwb terms
+        # general_metadata['session_start_time'] = annotations['recording_opened']
+        # general_metadata['session_id'] = annotations.get('SessionUUID', '')
+
+    # mapping to nwb terms
+    for neuralynx_key, nwb_key in key_mapping.items():
+        common_header.setdefault(nwb_key, common_header.pop(neuralynx_key, None))
+
+    # reformat session_start_time
+    start_time = common_header['session_start_time']
+    if hasattr(start_time, '__iter__') and len(start_time) == 1:
+        common_header['session_start_time'] = common_header['session_start_time'][0]
+
+    # remove stop time metadata if not provided as None is an invalid default value
+    stop_time = common_header.get('session_stop_time', None)
+    if stop_time is None:
+        common_header.pop('session_stop_time')
+    elif hasattr(stop_time, '__iter__') and len(stop_time) == 1:
+        common_header['session_stop_time'] = common_header['session_stop_time'][0]
+
+    # convert version objects back to string
+    if common_header.get('ApplicationVersion', None) is not None:
+        common_header['ApplicationVersion'] = str(common_header['ApplicationVersion'])
+
+    return common_header
 
 
-def get_filtering(channel_path: FolderPathType) -> str:
-    """Get the filtering metadata from an .nsc file.
+def get_filtering(extractor: NeuralynxRecordingExtractor) -> str:
+    """Get the filtering metadata from a .ncs file.
     Parameters
     ----------
-    channel_path: str or Path
-        Filepath for an .nsc file
+    extractor: NeuralynxRecordingExtractor
+        NeuralynxRecordingExtractor to be annotated with filter information
+        from linked neo.NeuralynxIO
+
     Returns
     -------
-    str:
-        json dump of filter parameters. Uses the mu character, which may cause problems
-        for downstream things that expect ASCII.
+    str: string representation of a dictionary containing the filter settings
     """
-    channel_path = Path(channel_path)
-    with open(channel_path, "r", encoding="latin1") as file:
-        raw_header = file.read(1024)
-    header = parse_header(raw_header)
 
-    return json.dumps(
-        {key: val.strip(" ") for key, val in header.items() if key.lower().startswith("dsp")}, ensure_ascii=False
-    )
+    # extracting filter annotations
+    neo_annotations = extractor.neo_reader.raw_annotations
+    signal_info = neo_annotations['blocks'][0]['segments'][0]['signals'][0]
+    signal_annotations = signal_info['__array_annotations__']
+    filter_dict = {k: v for k, v in signal_annotations.items() if k.lower().startswith('dsp')}
+
+    # conversion to string values
+    for key, value in filter_dict.items():
+        filter_dict[key] = ' '.join(value)
+
+    filter_info = json.dumps(filter_dict, ensure_ascii=True)
+
+    return filter_info
 
 
 class NeuralynxRecordingInterface(BaseRecordingExtractorInterface):
@@ -101,7 +125,16 @@ class NeuralynxRecordingInterface(BaseRecordingExtractorInterface):
         self.source_data = dict(folder_path=folder_path, verbose=verbose)
         self.verbose = verbose
 
-        extractors = [se.NeuralynxRecordingExtractor(filename=filename, seg_index=0) for filename in self.nsc_files]
+        ncs_files = natsorted([str(x) for x in Path(folder_path).iterdir() if ".ncs" in x.suffixes])
+        extractors = []
+        seg_index = 0
+        # generate one extractor for each neo file and recording segment combination
+        for filename in ncs_files:
+            first_extractor = NeuralynxRecordingExtractor(filename=filename, seg_index=seg_index)
+            n_segments = first_extractor.neo_reader.segment_count(block_index=0)
+            extractors.append(first_extractor)
+            for i in range(1, n_segments):
+                extractors.append(NeuralynxRecordingExtractor(filename=filename, seg_index=seg_index))
         self.recording_extractor = self.RX(extractors)
 
         gains = [extractor.get_channel_gains()[0] for extractor in extractors]
@@ -109,14 +142,11 @@ class NeuralynxRecordingInterface(BaseRecordingExtractorInterface):
             extractor.clear_channel_gains()
         self.recording_extractor.set_channel_gains(gains=gains)
 
-    def add_recording_extractor_properties(self):
-
-        try:
-            filtering = [get_filtering(filename) for filename in self.nsc_files]
-            self.recording_extractor.set_property(key="filtering", values=filtering)
-        except Exception:
-            warnings.warn("filtering could not be extracted.")
+        for i, extractor in enumerate(extractors):
+            filter_info = get_filtering(extractor)
+            self.recording_extractor.set_property(key="filtering", values=filter_info)
 
     def get_metadata(self):
-        new_metadata = dict(NWBFile=get_metadata(self.source_data["folder_path"]))
+        # extracting general session metadata exemplary from first recording
+        new_metadata = dict(NWBFile=get_common_metadata(self.recording_extractor._recordings))
         return dict_deep_update(super().get_metadata(), new_metadata)
