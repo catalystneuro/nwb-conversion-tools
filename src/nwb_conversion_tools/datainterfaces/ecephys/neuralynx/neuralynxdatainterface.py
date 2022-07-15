@@ -1,12 +1,11 @@
 """Authors: Heberto Mayorquin, Cody Baker, Ben Dichter and Julia Sprenger"""
-import warnings
 from pathlib import Path
+import typing
 from natsort import natsorted
 import json
 
 from spikeinterface.extractors import NeuralynxRecordingExtractor
 from spikeinterface.core.old_api_utils import OldToNewRecording
-from spikeinterface import BaseRecording
 
 import spikeextractors as se
 
@@ -15,7 +14,7 @@ from ....utils import FolderPathType
 from ....utils.json_schema import dict_deep_update
 
 
-def get_common_metadata(extractors: list[NeuralynxRecordingExtractor]) -> dict:
+def get_common_metadata(extractors: typing.List[NeuralynxRecordingExtractor]) -> dict:
     """
     Parse the header of one of the .ncs files to get the session start time (without
     timezone) and the session_id.
