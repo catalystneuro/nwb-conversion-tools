@@ -128,7 +128,7 @@ class NeuralynxRecordingInterface(BaseRecordingExtractorInterface):
             n_segments = first_extractor.neo_reader.segment_count(block_index=0)
             extractors.append(first_extractor)
             for i in range(1, n_segments):
-                extractors.append(NeuralynxRecordingExtractor(filename=filename, seg_index=seg_index))
+                extractors.append(NeuralynxRecordingExtractor(filename=filename, seg_index=i))
         self.recording_extractor = self.RX(extractors)
 
         gains = [extractor.get_channel_gains()[0] for extractor in extractors]
