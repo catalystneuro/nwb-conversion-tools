@@ -1,4 +1,5 @@
 import os
+import unittest
 from datetime import datetime
 from tempfile import mkdtemp
 from pathlib import Path
@@ -31,7 +32,8 @@ try:
         LOGGED_INTO_GLOBUS = False
 except ModuleNotFoundError:
     HAVE_GLOBUS, LOGGED_INTO_GLOBUS = False, False
-HAVE_DANDI_KEY = "DANDI_API_KEY" in os.environ
+DANDI_API_KEY = os.getenv("DANDI_API_KEY")
+HAVE_DANDI_KEY = DANDI_API_KEY is not None and DANDI_API_KEY != ""  # can be "" from external forks
 
 
 class TestConversionTools(TestCase):
@@ -206,6 +208,10 @@ class TestGlobusTransferContent(TestCase):
     def tearDown(self):
         rmtree(self.tmpdir)
 
+    @unittest.skipIf(
+        not (HAVE_GLOBUS and LOGGED_INTO_GLOBUS),
+        reason="You must have globus installed and be logged in to run this test!",
+    )
     def test_transfer_globus_content(self):
         """Test is fixed to a subpath that is somewhat unlikely to change in the future."""
         source_endpoint_id = "188a6110-96db-11eb-b7a9-f57b2d55370d"  # Buzsaki
