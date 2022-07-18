@@ -45,10 +45,6 @@ def get_common_metadata(extractors: typing.List[NeuralynxRecordingExtractor]) ->
         annotations = signal_info["__array_annotations__"]
         common_header = {k: annotations.get(k, None) for k in key_mapping}
 
-        # # extraction of general metadata and remapping of of keys to nwb terms
-        # general_metadata['session_start_time'] = annotations['recording_opened']
-        # general_metadata['session_id'] = annotations.get('SessionUUID', '')
-
     # mapping to nwb terms
     for neuralynx_key, nwb_key in key_mapping.items():
         common_header.setdefault(nwb_key, common_header.pop(neuralynx_key, None))
