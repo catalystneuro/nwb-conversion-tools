@@ -177,7 +177,9 @@ def add_imaging_plane(nwbfile: NWBFile, metadata=dict, imaging_plane_index: int 
     return nwbfile
 
 
-def add_two_photon_series(imaging, nwbfile, metadata, buffer_size=10, use_times=False):
+def add_two_photon_series(
+    imaging, nwbfile, metadata, buffer_size=10, use_times=False, two_photon_series_index: int = 0
+):
     """
     Auxiliary static method for nwbextractor.
 
@@ -191,12 +193,18 @@ def add_two_photon_series(imaging, nwbfile, metadata, buffer_size=10, use_times=
     metadata_copy = dict_deep_update(get_nwb_imaging_metadata(imaging), metadata_copy, append_list=False)
 
     # Tests if TwoPhotonSeries already exists in acquisition
-    two_photon_series_metadata = metadata_copy["Ophys"]["TwoPhotonSeries"][0]
+    two_photon_series_metadata = metadata_copy["Ophys"]["TwoPhotonSeries"][two_photon_series_index]
     two_photon_series_name = two_photon_series_metadata["name"]
 
     if two_photon_series_name in nwbfile.acquisition:
         warn(f"{two_photon_series_name} already on nwbfile")
         return nwbfile
+
+    # Add the image plane to nwb
+    nwbfile = add_imaging_plane(nwbfile=nwbfile, metadata=metadata_copy)
+    imaging_plane_name = two_photon_series_metadata["imaging_plane"]
+    imaging_plane = nwbfile.get_imaging_plane(name=imaging_plane_name)
+    two_photon_series_metadata.update(imaging_plane=imaging_plane)
 
     # Add the data
     def data_generator(imaging):
@@ -221,12 +229,6 @@ def add_two_photon_series(imaging, nwbfile, metadata, buffer_size=10, use_times=
     else:
         two_p_series_kwargs.update(timestamps=H5DataIO(timestamps, compression="gzip"))
         two_p_series_kwargs["rate"] = None
-
-    # Add imaging plane
-    add_imaging_plane(nwbfile=nwbfile, metadata=metadata_copy)
-    imaging_plane_name = two_photon_series_metadata["imaging_plane"]
-    imaging_plane = nwbfile.get_imaging_plane(name=imaging_plane_name)
-    two_p_series_kwargs.update(imaging_plane=imaging_plane)
 
     # Add the TwoPhotonSeries to the nwbfile
     two_photon_series = TwoPhotonSeries(**two_p_series_kwargs)
