@@ -39,11 +39,13 @@ def get_default_ophys_metadata():
     metadata = get_default_nwbfile_metadata()
 
     default_device = dict(name="Microscope")
+
     default_optical_channel = dict(
         name="OpticalChannel",
         emission_lambda=np.nan,
         description="no description",
     )
+
     default_imaging_plane = dict(
         name="ImagingPlane",
         description="no description",
@@ -54,29 +56,30 @@ def get_default_ophys_metadata():
         optical_channel=[default_optical_channel],
     )
 
+    default_roi_response_series = dict(
+        name="RoiResponseSeries",
+        description="array of raw fluorescence traces",
+    )
+
+    default_fluoresence = dict(roi_response_series=[default_roi_response_series])
+
+    default_two_photon_series = dict(
+        name="TwoPhotonSeries",
+        description="no description",
+        comments="Generalized from RoiInterface",
+        unit="n.a.",
+    )
+
     metadata.update(
         Ophys=dict(
             Device=[default_device],
-            Fluorescence=dict(
-                roi_response_series=[
-                    dict(
-                        name="RoiResponseSeries",
-                        description="array of raw fluorescence traces",
-                    )
-                ]
-            ),
+            Fluorescence=default_fluoresence,
             ImageSegmentation=dict(plane_segmentations=[dict(description="Segmented ROIs", name="PlaneSegmentation")]),
             ImagingPlane=[default_imaging_plane],
-            TwoPhotonSeries=[
-                dict(
-                    name="TwoPhotonSeries",
-                    description="no description",
-                    comments="Generalized from RoiInterface",
-                    unit="n.a.",
-                )
-            ],
+            TwoPhotonSeries=[default_two_photon_series],
         ),
     )
+
     return metadata
 
 
@@ -135,8 +138,9 @@ def add_devices(nwbfile: NWBFile, metadata: dict) -> NWBFile:
     device_metadata = metadata_copy["Ophys"]["Device"]
 
     for device in device_metadata:
-        device = Device(**device) if isinstance(device, dict) else device
-        if device.name not in nwbfile.devices:
+        device_name = device["name"] if isinstance(device, dict) else device.name
+        if device_name not in nwbfile.devices:
+            device = Device(**device) if isinstance(device, dict) else device
             nwbfile.add_device(device)
 
     return nwbfile
@@ -450,9 +454,7 @@ def write_segmentation(
             nwbfile = io.read()
         else:
             nwbfile = make_nwbfile_from_metadata(metadata=metadata_base_common)
-    # Subject:
-    if metadata_base_common.get("Subject") and nwbfile.subject is None:
-        nwbfile.subject = Subject(**metadata_base_common["Subject"])
+
     # Processing Module:
     if "ophys" not in nwbfile.processing:
         ophys = nwbfile.create_processing_module("ophys", "contains optical physiology processed data")
@@ -460,9 +462,9 @@ def write_segmentation(
         ophys = nwbfile.get_processing_module("ophys")
 
     for plane_no_loop, (segext_obj, metadata) in enumerate(zip(segext_objs, metadata_base_list)):
-        # Device:
-        if metadata["Ophys"]["Device"][0]["name"] not in nwbfile.devices:
-            nwbfile.create_device(**metadata["Ophys"]["Device"][0])
+
+        # Add device:
+        add_devices(nwbfile=nwbfile, metadata=metadata)
 
         # ImageSegmentation:
         image_segmentation_name = (
@@ -594,3 +596,8 @@ def write_segmentation(
         if write:
             io.write(nwbfile)
             io.close()
+
+
+def add_summary_images(nwbfile: NWBFile, segmentation_extractor: SegmentationExtractor, metadata: dict):
+
+    pass
