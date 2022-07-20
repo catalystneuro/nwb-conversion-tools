@@ -596,8 +596,3 @@ def write_segmentation(
         if write:
             io.write(nwbfile)
             io.close()
-
-
-def add_summary_images(nwbfile: NWBFile, segmentation_extractor: SegmentationExtractor, metadata: dict):
-
-    pass
