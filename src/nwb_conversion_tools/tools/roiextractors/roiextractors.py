@@ -156,7 +156,7 @@ def _create_imaging_plane_from_metadata(nwbfile: NWBFile, imaging_plane_metadata
     return imaging_plane
 
 
-def add_imaging_plane(nwbfile: NWBFile, metadata=dict, plane_index: int = 0) -> NWBFile:
+def add_imaging_plane(nwbfile: NWBFile, metadata=dict, imaging_plane_index: int = 0) -> NWBFile:
 
     # Set the defaults and required infraestructure
     metadata_copy = deepcopy(metadata)
@@ -164,7 +164,7 @@ def add_imaging_plane(nwbfile: NWBFile, metadata=dict, plane_index: int = 0) -> 
     metadata_copy = dict_deep_update(default_metadata, metadata_copy, append_list=False)
     add_devices(nwbfile=nwbfile, metadata=metadata_copy)
 
-    imaging_plane_metadata = metadata_copy["Ophys"]["ImagingPlane"][plane_index]
+    imaging_plane_metadata = metadata_copy["Ophys"]["ImagingPlane"][imaging_plane_index]
     imaging_plane_name = imaging_plane_metadata["name"]
     existing_imaging_planes = nwbfile.imaging_planes
 
