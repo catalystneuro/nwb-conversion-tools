@@ -143,6 +143,21 @@ def add_devices(nwbfile: NWBFile, metadata: dict) -> NWBFile:
 
 
 def _create_imaging_plane_from_metadata(nwbfile: NWBFile, imaging_plane_metadata: dict) -> ImagingPlane:
+    """
+    Private auxiliar function to create an ImagingPlane object from pynwb using the imaging_plane_metadata
+    Parameters
+    ----------
+    nwbfile : NWBFile
+        An previously defined -in memory- NWBFile.
+
+    imaging_plane_metadata : dict
+        The metadata to create the ImagingPlane object.
+
+    Returns
+    -------
+    ImagingPlane
+        The created ImagingPlane.
+    """
 
     device_name = imaging_plane_metadata["device"]
     imaging_plane_metadata["device"] = nwbfile.devices[device_name]
@@ -156,9 +171,28 @@ def _create_imaging_plane_from_metadata(nwbfile: NWBFile, imaging_plane_metadata
     return imaging_plane
 
 
-def add_imaging_plane(nwbfile: NWBFile, metadata=dict, imaging_plane_index: int = 0) -> NWBFile:
+def add_imaging_plane(nwbfile: NWBFile, metadata: dict, imaging_plane_index: int = 0) -> NWBFile:
+    """
+    Adds the imaging plane specificied by the metadata to the nwb file.
+    The imaging plane that is added is the one located in metadata["Ophys"]["ImagingPlane"][imaging_plane_index]
 
-    # Set the defaults and required infraestructure
+    Parameters
+    ----------
+    nwbfile : NWBFile
+        An previously defined -in memory- NWBFile.
+    metadata : dict
+        The metadata in the nwb conversion tools format.
+    imaging_plane_index : int, optional
+        The metadata in the nwb conversion tools format is a list of the different imaging planes to add.
+        Specificy which element of the list with this parameter, by default 0
+
+    Returns
+    -------
+    NWBFile
+        The nwbfile passed as an input with the imaging plane added.
+    """
+
+    # Set the defaults and required infrastructure
     metadata_copy = deepcopy(metadata)
     default_metadata = get_default_ophys_metadata()
     metadata_copy = dict_deep_update(default_metadata, metadata_copy, append_list=False)
