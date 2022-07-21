@@ -10,7 +10,12 @@ from pynwb import NWBFile, NWBHDF5IO
 from pynwb.device import Device
 from roiextractors.testing import generate_dummy_imaging_extractor, generate_dummy_segmentation_extractor
 
-from nwb_conversion_tools.tools.roiextractors import add_devices, add_imaging_plane, add_two_photon_series, add_summary_images
+from nwb_conversion_tools.tools.roiextractors import (
+    add_devices,
+    add_imaging_plane,
+    add_two_photon_series,
+    add_summary_images,
+)
 
 
 class TestAddDevices(unittest.TestCase):

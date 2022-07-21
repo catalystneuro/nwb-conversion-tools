@@ -639,7 +639,6 @@ def write_segmentation(
         images_set_name = "SegmentationImages" if plane_no_loop == 0 else f"SegmentationImages_Plane{plane_no_loop}"
         add_summary_images(nwbfile=nwbfile, segmentation_extractor=segext_obj, images_set_name=images_set_name)
 
-
         # saving NWB file:
         if write:
             io.write(nwbfile)
