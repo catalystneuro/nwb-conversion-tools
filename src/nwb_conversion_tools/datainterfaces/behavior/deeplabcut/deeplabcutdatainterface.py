@@ -35,6 +35,10 @@ class DeepLabCutInterface(BaseDataInterface):
             path to the h5 file output by dlc.
         config_file_path: FilePathType
             path to .yml config file
+        subject_name: str
+            the name of the subject for which the nwbfile is to be created.
+        verbose: bool
+            controls verbosiy. True by default.
         """
         file_path = Path(file_path)
         if "DLC" not in file_path.stem or ".h5" not in file_path.suffixes:
@@ -63,8 +67,15 @@ class DeepLabCutInterface(BaseDataInterface):
         Conversion from DLC output files to nwb. Derived from dlc2nwb library.
         Parameters
         ----------
-        nwbfile: pynwb.NWBFile
+        nwbfile_path: FilePathType
+            Path for where to write or load (if overwrite=False) the NWBFile.
+            If specified, this context will always write to this location.
+        nwbfile: NWBFile
+            nwb file to which the recording information is to be added
         metadata: dict
+            metadata info for constructing the nwb file (optional).
+        overwrite: bool, optional
+            Whether or not to overwrite the NWBFile if one exists at the nwbfile_path.
         """
 
         base_metadata = self.get_metadata()
@@ -77,5 +88,5 @@ class DeepLabCutInterface(BaseDataInterface):
                 nwbfile=nwbfile_out,
                 h5file=str(self.source_data["file_path"]),
                 individual_name=self.subject_name,
-                config_file=self.source_data["config_file_path"],
+                config_file=str(self.source_data["config_file_path"]),
             )
