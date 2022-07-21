@@ -9,7 +9,6 @@ from nwb_conversion_tools import NWBConverter, MovieInterface, DeepLabCutInterfa
 from .setup_paths import OUTPUT_PATH, BEHAVIOR_DATA_PATH
 
 
-# @unittest.skipIf(not HAVE_DLC2NWB, "dlc2nwb not installed")
 class TestDeepLabCutInterface(unittest.TestCase):
     savedir = OUTPUT_PATH
 
@@ -18,10 +17,9 @@ class TestDeepLabCutInterface(unittest.TestCase):
             param(
                 data_interface=DeepLabCutInterface,
                 interface_kwargs=dict(
-                    dlc_file_path=str(
-                        BEHAVIOR_DATA_PATH / "DLC" / "m3v1mp4DLC_resnet50_openfieldAug20shuffle1_30000.h5"
-                    ),
+                    file_path=str(BEHAVIOR_DATA_PATH / "DLC" / "m3v1mp4DLC_resnet50_openfieldAug20shuffle1_30000.h5"),
                     config_file_path=str(BEHAVIOR_DATA_PATH / "DLC" / "config.yaml"),
+                    subject_name="ind1",
                 ),
             )
         ]
@@ -40,13 +38,17 @@ class TestDeepLabCutInterface(unittest.TestCase):
         with NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True) as io:
             nwbfile = io.read()
             assert "behavior" in nwbfile.processing
-            assert "PoseEstimation" in nwbfile.processing["behavior"].data_interfaces
-            assert all(
-                [
-                    i in nwbfile.processing["behavior"].data_interfaces["PoseEstimation"].pose_estimation_series
-                    for i in ["ind1_leftear", "ind1_rightear", "ind1_snout", "ind1_tailbase"]
-                ]
-            )
+            processing_module_interfaces = nwbfile.processing["behavior"].data_interfaces
+            assert "PoseEstimation" in processing_module_interfaces
+
+            pose_estimation_series_in_nwb = processing_module_interfaces["PoseEstimation"].pose_estimation_series
+            expected_pose_estimation_series = ["ind1_leftear", "ind1_rightear", "ind1_snout", "ind1_tailbase"]
+
+            expected_pose_estimation_series_are_in_nwb_file = [
+                pose_estimation in pose_estimation_series_in_nwb for pose_estimation in expected_pose_estimation_series
+            ]
+
+            assert all(expected_pose_estimation_series_are_in_nwb_file)
 
 
 class TestMovieDataNwbConversions(unittest.TestCase):

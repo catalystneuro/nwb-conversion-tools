@@ -1,5 +1,6 @@
 """Heberto Mayorquin, Authors: Saksham Sharda, Cody Baker, Ben Dichter."""
 from typing import Optional
+from pathlib import Path
 
 from pynwb.file import NWBFile
 
@@ -21,7 +22,7 @@ class DeepLabCutInterface(BaseDataInterface):
 
     def __init__(
         self,
-        dlc_file_path: FilePathType,
+        file_path: FilePathType,
         config_file_path: FilePathType,
         subject_name: str = "ind1",
         verbose: bool = True,
@@ -30,18 +31,20 @@ class DeepLabCutInterface(BaseDataInterface):
         Interface for writing DLC's h5 files to nwb using dlc2nwb.
         Parameters
         ----------
-        dlc_file_path: FilePathType
+        file_path: FilePathType
             path to the h5 file output by dlc.
         config_file_path: FilePathType
             path to .yml config file
         """
-        if "DLC" not in dlc_file_path or not dlc_file_path.endswith(".h5"):
+        file_path = Path(file_path)
+        if "DLC" not in file_path.stem or ".h5" not in file_path.suffixes:
             raise IOError("The file passed in is not a DeepLabCut h5 data file.")
         assert HAVE_DLC2NWB, "to use this datainterface: 'pip install dlc2nwb'"
+
         self._config_file = auxiliaryfunctions.read_config(config_file_path)
         self.subject_name = subject_name
         self.verbose = verbose
-        super().__init__(dlc_file_path=dlc_file_path, config_file_path=config_file_path)
+        super().__init__(file_path=file_path, config_file_path=config_file_path)
 
     def get_metadata(self):
         metadata = dict(
@@ -72,7 +75,7 @@ class DeepLabCutInterface(BaseDataInterface):
         ) as nwbfile_out:
             write_subject_to_nwb(
                 nwbfile=nwbfile_out,
-                h5file=str(self.source_data["dlc_file_path"]),
+                h5file=str(self.source_data["file_path"]),
                 individual_name=self.subject_name,
                 config_file=self.source_data["config_file_path"],
             )
