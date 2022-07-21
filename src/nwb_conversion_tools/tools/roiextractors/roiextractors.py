@@ -427,8 +427,25 @@ def get_nwb_segmentation_metadata(sgmextractor):
 
 
 def add_summary_images(
-    nwbfile: NWBFile, segmentation_extractor: SegmentationExtractor, images_set_name: str
+    nwbfile: NWBFile, segmentation_extractor: SegmentationExtractor, images_set_name: str = "summary_images"
 ) -> NWBFile:
+    """
+    Adds summary images (i.e. mean and correlation) to the nwbfile using an image container object pynwb.Image
+
+    Parameters
+    ----------
+    nwbfile : NWBFile
+        An previously defined -in memory- NWBFile.
+    segmentation_extractor : SegmentationExtractor
+        A segmentation extractor object from roiextractors.
+    images_set_name : str
+        The name of the image container, "summary_images" by default.
+
+    Returns
+    -------
+    NWBFile
+        The nwbfile passed as an input with the summary images added.
+    """
 
     images_dict = segmentation_extractor.get_images_dict()
     images_to_add = {img_name: img for img_name, img in images_dict.items() if img is not None}
