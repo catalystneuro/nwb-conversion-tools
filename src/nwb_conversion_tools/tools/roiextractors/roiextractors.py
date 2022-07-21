@@ -15,6 +15,7 @@ from pynwb.image import GrayscaleImage
 from pynwb.device import Device
 from pynwb.ophys import (
     ImageSegmentation,
+    ImagingPlane,
     Fluorescence,
     OpticalChannel,
     TwoPhotonSeries,
@@ -38,6 +39,20 @@ def get_default_ophys_metadata():
     metadata = get_default_nwbfile_metadata()
 
     default_device = dict(name="Microscope")
+    default_optical_channel = dict(
+        name="OpticalChannel",
+        emission_lambda=np.nan,
+        description="no description",
+    )
+    default_imaging_plane = dict(
+        name="ImagingPlane",
+        description="no description",
+        excitation_lambda=np.nan,
+        indicator="unknown",
+        location="unknown",
+        device=default_device["name"],
+        optical_channel=[default_optical_channel],
+    )
 
     metadata.update(
         Ophys=dict(
@@ -51,23 +66,7 @@ def get_default_ophys_metadata():
                 ]
             ),
             ImageSegmentation=dict(plane_segmentations=[dict(description="Segmented ROIs", name="PlaneSegmentation")]),
-            ImagingPlane=[
-                dict(
-                    name="ImagingPlane",
-                    description="no description",
-                    excitation_lambda=np.nan,
-                    indicator="unknown",
-                    location="unknown",
-                    device=default_device["name"],
-                    optical_channel=[
-                        dict(
-                            name="OpticalChannel",
-                            emission_lambda=np.nan,
-                            description="no description",
-                        )
-                    ],
-                )
-            ],
+            ImagingPlane=[default_imaging_plane],
             TwoPhotonSeries=[
                 dict(
                     name="TwoPhotonSeries",
@@ -124,7 +123,12 @@ def get_nwb_imaging_metadata(imgextractor: ImagingExtractor):
 
 
 def add_devices(nwbfile: NWBFile, metadata: dict) -> NWBFile:
-    """Add optical physiology devices from metadata."""
+    """
+    Add optical physiology devices from metadata.
+    The metadata concerning the optical physiology should be stored in metadata["Ophys]["Device"]
+    This function handles both a text specification of the device to be built and an actual pynwb.Device object.
+
+    """
     metadata_copy = deepcopy(metadata)
     default_metadata = get_default_ophys_metadata()
     metadata_copy = dict_deep_update(default_metadata, metadata_copy, append_list=False)
@@ -138,27 +142,78 @@ def add_devices(nwbfile: NWBFile, metadata: dict) -> NWBFile:
     return nwbfile
 
 
-def _add_imaging_plane(nwbfile: NWBFile, metadata=dict) -> NWBFile:
+def _create_imaging_plane_from_metadata(nwbfile: NWBFile, imaging_plane_metadata: dict) -> ImagingPlane:
+    """
+    Private auxiliar function to create an ImagingPlane object from pynwb using the imaging_plane_metadata
+    Parameters
+    ----------
+    nwbfile : NWBFile
+        An previously defined -in memory- NWBFile.
 
-    metadata_copy = deepcopy(metadata)
-    add_devices(nwbfile=nwbfile, metadata=metadata_copy)
+    imaging_plane_metadata : dict
+        The metadata to create the ImagingPlane object.
 
-    # Add the image plane
-    image_plane_metadata = metadata_copy["Ophys"]["ImagingPlane"][0]
+    Returns
+    -------
+    ImagingPlane
+        The created ImagingPlane.
+    """
 
-    device_name = image_plane_metadata["device"]
-    image_plane_metadata["device"] = nwbfile.devices[device_name]
+    device_name = imaging_plane_metadata["device"]
+    imaging_plane_metadata["device"] = nwbfile.devices[device_name]
 
-    image_plane_metadata["optical_channel"] = [
-        OpticalChannel(**metadata) for metadata in image_plane_metadata["optical_channel"]
+    imaging_plane_metadata["optical_channel"] = [
+        OpticalChannel(**metadata) for metadata in imaging_plane_metadata["optical_channel"]
     ]
 
-    nwbfile.create_imaging_plane(**image_plane_metadata)
+    imaging_plane = ImagingPlane(**imaging_plane_metadata)
+
+    return imaging_plane
+
+
+def add_imaging_plane(nwbfile: NWBFile, metadata: dict, imaging_plane_index: int = 0) -> NWBFile:
+    """
+    Adds the imaging plane specificied by the metadata to the nwb file.
+    The imaging plane that is added is the one located in metadata["Ophys"]["ImagingPlane"][imaging_plane_index]
+
+    Parameters
+    ----------
+    nwbfile : NWBFile
+        An previously defined -in memory- NWBFile.
+    metadata : dict
+        The metadata in the nwb conversion tools format.
+    imaging_plane_index : int, optional
+        The metadata in the nwb conversion tools format is a list of the different imaging planes to add.
+        Specificy which element of the list with this parameter, by default 0
+
+    Returns
+    -------
+    NWBFile
+        The nwbfile passed as an input with the imaging plane added.
+    """
+
+    # Set the defaults and required infrastructure
+    metadata_copy = deepcopy(metadata)
+    default_metadata = get_default_ophys_metadata()
+    metadata_copy = dict_deep_update(default_metadata, metadata_copy, append_list=False)
+    add_devices(nwbfile=nwbfile, metadata=metadata_copy)
+
+    imaging_plane_metadata = metadata_copy["Ophys"]["ImagingPlane"][imaging_plane_index]
+    imaging_plane_name = imaging_plane_metadata["name"]
+    existing_imaging_planes = nwbfile.imaging_planes
+
+    if imaging_plane_name not in existing_imaging_planes:
+        imaging_plane = _create_imaging_plane_from_metadata(
+            nwbfile=nwbfile, imaging_plane_metadata=imaging_plane_metadata
+        )
+        nwbfile.add_imaging_plane(imaging_plane)
 
     return nwbfile
 
 
-def add_two_photon_series(imaging, nwbfile, metadata, buffer_size=10, use_times=False):
+def add_two_photon_series(
+    imaging, nwbfile, metadata, buffer_size=10, use_times=False, two_photon_series_index: int = 0
+):
     """
     Auxiliary static method for nwbextractor.
 
@@ -172,15 +227,18 @@ def add_two_photon_series(imaging, nwbfile, metadata, buffer_size=10, use_times=
     metadata_copy = dict_deep_update(get_nwb_imaging_metadata(imaging), metadata_copy, append_list=False)
 
     # Tests if TwoPhotonSeries already exists in acquisition
-    two_photon_series_metadata = metadata_copy["Ophys"]["TwoPhotonSeries"][0]
+    two_photon_series_metadata = metadata_copy["Ophys"]["TwoPhotonSeries"][two_photon_series_index]
     two_photon_series_name = two_photon_series_metadata["name"]
 
     if two_photon_series_name in nwbfile.acquisition:
         warn(f"{two_photon_series_name} already on nwbfile")
         return nwbfile
 
-    # Add the image plane to nwb.
-    nwbfile = _add_imaging_plane(nwbfile=nwbfile, metadata=metadata_copy)
+    # Add the image plane to nwb
+    nwbfile = add_imaging_plane(nwbfile=nwbfile, metadata=metadata_copy)
+    imaging_plane_name = two_photon_series_metadata["imaging_plane"]
+    imaging_plane = nwbfile.get_imaging_plane(name=imaging_plane_name)
+    two_photon_series_metadata.update(imaging_plane=imaging_plane)
 
     # Add the data
     def data_generator(imaging):
@@ -205,11 +263,6 @@ def add_two_photon_series(imaging, nwbfile, metadata, buffer_size=10, use_times=
     else:
         two_p_series_kwargs.update(timestamps=H5DataIO(timestamps, compression="gzip"))
         two_p_series_kwargs["rate"] = None
-
-    # Add imaging plane
-    imaging_plane_name = two_photon_series_metadata["imaging_plane"]
-    imaging_plane = nwbfile.get_imaging_plane(name=imaging_plane_name)
-    two_p_series_kwargs.update(imaging_plane=imaging_plane)
 
     # Add the TwoPhotonSeries to the nwbfile
     two_photon_series = TwoPhotonSeries(**two_p_series_kwargs)
@@ -401,6 +454,7 @@ def write_segmentation(
         if metadata is not None and not isinstance(metadata, list):
             metadata = [metadata]
     metadata_base_list = [get_nwb_segmentation_metadata(sgobj) for sgobj in segext_objs]
+
     # updating base metadata with new:
     for num, data in enumerate(metadata_base_list):
         metadata_input = metadata[num] if metadata else {}
@@ -438,10 +492,12 @@ def write_segmentation(
         ophys = nwbfile.create_processing_module("ophys", "contains optical physiology processed data")
     else:
         ophys = nwbfile.get_processing_module("ophys")
+
     for plane_no_loop, (segext_obj, metadata) in enumerate(zip(segext_objs, metadata_base_list)):
         # Device:
         if metadata["Ophys"]["Device"][0]["name"] not in nwbfile.devices:
             nwbfile.create_device(**metadata["Ophys"]["Device"][0])
+
         # ImageSegmentation:
         image_segmentation_name = (
             "ImageSegmentation" if plane_no_loop == 0 else f"ImageSegmentation_Plane{plane_no_loop}"
@@ -451,23 +507,12 @@ def write_segmentation(
             ophys.add(image_segmentation)
         else:
             image_segmentation = ophys.data_interfaces.get(image_segmentation_name)
-        # OpticalChannel:
-        optical_channels = [OpticalChannel(**i) for i in metadata["Ophys"]["ImagingPlane"][0]["optical_channel"]]
 
-        # ImagingPlane:
-        image_plane_name = "ImagingPlane" if plane_no_loop == 0 else f"ImagePlane_{plane_no_loop}"
-        if image_plane_name not in nwbfile.imaging_planes.keys():
-            input_kwargs = dict(
-                name=image_plane_name,
-            )
-            metadata["Ophys"]["ImagingPlane"][0]["optical_channel"] = optical_channels
-            input_kwargs.update(**metadata["Ophys"]["ImagingPlane"][0])
-            input_kwargs.update(device=nwbfile.get_device(metadata_base_common["Ophys"]["Device"][0]["name"]))
-            if "imaging_rate" in input_kwargs:
-                input_kwargs["imaging_rate"] = float(input_kwargs["imaging_rate"])
-            imaging_plane = nwbfile.create_imaging_plane(**input_kwargs)
-        else:
-            imaging_plane = nwbfile.imaging_planes[image_plane_name]
+        # Add imaging plane
+        imaging_plane_name = "ImagingPlane" if plane_no_loop == 0 else f"ImagePlane_{plane_no_loop}"
+        add_imaging_plane(nwbfile=nwbfile, metadata=metadata)
+        imaging_plane = nwbfile.imaging_planes[imaging_plane_name]
+
         # PlaneSegmentation:
         input_kwargs = dict(
             description="output from segmenting imaging plane",
@@ -567,6 +612,7 @@ def write_segmentation(
         # create Two Photon Series:
         if "TwoPhotonSeries" not in nwbfile.acquisition:
             warn("could not find TwoPhotonSeries, using ImagingExtractor to create an nwbfile")
+
         # adding images:
         images_dict = segext_obj.get_images_dict()
         if any([image is not None for image in images_dict.values()]):
