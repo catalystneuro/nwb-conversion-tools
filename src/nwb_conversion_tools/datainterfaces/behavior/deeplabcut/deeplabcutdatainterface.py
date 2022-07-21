@@ -9,7 +9,7 @@ from nwb_conversion_tools.utils import FilePathType, OptionalFilePathType
 from nwb_conversion_tools.tools.nwb_helpers import make_or_load_nwbfile
 
 try:
-    from dlc2nwb.utils import convert_h5_to_nwb, auxiliaryfunctions
+    from dlc2nwb.utils import auxiliaryfunctions, write_subject_to_nwb
 
     HAVE_DLC2NWB = True
 except ImportError:
@@ -70,9 +70,9 @@ class DeepLabCutInterface(BaseDataInterface):
         with make_or_load_nwbfile(
             nwbfile_path=nwbfile_path, nwbfile=nwbfile, metadata=metadata, overwrite=overwrite, verbose=self.verbose
         ) as nwbfile_out:
-            convert_h5_to_nwb(
-                self.source_data["config_file_path"],
-                h5file=self.source_data["dlc_file_path"],
-                individual_name=self.subject_name,
+            write_subject_to_nwb(
                 nwbfile=nwbfile_out,
+                h5file=str(self.source_data["dlc_file_path"]),
+                individual_name=self.subject_name,
+                config_file=self.source_data["config_file_path"],
             )
