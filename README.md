@@ -5,7 +5,7 @@
 [![documentation](https://readthedocs.org/projects/nwb-conversion-tools/badge/?version=main)](https://nwb-conversion-tools.readthedocs.io/en/main/)
 [![License](https://img.shields.io/pypi/l/pynwb.svg)](https://github.com/catalystneuro/nwb-conversion-tools/license.txt)
 
-**NWB Conversion Tools is deprecated. See [NeuroConv]([url](https://github.com/catalystneuro/neuroconv)) instead.**
+**NWB Conversion Tools is deprecated. See [NeuroConv](https://github.com/catalystneuro/neuroconv) instead.**
 
 # NWB conversion tools
 
