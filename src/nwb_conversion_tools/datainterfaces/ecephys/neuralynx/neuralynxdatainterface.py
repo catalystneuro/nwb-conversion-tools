@@ -3,6 +3,7 @@ from pathlib import Path
 import typing
 from natsort import natsorted
 import json
+import warnings
 
 from spikeinterface.extractors import NeuralynxRecordingExtractor
 from spikeinterface.core.old_api_utils import OldToNewRecording
@@ -62,7 +63,8 @@ def get_common_metadata(extractors: typing.List[NeuralynxRecordingExtractor]) ->
 
 
 def get_filtering(extractor: NeuralynxRecordingExtractor) -> str:
-    """Get the filtering metadata from a .ncs file.
+    """Get the filtering metadata from a NeuralynxRecordingExtractor.
+
     Parameters
     ----------
     extractor: NeuralynxRecordingExtractor
@@ -76,6 +78,7 @@ def get_filtering(extractor: NeuralynxRecordingExtractor) -> str:
 
     # extracting filter annotations
     neo_annotations = extractor.neo_reader.raw_annotations
+    # extracting only first signal as Extractor handles only a single stream at a time
     signal_info = neo_annotations["blocks"][0]["segments"][0]["signals"][0]
     signal_annotations = signal_info["__array_annotations__"]
     filter_dict = {k: v for k, v in signal_annotations.items() if k.lower().startswith("dsp")}
@@ -133,7 +136,9 @@ class NeuralynxRecordingInterface(BaseRecordingExtractorInterface):
 
         for i, extractor in enumerate(extractors):
             filter_info = get_filtering(extractor)
-            self.recording_extractor.set_property(key="filtering", values=filter_info)
+            if not filter_info:
+                warnings.warn("filtering could not be extracted.")
+            extractor.set_property(key="filtering", values=filter_info)
 
     def get_metadata(self):
         # extracting general session metadata exemplary from first recording
