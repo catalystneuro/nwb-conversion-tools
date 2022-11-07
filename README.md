@@ -7,7 +7,9 @@
 
 **NWB Conversion Tools is deprecated. See [NeuroConv](https://github.com/catalystneuro/neuroconv) instead.**
 
-# NWB conversion tools
+
+
+# NWB conversion tools (LEGACY)
 
 NWB Conversion Tools is a package for creating NWB files by converting and
 combining neural data in proprietary formats and adding essential metadata.
